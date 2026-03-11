@@ -35,28 +35,16 @@
                     <span class="sidebar-menu-text">Certificates</span>
                 </a>
             </li>
-            <li class="sidebar-menu-item <?php echo ($page === 'cart') ? 'active' : ''; ?>">
-                <a href="<?php echo BASE_URL; ?>learner/?page=cart">
-                    <span class="sidebar-menu-icon">🛒</span>
-                    <span class="sidebar-menu-text">My Cart</span>
+            <li class="sidebar-menu-item <?php echo ($page === 'messages') ? 'active' : ''; ?>">
+                <a href="<?php echo BASE_URL; ?>learner/?page=messages">
+                    <span class="sidebar-menu-icon">💬</span>
+                    <span class="sidebar-menu-text">Messages</span>
                 </a>
             </li>
             <li class="sidebar-menu-item <?php echo ($page === 'payments') ? 'active' : ''; ?>">
                 <a href="<?php echo BASE_URL; ?>learner/?page=payments">
                     <span class="sidebar-menu-icon">💳</span>
                     <span class="sidebar-menu-text">Payment History</span>
-                </a>
-            </li>
-            <li class="sidebar-menu-item <?php echo ($page === 'wishlist') ? 'active' : ''; ?>">
-                <a href="<?php echo BASE_URL; ?>learner/?page=wishlist">
-                    <span class="sidebar-menu-icon">❤️</span>
-                    <span class="sidebar-menu-text">Wishlist</span>
-                </a>
-            </li>
-            <li class="sidebar-menu-item <?php echo ($page === 'messages') ? 'active' : ''; ?>">
-                <a href="<?php echo BASE_URL; ?>learner/?page=messages">
-                    <span class="sidebar-menu-icon">💬</span>
-                    <span class="sidebar-menu-text">Messages</span>
                 </a>
             </li>
             <li class="sidebar-menu-item <?php echo ($page === 'profile') ? 'active' : ''; ?>">
