@@ -106,3 +106,130 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(typingElement);
     }
 });
+
+// Learner dashboard interactions
+(function () {
+    'use strict';
+
+    function isLearnerPage() {
+        return window.location.pathname.toLowerCase().includes('/learner/');
+    }
+
+    function closeDropdowns() {
+        document.querySelectorAll('.notifications-menu, .messages-menu, .profile-menu').forEach(menu => {
+            menu.classList.remove('active');
+        });
+
+        const profileBtn = document.querySelector('.profile-btn');
+        if (profileBtn) {
+            profileBtn.classList.remove('active');
+        }
+    }
+
+    function initDropdowns() {
+        function toggleMenu(menu, button) {
+            const wasOpen = menu.classList.contains('active');
+            closeDropdowns();
+
+            if (!wasOpen) {
+                menu.classList.add('active');
+                if (button && button.classList.contains('profile-btn')) {
+                    button.classList.add('active');
+                }
+            }
+        }
+
+        const notificationsBtn = document.querySelector('.notifications-btn');
+        const notificationsMenu = document.querySelector('.notifications-menu');
+        if (notificationsBtn && notificationsMenu) {
+            notificationsBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                toggleMenu(notificationsMenu, notificationsBtn);
+            });
+        }
+
+        const messagesBtn = document.querySelector('.messages-btn');
+        const messagesMenu = document.querySelector('.messages-menu');
+        if (messagesBtn && messagesMenu) {
+            messagesBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                toggleMenu(messagesMenu, messagesBtn);
+            });
+        }
+
+        const profileBtn = document.querySelector('.profile-btn');
+        const profileMenu = document.querySelector('.profile-menu');
+        if (profileBtn && profileMenu) {
+            profileBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                toggleMenu(profileMenu, profileBtn);
+            });
+        }
+
+        document.addEventListener('click', closeDropdowns);
+    }
+
+    function initSidebarToggle() {
+        const sidebar = document.querySelector('.provider-sidebar');
+        const toggleBtn = document.querySelector('.sidebar-toggle-btn');
+
+        if (!sidebar || !toggleBtn) {
+            return;
+        }
+
+        toggleBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isOpen = sidebar.classList.toggle('active');
+            toggleBtn.classList.toggle('active', isOpen);
+            toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        const sidebarLinks = sidebar.querySelectorAll('.sidebar-menu-item a');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('active');
+                    toggleBtn.classList.remove('active');
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+
+        document.addEventListener('click', function (e) {
+            if (window.innerWidth > 768) {
+                return;
+            }
+
+            const clickedInsideSidebar = sidebar.contains(e.target);
+            const clickedToggle = toggleBtn.contains(e.target);
+            if (!clickedInsideSidebar && !clickedToggle && sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                toggleBtn.classList.remove('active');
+                toggleBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                sidebar.classList.remove('active');
+                toggleBtn.classList.remove('active');
+                toggleBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    function initLearnerDashboard() {
+        if (!isLearnerPage()) {
+            return;
+        }
+
+        initDropdowns();
+        initSidebarToggle();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLearnerDashboard);
+    } else {
+        initLearnerDashboard();
+    }
+})();

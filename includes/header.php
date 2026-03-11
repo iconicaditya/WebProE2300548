@@ -9,6 +9,9 @@
 
 // Include configuration files
 require_once(__DIR__ . '/../config/config.php');
+
+$assetVersion = isset($assetVersion) ? $assetVersion : APP_VERSION;
+$pageStylesheet = isset($pageStylesheet) ? $pageStylesheet : 'aaditya.css';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,15 +32,17 @@ require_once(__DIR__ . '/../config/config.php');
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/main.css?v=<?php echo APP_VERSION; ?>">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/aaditya.css?v=<?php echo APP_VERSION; ?>">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/sandhya.css?v=<?php echo APP_VERSION; ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/main.css?v=<?php echo $assetVersion; ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/<?php echo htmlspecialchars($pageStylesheet); ?>?v=<?php echo $assetVersion; ?>">
+    <?php if (!isset($skipSandhyaCss) || !$skipSandhyaCss): ?>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/sandhya.css?v=<?php echo $assetVersion; ?>">
+    <?php endif; ?>
     <!-- Brand fonts (Inter for UI, Merriweather for headings) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     
 </head>
-<body>
+<body class="<?php echo isset($bodyClass) ? htmlspecialchars($bodyClass) : ''; ?>">
     <!-- Navigation will be included in each page -->
     <!-- Main content area starts after navbar -->
