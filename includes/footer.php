@@ -81,6 +81,7 @@
     <!-- Custom JavaScript -->
     <script src="<?php echo BASE_URL; ?>assets/js/main.js?v=<?php echo APP_VERSION; ?>"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/aaditya.js?v=<?php echo APP_VERSION; ?>"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/sandhya.js?v=<?php echo APP_VERSION; ?>"></script>
     
     <!-- Page-specific scripts can be added before closing body tag -->
 </body>
