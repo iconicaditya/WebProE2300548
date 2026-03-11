@@ -1,0 +1,660 @@
+/**
+ * Main Stylesheet
+ * EduSkill Marketplace System (EMS)
+ *
+ * This file contains all custom CSS styles for the application.
+ * Bootstrap 5 is the primary CSS framework.
+ * This file extends Bootstrap with custom styles as needed.
+ *
+ * Color Scheme:
+ * - Primary: Bootstrap default (blue)
+ * - Secondary: Bootstrap default (gray)
+ *
+ * Structure:
+ * 1. Root & Global Styles
+ * 2. Navigation & Header
+ * 3. Main Content Areas
+ * 4. Footer Styles
+ * 5. Utility Classes
+ * 6. Responsive Design
+ * 7. Animation & Transitions
+ */
+
+/* ============================================
+   1. ROOT & GLOBAL STYLES
+   ============================================ */
+
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+/* Ensure no unexpected gaps between main content and footer */
+main, .login-page, .login-shell {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Force footer flush */
+footer, .realhomes-footer { margin-top: 0 !important; }
+
+/* Headings use a serif for brand feel */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Merriweather', Georgia, 'Times New Roman', serif;
+}
+
+/* ============================================
+   2. NAVIGATION & HEADER
+   ============================================ */
+
+.navbar-brand {
+    font-size: 1.5rem;
+    color: var(--primary-color) !important;
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover {
+    transform: scale(1.05);
+}
+
+/* Make custom eduskill navbar fixed to top and prevent content overlap */
+.eduskill-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    width: 100%;
+}
+
+/* Center navbar content and match footer horizontal padding */
+.eduskill-navbar .navbar-container {
+    /* Slightly tighter edges: 8px horizontal padding */
+    width: calc(100% - 16px); /* 8px each side */
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: transparent;
+}
+
+/* Enforce identical horizontal container for header, subheader and footer */
+.site-aligned-container,
+.eduskill-navbar .navbar-container,
+.navbar-links > div,
+.realhomes-footer-inner {
+    width: calc(100% - 16px) !important; /* 8px each side */
+    max-width: 1400px !important;
+    margin: 0 auto !important;
+    padding: 0 8px !important;
+}
+
+/* Account for navbar two-layer height (64px + 44px = 108px) */
+body {
+    padding-top: calc(64px + 44px);
+}
+
+/* ============================================
+   3. MAIN CONTENT AREAS
+   ============================================ */
+
+main {
+    min-height: calc(100vh - 120px);
+    padding: 30px 0;
+}
+
+.container-fluid, .container {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* ============================================
+   4. FOOTER STYLES
+   ============================================ */
+
+footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    margin-top: 0; /* remove default top gap */
+    padding: 30px 0 0; /* keep bottom padding but remove extra top space */
+    text-align: center;
+    color: var(--secondary-color);
+}
+
+.realhomes-footer {
+    position: relative;
+    --footer-accent: #4186a0;
+    --footer-accent-dark: #2f728a;
+    --footer-accent-soft: #7eb7cb;
+    background:
+        linear-gradient(135deg, rgba(22, 28, 35, 0.86) 0%, rgba(32, 42, 52, 0.86) 45%, rgba(18, 26, 34, 0.86) 100%),
+        url('../images/footerbg1.png') center center / cover no-repeat;
+    margin-top: 0; /* ensure footer sits directly after content */
+    color: #bfc7cd;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow: hidden;
+    border-top: none;
+    /* Add top padding so footer content doesn't sit flush against the top border */
+    padding: 28px 0 20px;
+    text-align: left;
+}
+
+.realhomes-footer::before {
+    /* Removed heavy slanted overlay to avoid covering content */
+    content: none;
+}
+
+.realhomes-footer-inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    /* allow footer to span wider on large screens while keeping small side padding */
+    max-width: none;
+    margin: 0;
+    padding: 28px 8px 20px; /* match navbar 8px sides */
+}
+
+.realhomes-footer-content {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr 1fr;
+    gap: 12px;
+    align-items: start;
+    width: calc(100% - 16px); /* match 8px each side */
+    margin: 0 auto;
+    max-width: 1400px;
+}
+
+.realhomes-footer .realhomes-col {
+    min-width: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+.realhomes-footer .footer-panel-title {
+    margin: 0 0 10px;
+    padding: 0;
+    background: transparent;
+    border-left: 3px solid var(--footer-accent);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: none;
+}
+
+.footer-panel {
+    background: transparent;
+    border: none;
+    padding: 0 8px;
+}
+
+.realhomes-footer .footer-panel-logo {
+    min-height: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 0;
+    background: transparent;
+    border-bottom: none;
+}
+
+.footer-panel-logo img {
+    max-width: 180px;
+    height: auto;
+    width: auto;
+    object-fit: contain;
+}
+
+.realhomes-about-text {
+    margin: 6px 0 0;
+    padding: 0;
+    color: #c7d2db;
+    font-size: 14px;
+    line-height: 1.55;
+     align-items: center; /* vertically center icon and text */
+    text-transform: none;
+    text-align: left;
+    max-width: 420px;
+}
+
+     margin: 0; /* remove manual offset */
+.realhomes-contact-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.realhomes-links-list li,
+.realhomes-contact-list li {
+    margin-bottom: 12px;
+}
+
+.realhomes-links-list a {
+    color: #c7d2db;
+    text-decoration: none;
+    font-size: 14px;
+    position: relative;
+    padding-left: 26px;
+    display: block;
+}
+
+.realhomes-links-list a:visited,
+.realhomes-links-list a:active,
+.realhomes-links-list a:focus {
+    color: #c7d2db;
+    text-decoration: none;
+}
+
+.realhomes-links-list li {
+    list-style: none !important; /* ensure no bullets appear */
+    position: relative;
+}
+.realhomes-links-list a::before {
+    content: "›";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--footer-accent-soft);
+    font-size: 20px;
+    line-height: 1;
+}
+
+.realhomes-links-list a:hover {
+    color: var(--footer-accent-soft);
+}
+
+.realhomes-contact-list li {
+    display: flex;
+    gap: 12px;
+    color: #c7d2db;
+    font-size: 14px;
+    line-height: 1.45;
+    align-items: flex-start;
+}
+
+.realhomes-contact-list .icon {
+    width: 29px;
+    min-width: 29px;
+    margin-top: 6px;
+    color: var(--footer-accent-soft);
+}
+
+.realhomes-contact-list .icon svg {
+    width: 29px;
+    height: 29px;
+}
+
+.realhomes-contact-list .icon i {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.realhomes-newsletter {
+    max-width: 100%;
+}
+
+.realhomes-newsletter input {
+    width: 100%;
+    height: 46px;
+    border: 1px solid #4f545c;
+    background: #ffffff;
+    padding: 0 14px;
+    font-size: 14px;
+    color: #555b63;
+    margin-bottom: 12px;
+    outline: none;
+}
+
+.realhomes-newsletter input:focus {
+    border-color: var(--footer-accent);
+    box-shadow: 0 0 0 0.2rem rgba(65, 134, 160, 0.22);
+}
+
+.realhomes-newsletter input::placeholder {
+    color: #92979f;
+}
+
+.realhomes-newsletter button {
+    border: none;
+    background: var(--footer-accent);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 8px 18px;
+    min-width: 120px;
+}
+
+.realhomes-newsletter button:hover {
+    background: var(--footer-accent-dark);
+}
+
+.realhomes-col-newsletter .realhomes-social {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.realhomes-col-newsletter .realhomes-social a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    color: var(--footer-accent-soft);
+    transition: color 0.2s ease, background 0.2s ease;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.03);
+}
+
+.realhomes-col-newsletter .realhomes-social a i {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.realhomes-col-newsletter .realhomes-social a:hover {
+    color: var(--footer-accent);
+}
+
+.realhomes-footer-bottom {
+    /* increase gap above the footer bottom border so content doesn't touch it */
+    margin-top: 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 20px 8px 18px; /* more top padding for breathing room */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #9aa3ac;
+    font-size: 13px;
+}
+
+/* Add inset margin to the left copyright text so it's visually separated from edge */
+.realhomes-footer-bottom span:first-child {
+    margin-left: 8px; /* match left inset */
+}
+
+@media (max-width: 575.98px) {
+    .realhomes-footer-bottom span:first-child { margin-left: 0; }
+}
+
+/* Responsive adjustments: stack nicely on small screens */
+@media (max-width: 991px) {
+    .realhomes-footer-content {
+        grid-template-columns: 1fr 1fr;
+    }
+    .realhomes-about-text { max-width: none; }
+}
+
+@media (max-width: 575.98px) {
+    .realhomes-footer-inner { padding: 40px 14px 20px; }
+    .realhomes-footer-content { grid-template-columns: 1fr; gap: 14px; }
+    .realhomes-footer-bottom { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
+@media (max-width: 1400px) {
+    .realhomes-footer-inner {
+        padding: 130px 18px 30px;
+    }
+
+    .realhomes-footer::before {
+        top: 0;
+        height: 104px;
+        clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+
+    .footer-panel-title,
+    .realhomes-links-list a,
+    .realhomes-contact-list li,
+    .realhomes-newsletter input,
+    .realhomes-footer-bottom {
+        font-size: 16px;
+    }
+
+    .realhomes-about-text {
+        font-size: 16px;
+    }
+
+    .realhomes-footer .footer-panel-logo {
+        min-height: 96px;
+    }
+
+    .footer-panel-logo img {
+        height: 68px;
+    }
+
+    .realhomes-newsletter button {
+        font-size: 20px;
+        min-width: 120px;
+        padding: 10px 20px;
+    }
+
+    .realhomes-newsletter input {
+        height: 50px;
+    }
+
+    .realhomes-contact-list .icon,
+    .realhomes-contact-list .icon svg {
+        width: 18px;
+        min-width: 18px;
+        height: 18px;
+    }
+
+    .realhomes-contact-list .icon i {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 991px) {
+    .realhomes-footer {
+        margin-top: 56px;
+    }
+
+    .realhomes-footer-inner {
+        padding: 96px 14px 26px;
+    }
+
+    .realhomes-footer-content {
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .realhomes-col {
+        padding-bottom: 12px;
+    }
+
+    .realhomes-footer::before {
+        top: 0;
+        height: 82px;
+        clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+
+    .footer-panel-title {
+        margin-bottom: 10px;
+        font-size: 22px;
+    }
+
+    .realhomes-about-text {
+        font-size: 15px;
+    }
+
+    .realhomes-footer .footer-panel-logo {
+        min-height: 90px;
+    }
+
+    .footer-panel-logo img {
+        height: 62px;
+    }
+
+    .realhomes-footer-bottom {
+        margin-top: 36px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .realhomes-footer-inner {
+        padding: 84px 12px 24px;
+    }
+
+    .realhomes-footer-content {
+        grid-template-columns: 1fr;
+    }
+
+    .realhomes-col {
+        padding-bottom: 10px;
+    }
+
+    .realhomes-footer .footer-panel-logo {
+        min-height: 82px;
+    }
+
+    .footer-panel-logo img {
+        height: 56px;
+    }
+
+    .realhomes-links-list a,
+    .realhomes-contact-list li,
+    .realhomes-newsletter input {
+        font-size: 15px;
+    }
+
+    .footer-panel-title {
+        font-size: 20px;
+    }
+
+    .realhomes-about-text {
+        font-size: 14px;
+        letter-spacing: 0.1px;
+    }
+
+    .realhomes-contact-list .icon,
+    .realhomes-contact-list .icon svg {
+        width: 16px;
+        min-width: 16px;
+        height: 16px;
+    }
+
+    .realhomes-contact-list .icon i {
+        font-size: 14px;
+    }
+
+    .realhomes-newsletter {
+        max-width: 100%;
+    }
+
+    .realhomes-newsletter input {
+        height: 46px;
+        margin-bottom: 14px;
+    }
+
+    .realhomes-newsletter button {
+        min-width: 108px;
+        font-size: 16px;
+        padding: 8px 18px;
+    }
+
+    .realhomes-footer-bottom {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 420px) {
+    .realhomes-footer-inner {
+        padding-top: 74px;
+    }
+
+    .realhomes-footer::before {
+        top: 0;
+        height: 68px;
+        clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+}
+
+/* ============================================
+   5. UTILITY CLASSES
+   ============================================ */
+
+/* Text utilities */
+.text-muted-custom {
+    color: var(--secondary-color);
+}
+
+.text-primary-custom {
+    color: var(--primary-color);
+}
+
+/* Spacing utilities */
+.mt-custom {
+    margin-top: 50px;
+}
+
+.mb-custom {
+    margin-bottom: 50px;
+}
+
+/* ============================================
+   6. RESPONSIVE DESIGN
+   ============================================ */
+
+/* Extra small devices (phones, less than 576px) */
+@media (max-width: 575.98px) {
+    html, body {
+        font-size: 14px;
+    }
+
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+}
+
+/* Small devices and up (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+    /* Styles for small devices and up */
+}
+
+/* ============================================
+   7. ANIMATION & TRANSITIONS
+   ============================================ */
+
+/* Smooth transitions */
+a {
+    transition: all 0.3s ease;
+}
+
+button {
+    transition: all 0.2s ease;
+}
+
+/* ============================================
+   NOTE: CSS Framework
+   - This application uses Bootstrap 5
+   - Main styles are imported via Bootstrap CDN
+   - Only custom styles are added in this file
+   - Follow Bootstrap class naming conventions
+   ============================================ */
+

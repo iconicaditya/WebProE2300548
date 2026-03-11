@@ -1,0 +1,470 @@
+/*
+ * Custom styles for the new navbar (matches screenshot, now with animation, margin, and responsive improvements)
+ */
+
+.eduskill-navbar {
+    background: #fff;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    margin-bottom: 12px;
+}
+
+.eduskill-navbar .navbar-container {
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0 0 18px;
+    min-height: 64px;
+    border: none;
+    box-shadow: none;
+    gap: 18px;
+}
+
+.eduskill-logo {
+    display: flex;
+    align-items: center;
+    height: 64px;
+    margin-right: 18px;
+}
+
+.eduskill-logo img {
+    height: 44px;
+    width: auto;
+    display: block;
+    transition: transform 0.25s cubic-bezier(.4,0,.2,1), box-shadow 0.25s;
+}
+.eduskill-logo:hover img {
+    transform: scale(1.08) rotate(-3deg);
+    box-shadow: 0 4px 16px 0 rgba(33, 150, 243, 0.10);
+}
+
+.eduskill-search {
+    position: relative;
+    flex: 1;
+    margin: 0 24px;
+    max-width: 900px;
+    min-width: 180px;
+}
+.eduskill-search input[type="text"] {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 30px;
+    border: 2px solid #d1d7dc;
+    padding: 10px 44px 10px 36px;
+    font-size: 1.1rem;
+    background: #fff;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+    box-shadow: none;
+}
+.eduskill-search input[type="text"]:focus {
+    border: 2px solid #4186a0;
+    box-shadow: 0 2px 12px 0 rgba(65,134,160,0.08);
+}
+.eduskill-search .search-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #b0b7c3;
+    font-size: 1.2rem;
+    pointer-events: none;
+}
+
+.navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-left: 12px;
+}
+.navbar-actions a,
+.navbar-actions .cart-icon {
+    transition: color 0.18s, background 0.18s, box-shadow 0.18s, border 0.18s, transform 0.18s;
+}
+.navbar-actions a:hover {
+    color: #4186a0 !important;
+    background: #f3f8fa !important;
+    box-shadow: 0 2px 8px 0 rgba(65,134,160,0.08);
+    border-color: #4186a0 !important;
+    text-decoration: none;
+    transform: translateY(-2px) scale(1.04);
+}
+.navbar-actions .btn-login:hover {
+    color: #fff !important;
+    background: #4186a0 !important;
+    border-color: #4186a0 !important;
+}
+.navbar-actions .btn-signup {
+    margin-left: 10px;
+    margin-right: 10px;
+    transition: color 0.18s, background 0.18s, box-shadow 0.18s, border 0.18s, transform 0.18s;
+}
+.navbar-actions .btn-signup:hover {
+    background: #fff !important;
+    color: #5624d0 !important;
+    border: 1.5px solid #5624d0 !important;
+}
+.navbar-actions .cart-icon:hover {
+    color: #4186a0;
+    transform: scale(1.18) rotate(-8deg);
+}
+
+.eduskill-navbar .navbar-links {
+    background: #4186a0;
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 18px;
+    min-height: 44px;
+    gap: 32px;
+    margin-top: 2px;
+}
+.eduskill-navbar .navbar-links a {
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 300;
+    letter-spacing: 0.1px;
+    text-decoration: none;
+    padding: 0 5px;
+    transition: color 0.18s, border-bottom 0.18s;
+    border-radius: 6px;
+    margin: 0 2px;
+    border-bottom: 2.5px solid transparent;
+}
+.eduskill-navbar .navbar-links a:hover {
+    color: #ffd700;
+    border-bottom: 2.5px solid #ffd700;
+    background: none;
+    text-shadow: none;
+    text-decoration: none;
+}
+.eduskill-navbar .navbar-links .more-link {
+    margin-left: auto;
+    margin-right: 12px;
+    color: #fff;
+    font-size: 0.83rem;
+    font-weight: 300;
+    text-decoration: underline;
+    transition: color 0.18s;
+    border-bottom: 2.5px solid transparent;
+}
+.eduskill-navbar .navbar-links .more-link:hover {
+    color: #ffd700;
+    border-bottom: 2.5px solid #ffd700;
+    background: none;
+}
+
+@media (max-width: 991px) {
+    .eduskill-navbar .navbar-container {
+        flex-direction: column;
+        align-items: stretch;
+        height: auto;
+        padding: 8px 8px 0 8px;
+        gap: 10px;
+    }
+    .eduskill-navbar .navbar-actions {
+        margin-top: 8px;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+    .eduskill-navbar .navbar-links {
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 0 8px;
+    }
+    .eduskill-search {
+        margin: 8px 0;
+        min-width: 120px;
+    }
+    .navbar-actions .btn-signup {
+        margin-left: 6px;
+    }
+    .eduskill-navbar .navbar-links .more-link {
+        margin-right: 4px;
+    }
+}
+@media (max-width: 600px) {
+    .eduskill-navbar .navbar-container {
+        flex-direction: column;
+        align-items: stretch;
+        height: auto;
+        padding: 8px 4px 0 4px;
+        gap: 6px;
+    }
+    .eduskill-navbar .navbar-actions {
+        margin-top: 8px;
+        gap: 6px;
+    }
+    .eduskill-navbar .navbar-links {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0 4px;
+    }
+    .eduskill-search input[type="text"] {
+        max-width: 100%;
+        font-size: 1rem;
+        padding: 8px 36px 8px 30px;
+    }
+    .eduskill-logo {
+        margin-bottom: 6px;
+    }
+}
+
+/* Hero Section Styles - Professional EduSkill Design */
+.hero-section-new {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 650px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    padding: 60px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    animation: backgroundZoom 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes backgroundZoom {
+    0% {
+        background-size: 130%;
+    }
+    50% {
+        background-size: 115%;
+    }
+    100% {
+        background-size: 100%;
+    }
+}
+
+.hero-overlay-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.65) 100%);
+    z-index: 1;
+}
+
+.hero-content-wrapper {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    padding: 0 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 500px;
+    max-width: 700px;
+}
+
+.hero-text-content {
+    color: #fff;
+    animation: textAppear 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.9s forwards;
+    opacity: 0;
+}
+
+@keyframes textAppear {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-heading {
+    font-family: 'Merriweather', serif;
+    font-size: 3.5rem;
+    line-height: 1.15;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: -0.5px;
+}
+
+.hero-highlight {
+    background: linear-gradient(90deg, #4186a0, #2ba6a1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    min-height: 1.15em;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.hero-highlight.typing-active {
+    position: relative;
+}
+
+.hero-highlight.typing-active::after {
+    content: '|';
+    position: absolute;
+    right: -0.1em;
+    animation: blink-cursor 0.7s infinite;
+    background: linear-gradient(90deg, #4186a0, #2ba6a1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@keyframes blink-cursor {
+    0%, 49% {
+        opacity: 1;
+    }
+    50%, 100% {
+        opacity: 0;
+    }
+}
+
+.hero-highlight.typing-complete {
+    animation: fadeInGradient 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeInGradient {
+    from {
+        opacity: 0.8;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.hero-subheading {
+    font-size: 1.2rem;
+    color: #ffffff;
+    margin-bottom: 36px;
+    line-height: 1.7;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    font-weight: 400;
+    animation: subheadingReveal 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1.1s forwards;
+    opacity: 0;
+}
+
+@keyframes subheadingReveal {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    animation: buttonsReveal 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1.3s forwards;
+    opacity: 0;
+}
+
+@keyframes buttonsReveal {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-primary-hero,
+.btn-secondary-hero {
+    padding: 16px 36px;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary-hero {
+    background: #ffffff;
+    color: #0F1419;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+.btn-primary-hero:hover {
+    background: #f0f0f0;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+    text-decoration: none;
+    color: #0F1419;
+}
+
+.btn-secondary-hero {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    color: #ffffff;
+}
+
+.btn-secondary-hero:hover {
+    border-color: rgba(255, 255, 255, 1);
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-3px);
+    text-decoration: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .hero-content-wrapper {
+        max-width: 600px;
+        padding: 0 40px;
+    }
+
+    .hero-heading {
+        font-size: 2.8rem;
+    }
+
+    .hero-subheading {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section-new {
+        min-height: 500px;
+        padding: 40px 20px;
+        justify-content: center;
+    }
+
+    .hero-content-wrapper {
+        max-width: 100%;
+        padding: 0 20px;
+    }
+
+    .hero-heading {
+        font-size: 2rem;
+        margin-bottom: 16px;
+    }
+
+    .hero-subheading {
+        font-size: 1rem;
+        margin-bottom: 28px;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-primary-hero,
+    .btn-secondary-hero {
+        width: 100%;
+        text-align: center;
+    }
+}
+
