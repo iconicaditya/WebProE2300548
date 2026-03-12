@@ -6,7 +6,7 @@ BIT210 Web Programming Project (Assignment)
 
 * Aaditya Chaudhary – E2300548
 * Aakroshan Chaudhary – E2300551
-* Sandhya Dhamu – Student ID
+* Sandhya Dhami – Student ID
 
 ## Project Description
 
