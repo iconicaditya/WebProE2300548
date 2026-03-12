@@ -8,6 +8,7 @@
  */
 
 $pageTitle = 'Provider Dashboard';
+$assetVersion = 'provider.' . time();
 
 // Get page from query parameter (default to dashboard)
 $page = isset($_GET['page']) ? sanitize_input($_GET['page']) : 'dashboard';
@@ -139,32 +140,12 @@ require_once(__DIR__ . '/../includes/header.php');
                 </div>
             </div>
 
-            <!-- Profile Dropdown -->
-            <div class="provider-navbar-item profile-dropdown">
-                <button class="provider-navbar-btn profile-btn" title="Profile" aria-label="Profile menu">
+            <!-- Profile Link (No Dropdown) -->
+            <div class="provider-navbar-item">
+                <a href="<?php echo BASE_URL; ?>provider/?page=profile" class="provider-navbar-btn" title="My Profile" aria-label="My Profile">
                     <span class="profile-avatar">👤</span>
                     <span class="profile-name">John Doe</span>
-                    <span class="profile-arrow">▼</span>
-                </button>
-                <div class="profile-menu">
-                    <div class="profile-menu-header">
-                        <div class="profile-menu-avatar">JD</div>
-                        <div class="profile-menu-info">
-                            <p class="profile-menu-name">John Doe</p>
-                            <p class="profile-menu-email">john@example.com</p>
-                        </div>
-                    </div>
-                    <ul class="profile-menu-items">
-                        <li><a href="<?php echo BASE_URL; ?>provider/?page=profile" class="profile-menu-link">👤 My Profile</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>provider/?page=settings" class="profile-menu-link">⚙️ Account Settings</a></li>
-                        <li><a href="#" class="profile-menu-link">🔐 Security Settings</a></li>
-                        <li><a href="<?php echo BASE_URL; ?>provider/?page=payments" class="profile-menu-link">📊 Earnings & Payouts</a></li>
-                        <li><a href="#" class="profile-menu-link">📝 Course Drafts</a></li>
-                    </ul>
-                    <div class="profile-menu-footer">
-                        <button class="logout-btn">🚪 Logout</button>
-                    </div>
-                </div>
+                </a>
             </div>
         </div>
     </div>
@@ -199,7 +180,7 @@ require_once(__DIR__ . '/../includes/header.php');
 <!-- Load JavaScript Files -->
 <script src="<?php echo BASE_URL; ?>assets/js/main.js?v=<?php echo APP_VERSION ?? '1.0'; ?>"></script>
 <script src="<?php echo BASE_URL; ?>assets/js/aaditya.js?v=<?php echo APP_VERSION ?? '1.0'; ?>"></script>
-<script src="<?php echo BASE_URL; ?>assets/js/sandhya.js?v=<?php echo APP_VERSION ?? '1.0'; ?>"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/sandhya.js?v=<?php echo APP_VERSION ?? '1.0'; ?>&m=<?php echo @filemtime(__DIR__ . '/../assets/js/sandhya.js'); ?>"></script>
 </body>
 </html>
 

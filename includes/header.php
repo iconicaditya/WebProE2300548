@@ -12,6 +12,7 @@ require_once(__DIR__ . '/../config/config.php');
 
 $assetVersion = isset($assetVersion) ? $assetVersion : APP_VERSION;
 $pageStylesheet = isset($pageStylesheet) ? $pageStylesheet : 'aaditya.css';
+$extraStylesheets = (isset($extraStylesheets) && is_array($extraStylesheets)) ? $extraStylesheets : [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,6 +35,9 @@ $pageStylesheet = isset($pageStylesheet) ? $pageStylesheet : 'aaditya.css';
     <!-- Custom CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/main.css?v=<?php echo $assetVersion; ?>">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/<?php echo htmlspecialchars($pageStylesheet); ?>?v=<?php echo $assetVersion; ?>">
+    <?php foreach ($extraStylesheets as $sheet): ?>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/<?php echo htmlspecialchars($sheet); ?>?v=<?php echo $assetVersion; ?>">
+    <?php endforeach; ?>
     <?php if (!isset($skipSandhyaCss) || !$skipSandhyaCss): ?>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/sandhya.css?v=<?php echo $assetVersion; ?>">
     <?php endif; ?>

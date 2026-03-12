@@ -12,15 +12,30 @@
      * Initialize navbar dropdown menus (Notifications, Messages, Profile)
      */
     function initNavbarDropdowns() {
+        function toggleMenu(menu, activateCallback) {
+            const wasOpen = menu.classList.contains('active');
+            closeAllDropdowns();
+
+            if (!wasOpen) {
+                menu.classList.add('active');
+                if (typeof activateCallback === 'function') {
+                    activateCallback();
+                }
+            }
+        }
+
         // Notifications Dropdown
         const notificationsBtn = document.querySelector('.notifications-btn');
         const notificationsMenu = document.querySelector('.notifications-menu');
         if (notificationsBtn && notificationsMenu) {
             notificationsBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
-                closeAllDropdowns();
-                notificationsMenu.classList.toggle('active');
-                this.closest('.notifications-dropdown').classList.toggle('active');
+                toggleMenu(notificationsMenu, () => {
+                    const wrapper = this.closest('.notifications-dropdown');
+                    if (wrapper) {
+                        wrapper.classList.add('active');
+                    }
+                });
             });
         }
 
@@ -30,9 +45,12 @@
         if (messagesBtn && messagesMenu) {
             messagesBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
-                closeAllDropdowns();
-                messagesMenu.classList.toggle('active');
-                this.closest('.messages-dropdown').classList.toggle('active');
+                toggleMenu(messagesMenu, () => {
+                    const wrapper = this.closest('.messages-dropdown');
+                    if (wrapper) {
+                        wrapper.classList.add('active');
+                    }
+                });
             });
         }
 
@@ -42,9 +60,9 @@
         if (profileBtn && profileMenu) {
             profileBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
-                closeAllDropdowns();
-                profileMenu.classList.toggle('active');
-                this.classList.toggle('active');
+                toggleMenu(profileMenu, () => {
+                    this.classList.add('active');
+                });
             });
         }
 
@@ -61,6 +79,11 @@
         const allMenus = document.querySelectorAll('.notifications-menu, .messages-menu, .profile-menu');
         allMenus.forEach(menu => {
             menu.classList.remove('active');
+        });
+
+        const wrappers = document.querySelectorAll('.notifications-dropdown, .messages-dropdown');
+        wrappers.forEach(wrapper => {
+            wrapper.classList.remove('active');
         });
         
         const profileBtn = document.querySelector('.profile-btn');
@@ -251,10 +274,18 @@
         menuItems.forEach(item => {
             const link = item.querySelector('a');
             if (link) {
-                const href = link.getAttribute('href');
-                
-                // Check if this is the active menu item
-                if (href && href.includes(currentPage)) {
+                let linkPage = '';
+
+                try {
+                    const url = new URL(link.getAttribute('href'), window.location.origin);
+                    // In provider routes, no page query means dashboard.
+                    linkPage = url.searchParams.get('page') || 'dashboard';
+                } catch (err) {
+                    linkPage = '';
+                }
+
+                // Exact page match prevents false positives (e.g., dashboard matching everything)
+                if (linkPage === currentPage) {
                     item.classList.add('active');
                 } else {
                     item.classList.remove('active');
@@ -275,12 +306,12 @@
      * Determine current page section from URL or page data
      */
     function getCurrentPageSection() {
-        // Get from URL hash
-        const hash = window.location.hash.substring(1);
-        if (hash) return hash;
-
-        // Get from query parameter
+        // Provider pages use ?page=... in URL.
         const params = new URLSearchParams(window.location.search);
+        const page = params.get('page');
+        if (page) return page;
+
+        // Backward compatibility for any legacy ?section=... links.
         const section = params.get('section');
         if (section) return section;
 

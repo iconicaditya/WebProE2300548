@@ -358,24 +358,30 @@ body.admin-dashboard {
 }
 
 .sidebar-logout-item {
-	padding: 10px 12px 14px;
+	margin-top: 10px;
+	padding: 0 12px;
 }
 
 .sidebar-menu-item .sidebar-logout-link {
 	border-left: 0;
-	border-radius: 8px;
+	border: 1px solid rgba(126, 183, 203, 0.55);
+	border-radius: 10px;
 	justify-content: center;
-	gap: 8px;
+	gap: 0;
 	background: var(--admin-primary);
 	color: #fff;
 	font-weight: 700;
-	padding: 10px 14px;
+	padding: 12px 14px;
+	letter-spacing: 0.2px;
 }
 
 .sidebar-menu-item .sidebar-logout-link:hover {
-	background: #356f85;
+	background: #2f728a;
+	border-color: #7eb7cb;
 	color: #fff;
 	border-left: 0;
+	transform: translateX(0);
+	box-shadow: 0 0 0 3px rgba(65, 134, 160, 0.22);
 }
 
 .profile-static-link {

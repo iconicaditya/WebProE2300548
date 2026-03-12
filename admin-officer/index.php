@@ -5,8 +5,19 @@ $skipSandhyaCss = true;
 $pageStylesheet = 'aakroshan.css';
 $assetVersion = 'admin.' . time();
 
-$page = isset($_GET['page']) ? sanitize_input($_GET['page']) : 'dashboard';
+$page = isset($_GET['page']) ? strtolower(trim((string)$_GET['page'])) : 'dashboard';
+$page = preg_replace('/[^a-z0-9\-]/', '', $page);
 $valid_pages = ['dashboard', 'profile', 'providermanagement', 'learnermanagement', 'analytic-reports', 'settings'];
+
+$extraStylesheets = [];
+
+if ($page === 'profile') {
+    $extraStylesheets[] = 'profile-aakroshan.css';
+}
+
+if ($page === 'providermanagement') {
+    $extraStylesheets[] = 'providermanagement-aakroshan.css';
+}
 
 if (!in_array($page, $valid_pages)) {
     $page = 'dashboard';
@@ -92,5 +103,11 @@ require_once(__DIR__ . '/../includes/header.php');
 
 <script src="<?php echo BASE_URL; ?>assets/js/main.js?v=<?php echo $assetVersion; ?>"></script>
 <script src="<?php echo BASE_URL; ?>assets/js/aakroshan.js?v=<?php echo $assetVersion; ?>"></script>
+<?php if ($page === 'profile'): ?>
+<script src="<?php echo BASE_URL; ?>assets/js/profile-aakroshan.js?v=<?php echo $assetVersion; ?>"></script>
+<?php endif; ?>
+<?php if ($page === 'providermanagement'): ?>
+<script src="<?php echo BASE_URL; ?>assets/js/providermanagement-aakroshan.js?v=<?php echo $assetVersion; ?>"></script>
+<?php endif; ?>
 </body>
 </html>

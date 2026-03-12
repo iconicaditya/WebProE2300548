@@ -17,6 +17,12 @@
                     <span class="sidebar-menu-text">Dashboard</span>
                 </a>
             </li>
+            <li class="sidebar-menu-item <?php echo ($page === 'profile') ? 'active' : ''; ?>">
+                <a href="<?php echo BASE_URL; ?>provider/?page=profile">
+                    <span class="sidebar-menu-icon">👤</span>
+                    <span class="sidebar-menu-text">My Profile</span>
+                </a>
+            </li>
             <li class="sidebar-menu-item <?php echo ($page === 'courses') ? 'active' : ''; ?>">
                 <a href="<?php echo BASE_URL; ?>provider/?page=courses">
                     <span class="sidebar-menu-icon">📚</span>
@@ -51,6 +57,23 @@
                 <a href="<?php echo BASE_URL; ?>provider/?page=certificates">
                     <span class="sidebar-menu-icon">🎓</span>
                     <span class="sidebar-menu-text">Certificates</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item <?php echo ($page === 'settings') ? 'active' : ''; ?>">
+                <a href="<?php echo BASE_URL; ?>provider/?page=settings">
+                    <span class="sidebar-menu-icon">⚙️</span>
+                    <span class="sidebar-menu-text">Settings</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item <?php echo ($page === 'payments') ? 'active' : ''; ?>">
+                <a href="<?php echo BASE_URL; ?>provider/?page=payments">
+                    <span class="sidebar-menu-icon">💰</span>
+                    <span class="sidebar-menu-text">Earnings &amp; Payouts</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item sidebar-logout-item">
+                <a href="<?php echo BASE_URL; ?>auth/login.php">
+                    <span class="sidebar-menu-text">Logout</span>
                 </a>
             </li>
         </ul>
