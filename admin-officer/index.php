@@ -6,7 +6,7 @@ $pageStylesheet = 'aakroshan.css';
 $assetVersion = 'admin.' . time();
 
 $page = isset($_GET['page']) ? sanitize_input($_GET['page']) : 'dashboard';
-$valid_pages = ['dashboard', 'profile', 'providers', 'learners', 'analytic-reports', 'settings'];
+$valid_pages = ['dashboard', 'profile', 'providermanagement', 'learnermanagement', 'analytic-reports', 'settings'];
 
 if (!in_array($page, $valid_pages)) {
     $page = 'dashboard';

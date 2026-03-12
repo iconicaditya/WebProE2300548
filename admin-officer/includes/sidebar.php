@@ -23,14 +23,14 @@
                     <span class="sidebar-menu-text">Profile</span>
                 </a>
             </li>
-            <li class="sidebar-menu-item <?php echo ($page === 'providers') ? 'active' : ''; ?>">
-                <a href="<?php echo BASE_URL; ?>admin-officer/?page=providers">
+            <li class="sidebar-menu-item <?php echo ($page === 'providermanagement') ? 'active' : ''; ?>">
+                <a href="<?php echo BASE_URL; ?>admin-officer/?page=providermanagement">
                     <span class="sidebar-menu-icon">🏢</span>
                     <span class="sidebar-menu-text">Provider Management</span>
                 </a>
             </li>
-            <li class="sidebar-menu-item <?php echo ($page === 'learners') ? 'active' : ''; ?>">
-                <a href="<?php echo BASE_URL; ?>admin-officer/?page=learners">
+            <li class="sidebar-menu-item <?php echo ($page === 'learnermanagement') ? 'active' : ''; ?>">
+                <a href="<?php echo BASE_URL; ?>admin-officer/?page=learnermanagement">
                     <span class="sidebar-menu-icon">🎓</span>
                     <span class="sidebar-menu-text">Learner Management</span>
                 </a>
