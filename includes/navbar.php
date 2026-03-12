@@ -31,7 +31,7 @@
         </span>
         Home
       </a>
-      <a href="<?php echo BASE_URL; ?>index.php" style="color:#6a6f73; font-size:1.05rem; text-decoration:none; margin-right:8px; display:inline-flex; align-items:center; gap:8px;"> 
+      <a href="<?php echo BASE_URL; ?>pages/allcources.php" style="color:#6a6f73; font-size:1.05rem; text-decoration:none; margin-right:8px; display:inline-flex; align-items:center; gap:8px;"> 
         <span class="nav-link-icon" aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6h16v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z" stroke="#6a6f73" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10h8" stroke="#6a6f73" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
@@ -43,9 +43,14 @@
       <span class="wishlist-icon" title="Wishlist" style="font-size:1.25rem; color:#333; margin:0 6px; cursor:pointer; display:inline-flex; align-items:center;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.8 4.6a5.3 5.3 0 0 0-7.5 0L12 6l-1.3-1.4a5.3 5.3 0 0 0-7.5 0 5.5 5.5 0 0 0 0 7.8L12 22l8.8-9.6a5.5 5.5 0 0 0 0-7.8z" stroke="#333" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </span>
-      <a href="<?php echo BASE_URL; ?>auth/login.php" class="btn btn-login text-decoration-none" style="background:#fff; color:#4186a0; border:1.5px solid #4186a0; border-radius:8px; font-weight:600; font-size:0.95rem; padding:6px 12px; text-decoration:none;">Log in</a>
+      <a href="<?php echo BASE_URL; ?>auth/login.php" class="btn btn-login text-decoration-none" style="background:#fff; color:#4186a0; border:1.5px solid #4186a0; border-radius:0; font-weight:600; font-size:0.95rem; padding:6px 12px; text-decoration:none;">Log in</a>
       <div class="register-menu" style="position:relative; display:inline-block;">
-        <a href="#" class="btn btn-signup text-decoration-none" style="background:#4186a0; color:#fff; border:none; border-radius:8px; font-weight:600; font-size:0.95rem; padding:6px 12px; text-decoration:none;">Register</a>
+        <a href="#" class="btn btn-signup text-decoration-none" aria-expanded="false" style="background:#4186a0; color:#fff; border:none; border-radius:0; font-weight:600; font-size:0.95rem; padding:6px 12px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+          <span>Register</span>
+          <span class="register-chevron" aria-hidden="true" style="display:inline-flex;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </a>
         <div class="register-dropdown" style="display:none; position:absolute; right:0; top:100%; margin-top:8px; min-width:230px; background:#fff; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 8px 20px rgba(0,0,0,0.12); z-index:1000; padding:8px;">
           <a href="<?php echo BASE_URL; ?>auth/register-learner.php" style="display:block; padding:10px 12px; color:#1f2937; text-decoration:none; border-radius:8px; font-weight:500;">Register as Learner</a>
           <a href="<?php echo BASE_URL; ?>auth/register-provider.php" style="display:block; padding:10px 12px; color:#1f2937; text-decoration:none; border-radius:8px; font-weight:500;">Register as Provider</a>
@@ -87,9 +92,16 @@
     padding-top: calc(64px + 44px) !important;
   }
 
-  .register-menu:hover .register-dropdown,
-  .register-menu:focus-within .register-dropdown {
+  .register-menu.open .register-dropdown {
     display: block !important;
+  }
+
+  .register-menu .register-chevron {
+    transition: transform .18s ease;
+  }
+
+  .register-menu.open .register-chevron {
+    transform: rotate(180deg);
   }
 
   .navbar-actions .btn-login:hover {
@@ -104,9 +116,33 @@
     border-color: var(--theme-color-dark) !important;
   }
 
-  .register-dropdown a:hover {
-    background: var(--theme-color);
-    color: #fff !important;
+  .register-dropdown a,
+  .register-dropdown a:visited {
+    color: #1f2937 !important;
+    background: transparent;
+    border: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color .16s ease, color .16s ease;
+  }
+
+  .register-dropdown a + a {
+    border-top: 1px solid #edf1f5;
+  }
+
+  .register-dropdown a:hover,
+  .register-dropdown a:focus,
+  .register-dropdown a:focus-visible {
+    background: #eef6fa;
+    color: var(--theme-color-dark) !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none;
+  }
+
+  .register-dropdown a:active {
+    background: #e2eef5;
+    color: #1f4f62 !important;
   }
 
   .mobile-menu-toggle {
@@ -322,7 +358,7 @@
       align-items: center;
       justify-content: center;
       font-size: 1.02rem !important;
-      border-radius: 10px !important;
+      border-radius: 0 !important;
     }
 
     .eduskill-navbar.mobile-open .btn-login {
@@ -392,9 +428,22 @@
 
     if (registerTrigger && registerMenu) {
       registerTrigger.addEventListener('click', function (event) {
-        if (window.innerWidth <= 991) {
-          event.preventDefault();
-          registerMenu.classList.toggle('open');
+        event.preventDefault();
+        const isRegisterOpen = registerMenu.classList.toggle('open');
+        registerTrigger.setAttribute('aria-expanded', isRegisterOpen ? 'true' : 'false');
+      });
+
+      document.addEventListener('click', function (event) {
+        if (!registerMenu.contains(event.target)) {
+          registerMenu.classList.remove('open');
+          registerTrigger.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+          registerMenu.classList.remove('open');
+          registerTrigger.setAttribute('aria-expanded', 'false');
         }
       });
     }

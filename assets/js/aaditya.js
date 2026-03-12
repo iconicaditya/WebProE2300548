@@ -12,7 +12,7 @@ class TypingAnimation {
         this.speed = speed; // milliseconds per character
         this.delay = delay; // initial delay before typing starts
         this.deleteSpeed = 50; // speed of deleting characters
-        this.pauseTime = 2500; // pause time at end before deleting
+        this.pauseTime = 450; // short pause after completion before restarting
         this.currentIndex = 0;
         this.isTyping = false;
         this.isDeleting = false;
@@ -43,26 +43,9 @@ class TypingAnimation {
             this.isTyping = false;
             this.element.classList.remove('typing-active');
             this.element.classList.add('typing-complete');
-            
-            // Wait before deleting
-            setTimeout(() => this.delete(), this.pauseTime);
-        }
-    }
 
-    delete() {
-        if (this.currentIndex > 0) {
-            this.isDeleting = true;
-            this.displayText = this.displayText.slice(0, -1);
-            this.element.textContent = this.displayText;
-            this.currentIndex--;
-            this.element.classList.add('typing-active');
-            this.element.classList.remove('typing-complete');
-            
-            setTimeout(() => this.delete(), this.deleteSpeed);
-        } else {
-            this.isDeleting = false;
-            // Pause before typing again
-            setTimeout(() => this.type(), 500);
+            // Restart quickly so the completed state doesn't wait too long
+            setTimeout(() => this.reset(), this.pauseTime);
         }
     }
 
@@ -81,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (typingElement) {
         const typingText = 'the Digital Age';
-        const typing = new TypingAnimation('typingText', typingText, 70, 800);
+        const typing = new TypingAnimation('typingText', typingText, 60, 220);
         typing.start();
     }
 });

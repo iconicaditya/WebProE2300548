@@ -11,6 +11,11 @@
 <?php require_once(__DIR__ . '/includes/navbar.php'); ?>
 
 <!-- Hero Section (Full Width) -->
-<?php require_once(__DIR__ . '/includes/hero.php'); ?>
+<?php require_once(__DIR__ . '/pages/hero.php'); ?>
+
+<!-- Courses Section (Reused from cources.php) -->
+<?php $embedCoursesSection = true; ?>
+<?php require_once(__DIR__ . '/pages/cources.php'); ?>
+<?php unset($embedCoursesSection); ?>
 
 <?php require_once(__DIR__ . '/includes/footer.php'); ?>

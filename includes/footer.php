@@ -6,6 +6,7 @@
  * This file should be included at the end of all pages.
  * It closes HTML tags and includes Bootstrap JS CDN.
  */
+$extraScripts = (isset($extraScripts) && is_array($extraScripts)) ? $extraScripts : [];
 ?>
     <footer class="realhomes-footer">
         <div class="realhomes-footer-inner">
@@ -82,6 +83,9 @@
     <script src="<?php echo BASE_URL; ?>assets/js/main.js?v=<?php echo APP_VERSION; ?>"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/aaditya.js?v=<?php echo APP_VERSION; ?>"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/sandhya.js?v=<?php echo APP_VERSION; ?>"></script>
+    <?php foreach ($extraScripts as $script): ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/<?php echo htmlspecialchars($script); ?>?v=<?php echo APP_VERSION; ?>"></script>
+    <?php endforeach; ?>
     
     <!-- Page-specific scripts can be added before closing body tag -->
 </body>
