@@ -25,13 +25,13 @@
     </div>
     <!-- Right links and actions -->
     <div class="navbar-actions" style="display:flex; align-items:center; gap:12px;">
-      <a href="<?php echo BASE_URL; ?>index.php" style="color:#6a6f73; font-size:1.05rem; text-decoration:none; margin-right:8px; display:inline-flex; align-items:center; gap:8px;"> 
+      <a href="<?php echo BASE_URL; ?>index.html" style="color:#6a6f73; font-size:1.05rem; text-decoration:none; margin-right:8px; display:inline-flex; align-items:center; gap:8px;"> 
         <span class="nav-link-icon" aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 11.5L12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5z" stroke="#6a6f73" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
         Home
       </a>
-      <a href="<?php echo BASE_URL; ?>index.php" style="color:#6a6f73; font-size:1.05rem; text-decoration:none; margin-right:8px; display:inline-flex; align-items:center; gap:8px;"> 
+      <a href="<?php echo BASE_URL; ?>index.html" style="color:#6a6f73; font-size:1.05rem; text-decoration:none; margin-right:8px; display:inline-flex; align-items:center; gap:8px;"> 
         <span class="nav-link-icon" aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6h16v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z" stroke="#6a6f73" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 10h8" stroke="#6a6f73" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>

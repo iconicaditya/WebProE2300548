@@ -21,7 +21,7 @@
                     <h5 class="footer-panel-title">Quick Links</h5>
                     <div class="footer-panel">
                         <ul class="realhomes-links-list">
-                            <li><a href="<?php echo BASE_URL; ?>index.php">Home</a></li>
+                            <li><a href="<?php echo BASE_URL; ?>index.html">Home</a></li>
                             <li><a href="<?php echo BASE_URL; ?>auth/login.php">Login</a></li>
                             <li><a href="<?php echo BASE_URL; ?>auth/register-learner.php">Register Learner</a></li>
                             <li><a href="<?php echo BASE_URL; ?>auth/register-provider.php">Register Provider</a></li>
