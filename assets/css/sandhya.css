@@ -6,7 +6,7 @@
 }
 
 .provider-register-page {
-    background: linear-gradient(rgba(7, 20, 32, 0.55), rgba(7, 20, 32, 0.55)), url('../images/registerbg.png') center/cover no-repeat;
+    background: linear-gradient(rgba(7, 20, 32, 0.55), rgba(7, 20, 32, 0.55)), url('../images/registerbg.png') center/cover no-repeat fixed;
     padding: clamp(20px, 3vw, 36px) clamp(10px, 2vw, 16px) !important;
     min-height: calc(100vh - 108px);
     min-height: calc(100dvh - 108px);
@@ -16,7 +16,7 @@
 }
 
 .provider-register-shell {
-    width: min(100%, 1020px);
+    width: min(100%, 1240px);
     min-height: auto;
     margin: 0 auto clamp(28px, 5vh, 56px);
     background: rgba(255, 255, 255, 0.60);
