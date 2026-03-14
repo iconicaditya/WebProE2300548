@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 140" role="img" aria-label="Planit">
+  <rect width="320" height="140" fill="transparent"/>
+  <path d="M84 68C112 30 188 30 216 68" fill="none" stroke="#1f3b77" stroke-width="12" stroke-linecap="round"/>
+  <text x="160" y="92" text-anchor="middle" font-size="58" font-family="Inter, Arial, sans-serif" fill="#1f3b77" font-weight="700">Plan</text>
+  <text x="238" y="92" text-anchor="middle" font-size="58" font-family="Inter, Arial, sans-serif" fill="#1f3b77" font-weight="500">it</text>
+</svg>

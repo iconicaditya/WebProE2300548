@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 140" role="img" aria-label="compass">
+  <rect width="320" height="140" fill="transparent"/>
+  <text x="160" y="88" text-anchor="middle" font-size="62" letter-spacing="1" font-family="Inter, Arial, sans-serif" fill="#1e2229" font-weight="500">compass</text>
+  <circle cx="246" cy="70" r="4" fill="#d7ad3a"/>
+</svg>

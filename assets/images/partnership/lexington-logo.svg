@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 140" role="img" aria-label="Lexington Soft">
+  <rect width="320" height="140" fill="transparent"/>
+  <rect x="26" y="46" width="8" height="46" fill="#2f3f93"/>
+  <rect x="38" y="46" width="8" height="46" fill="#f08c2c"/>
+  <text x="172" y="76" text-anchor="middle" font-size="38" letter-spacing="1" font-family="Inter, Arial, sans-serif" fill="#2f3f93" font-weight="700">LEXINGTON SOFT</text>
+  <rect x="54" y="84" width="236" height="14" fill="#2f3f93"/>
+  <text x="172" y="95" text-anchor="middle" font-size="9" letter-spacing="1.8" font-family="Inter, Arial, sans-serif" fill="#ffffff" font-weight="600">BUILDING TECHNOLOGY AND PEOPLE</text>
+</svg>

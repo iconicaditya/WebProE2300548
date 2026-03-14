@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 140" role="img" aria-label="Visionary Integration Professionals">
+  <rect width="320" height="140" fill="transparent"/>
+  <path d="M66 36L110 102H98L54 36H66Z" fill="#39414f"/>
+  <path d="M104 36L140 90L176 36H188L140 108L92 36H104Z" fill="#39414f"/>
+  <path d="M172 36L130 100H142L184 36H172Z" fill="#39414f"/>
+  <text x="210" y="72" text-anchor="middle" font-size="13" letter-spacing="2" font-family="Inter, Arial, sans-serif" fill="#252c39" font-weight="700">VISIONARY</text>
+  <text x="210" y="90" text-anchor="middle" font-size="9" letter-spacing="1.4" font-family="Inter, Arial, sans-serif" fill="#252c39" font-weight="600">INTEGRATION</text>
+  <text x="210" y="104" text-anchor="middle" font-size="9" letter-spacing="1.4" font-family="Inter, Arial, sans-serif" fill="#252c39" font-weight="600">PROFESSIONALS</text>
+</svg>

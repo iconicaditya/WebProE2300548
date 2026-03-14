@@ -291,14 +291,14 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
         border-radius: 16px;
         border: 1px solid #dde6ee;
         box-shadow: 0 10px 26px rgba(17, 24, 39, 0.07);
-        padding: 18px;
+        padding: 20px;
         display: grid;
-        gap: 16px;
+        gap: 18px;
     }
 
     .catalog-filter-box h2 {
         margin: 0;
-        font-size: 20px;
+        font-size: 22px;
         color: var(--catalog-ink);
     }
 
@@ -308,7 +308,7 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
     }
 
     .filter-group label {
-        font-size: 13px;
+        font-size: 14px;
         color: #526070;
         font-weight: 600;
     }
@@ -316,11 +316,11 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
     .filter-group input,
     .filter-group select {
         width: 100%;
-        min-height: 42px;
+        min-height: 46px;
         border-radius: 10px;
         border: 1px solid #ccd6e0;
-        padding: 10px 12px;
-        font-size: 14px;
+        padding: 11px 14px;
+        font-size: 15px;
         color: #1f2a37;
     }
 
@@ -342,8 +342,8 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
         background: #fff;
         color: #344357;
         border-radius: 999px;
-        padding: 8px 14px;
-        font-size: 13px;
+        padding: 9px 16px;
+        font-size: 14px;
         font-weight: 600;
         cursor: pointer;
     }
@@ -360,13 +360,13 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
 
     .instructor-toggle {
         width: 100%;
-        min-height: 42px;
+        min-height: 46px;
         border: 1px solid #ccd6e0;
         border-radius: 10px;
         background: #fff;
         color: #1f2a37;
         padding: 11px 14px;
-        font-size: 14px;
+        font-size: 15px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -376,7 +376,7 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
 
     .instructor-toggle i {
         color: #72879d;
-        font-size: 12px;
+        font-size: 13px;
         transition: transform 0.2s ease;
     }
 
@@ -477,13 +477,13 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
     .reset-btn {
         border: none;
         border-radius: 10px;
-        min-height: 42px;
+        min-height: 46px;
         padding: 0 16px;
         margin-top: 8px;
         background: #243447;
         color: #fff;
         font-weight: 600;
-        font-size: 14px;
+        font-size: 15px;
     }
 
     .catalog-main {
@@ -537,17 +537,34 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
         border-radius: 0;
         overflow: hidden;
         box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s ease;
         cursor: pointer;
         display: grid;
         grid-template-rows: auto 1fr;
         height: 100%;
+        position: relative;
+        isolation: isolate;
+    }
+
+    .course-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border: 1px solid rgba(13, 110, 132, 0.22);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        z-index: 2;
     }
 
     .course-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.13);
+        transform: translateY(-6px);
+        box-shadow: 0 18px 34px rgba(15, 23, 42, 0.16);
         border-color: rgba(13, 110, 132, 0.35);
+    }
+
+    .course-card:hover::before {
+        opacity: 1;
     }
 
     .course-card.active {
@@ -560,9 +577,10 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
         overflow: hidden;
         position: relative;
         background-color: #0d4a5a;
-        background-size: cover;
+        background-size: 108%;
         background-position: center;
         background-repeat: no-repeat;
+        transition: background-size 0.45s cubic-bezier(0.22, 1, 0.36, 1), filter 0.35s ease;
     }
     .course-thumb::after {
         content: '';
@@ -570,6 +588,16 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
         inset: 0;
         background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.45) 100%);
         pointer-events: none;
+        transition: opacity 0.35s ease;
+    }
+
+    .course-card:hover .course-thumb {
+        background-size: 116%;
+        filter: brightness(1.05) saturate(1.06);
+    }
+
+    .course-card:hover .course-thumb::after {
+        opacity: 0.82;
     }
 
     .course-card-content {
@@ -880,19 +908,19 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
     }
 
     .courses-catalog-embedded .filter-group label {
-        font-size: 11px;
+        font-size: 12px;
     }
 
     .courses-catalog-embedded .filter-group input,
     .courses-catalog-embedded .filter-group select,
     .courses-catalog-embedded .reset-btn {
-        min-height: 34px;
-        font-size: 12px;
+        min-height: 38px;
+        font-size: 13px;
     }
 
     .courses-catalog-embedded .filter-chip {
-        font-size: 10px;
-        padding: 4px 8px;
+        font-size: 11px;
+        padding: 5px 10px;
     }
 
     .courses-catalog-embedded .catalog-headline-row {
@@ -1028,6 +1056,24 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
     @media (max-width: 480px) {
         .courses-grid { grid-template-columns: 1fr; }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+        .course-card,
+        .course-thumb,
+        .course-thumb::after,
+        .course-card::before {
+            transition: none;
+        }
+
+        .course-card:hover {
+            transform: none;
+        }
+
+        .course-card:hover .course-thumb {
+            background-size: 108%;
+            filter: none;
+        }
+    }
 </style>
 
 <script>
@@ -1089,6 +1135,7 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
     const resetFilters = document.getElementById('resetFilters');
     const coursesGrid = document.getElementById('coursesGrid');
     const courseCount = document.getElementById('courseCount');
+    const viewAllWrap = document.querySelector('.view-all-wrap');
 
     let currentCategory = 'all';
     let currentCourseId = null;
@@ -1170,6 +1217,11 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
     }
 
     var isEmbeddedMode = document.querySelector('.courses-catalog-embedded') !== null;
+
+    function updateViewAllButtonVisibility() {
+        if (!isEmbeddedMode || !viewAllWrap) return;
+        viewAllWrap.style.display = courses.length < 24 ? 'none' : '';
+    }
 
     function renderCards(filteredCourses) {
         var displayCourses = isEmbeddedMode ? filteredCourses.slice(0, 24) : filteredCourses;
@@ -1319,6 +1371,7 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
     });
 
     renderInstructorOptions('');
+    updateViewAllButtonVisibility();
     rerender();
 })();
 </script>

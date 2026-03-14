@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 140" role="img" aria-label="immixGroup">
+  <rect width="320" height="140" fill="transparent"/>
+  <g transform="translate(68,40)">
+    <polygon points="0,28 24,0 40,28 24,56" fill="#0f5f89"/>
+    <polygon points="24,0 48,0 64,28 40,28" fill="#e6473f"/>
+  </g>
+  <text x="204" y="76" text-anchor="middle" font-size="46" font-family="Inter, Arial, sans-serif" fill="#1f5f8a" font-weight="700">immixGroup</text>
+  <text x="234" y="100" text-anchor="middle" font-size="13" letter-spacing="1" font-family="Inter, Arial, sans-serif" fill="#5d6f82" font-weight="600">An Arrow Company</text>
+</svg>

@@ -392,17 +392,34 @@ main.courses-catalog-page {
 	border-radius: 0;
 	overflow: hidden;
 	box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
-	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+	transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s ease;
 	cursor: pointer;
 	display: grid;
 	grid-template-rows: auto 1fr;
 	height: 100%;
+	position: relative;
+	isolation: isolate;
+}
+
+.course-card::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border: 1px solid rgba(13, 110, 132, 0.22);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.3s ease;
+	z-index: 2;
 }
 
 .course-card:hover {
-	transform: translateY(-4px);
-	box-shadow: 0 14px 28px rgba(15, 23, 42, 0.13);
+	transform: translateY(-6px);
+	box-shadow: 0 18px 34px rgba(15, 23, 42, 0.16);
 	border-color: rgba(13, 110, 132, 0.35);
+}
+
+.course-card:hover::before {
+	opacity: 1;
 }
 
 .course-card.active {
@@ -415,9 +432,10 @@ main.courses-catalog-page {
 	overflow: hidden;
 	position: relative;
 	background-color: #0d4a5a;
-	background-size: cover;
+	background-size: 108%;
 	background-position: center;
 	background-repeat: no-repeat;
+	transition: background-size 0.45s cubic-bezier(0.22, 1, 0.36, 1), filter 0.35s ease;
 }
 
 .course-thumb::after {
@@ -426,6 +444,16 @@ main.courses-catalog-page {
 	inset: 0;
 	background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.45) 100%);
 	pointer-events: none;
+	transition: opacity 0.35s ease;
+}
+
+.course-card:hover .course-thumb {
+	background-size: 116%;
+	filter: brightness(1.05) saturate(1.06);
+}
+
+.course-card:hover .course-thumb::after {
+	opacity: 0.82;
 }
 
 .course-card-content {
@@ -657,5 +685,23 @@ main.courses-catalog-page {
 @media (max-width: 480px) {
 	.courses-grid {
 		grid-template-columns: 1fr;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.course-card,
+	.course-thumb,
+	.course-thumb::after,
+	.course-card::before {
+		transition: none;
+	}
+
+	.course-card:hover {
+		transform: none;
+	}
+
+	.course-card:hover .course-thumb {
+		background-size: 108%;
+		filter: none;
 	}
 }
