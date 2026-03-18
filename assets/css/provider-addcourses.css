@@ -1,0 +1,15 @@
+/* Provider Add Course - custom styles */
+.addcourse-step { display: block; }
+.addcourse-step.d-none { display: none; }
+#addcourse-steps-nav .nav-link.active { font-weight: 600; color: #0d6efd; }
+#thumbnailPreview img { max-width: 100%; height: auto; }
+.module-item .card-body { padding: 1rem; }
+.lesson-item input.form-control { min-width: 0; }
+.outcome-item .btn-remove-outcome { border-radius: 0 4px 4px 0; }
+.step-badge { font-size: 0.85rem; }
+
+@media (max-width: 767px) {
+    .col-md-3 { display: none; }
+}
+
+/* No manual spacer here — navbar.php already sets body padding-top. */

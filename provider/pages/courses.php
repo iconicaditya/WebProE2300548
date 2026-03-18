@@ -9,7 +9,7 @@
     <section class="dashboard-section">
         <div class="section-header">
             <h2 class="section-title">Course Management</h2>
-            <button class="btn btn-create-course">+ Create New Course</button>
+            <button class="btn btn-create-course" onclick="window.location.href='addcourses/index.php';">+ Create New Course</button>
         </div>
 
         <div class="dashboard-table-wrapper">

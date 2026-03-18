@@ -30,38 +30,39 @@ $extraScripts = (isset($extraScripts) && is_array($extraScripts)) ? $extraScript
                     </div>
                 </div>
 
-                <div class="realhomes-col realhomes-col-contact">
-                    <h5 class="footer-panel-title">Contact Us</h5>
-                    <div class="footer-panel">
-                    <ul class="realhomes-contact-list">
-                        <li>
-                            <span class="icon"><i class="bi bi-geo-alt-fill"></i></span>
-                            <span>EduSkill Marketplace Office,<br>Kathmandu, Nepal</span>
-                        </li>
-                        <li>
-                            <span class="icon"><i class="bi bi-whatsapp"></i></span>
-                            <span>+9779864062605</span>
-                        </li>
-                        <li>
-                            <span class="icon"><i class="bi bi-envelope-fill"></i></span>
-                            <span>support@eduskillmarketplace.com</span>
-                        </li>
-                    </ul>
+                <div class="realhomes-col realhomes-col-contact-newsletter" style="display:flex; flex-direction:row; gap:32px; align-items:flex-start; justify-content:flex-end;">
+                    <div class="realhomes-col-contact" style="min-width:220px;">
+                        <h5 class="footer-panel-title">Contact Us</h5>
+                        <div class="footer-panel">
+                        <ul class="realhomes-contact-list">
+                            <li>
+                                <span class="icon"><i class="bi bi-geo-alt-fill"></i></span>
+                                <span>EduSkill Marketplace Office,<br>Kathmandu, Nepal</span>
+                            </li>
+                            <li>
+                                <span class="icon"><i class="bi bi-whatsapp"></i></span>
+                                <span>+9779864062605</span>
+                            </li>
+                            <li>
+                                <span class="icon"><i class="bi bi-envelope-fill"></i></span>
+                                <span>support@eduskillmarketplace.com</span>
+                            </li>
+                        </ul>
+                        </div>
                     </div>
-                </div>
-
-                <div class="realhomes-col realhomes-col-newsletter">
-                    <h5 class="footer-panel-title">Stay Updated</h5>
-                    <div class="footer-panel">
-                        <form class="realhomes-newsletter" action="#" method="post" onsubmit="return false;">
-                            <input type="email" placeholder="Enter your email address" aria-label="Your email address">
-                            <button type="submit">Subscribe</button>
-                        </form>
-                        <div class="realhomes-social" aria-label="Social links">
-                            <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-                            <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
-                            <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
-                            <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                    <div class="realhomes-col-newsletter" style="min-width:260px;">
+                        <h5 class="footer-panel-title">Stay Updated</h5>
+                        <div class="footer-panel">
+                            <form class="realhomes-newsletter" action="#" method="post" onsubmit="return false;" style="display:flex; flex-direction:column; gap:8px; align-items:stretch;">
+                                <input type="email" placeholder="Enter your email address" aria-label="Your email address" style="width:100%;">
+                                <button type="submit" style="width:100%;">Subscribe</button>
+                            </form>
+                            <div class="realhomes-social" aria-label="Social links" style="margin-top:8px;">
+                                <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                                <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                                <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                                <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -80,11 +81,12 @@ $extraScripts = (isset($extraScripts) && is_array($extraScripts)) ? $extraScript
             crossorigin="anonymous"></script>
     
     <!-- Custom JavaScript -->
-    <script src="<?php echo BASE_URL; ?>assets/js/main.js?v=<?php echo APP_VERSION; ?>"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/aaditya.js?v=<?php echo APP_VERSION; ?>"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/sandhya.js?v=<?php echo APP_VERSION; ?>"></script>
+    <?php $useVersion = isset($assetVersion) ? $assetVersion : APP_VERSION; ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/main.js?v=<?php echo $useVersion; ?>"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/aaditya.js?v=<?php echo $useVersion; ?>"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/sandhya.js?v=<?php echo $useVersion; ?>"></script>
     <?php foreach ($extraScripts as $script): ?>
-    <script src="<?php echo BASE_URL; ?>assets/js/<?php echo htmlspecialchars($script); ?>?v=<?php echo APP_VERSION; ?>"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/<?php echo htmlspecialchars($script); ?>?v=<?php echo $useVersion; ?>"></script>
     <?php endforeach; ?>
     
     <!-- Page-specific scripts can be added before closing body tag -->

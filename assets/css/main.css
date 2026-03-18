@@ -108,9 +108,9 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0 8px !important;
 }
 
-/* Account for navbar two-layer height (64px + 44px = 108px) */
+/* Account for navbar height — tuned to actual header height to avoid excess gap */
 body {
-    padding-top: calc(64px + 44px);
+    padding-top: 88px; /* was calc(64px + 44px) = 108px; reduced to 88px to match header rendering */
 }
 
 /* ============================================
@@ -176,12 +176,21 @@ footer {
 
 .realhomes-footer-content {
     display: grid;
-    grid-template-columns: 1.2fr 1fr 1fr 1fr;
-    gap: 12px;
-    align-items: start;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
+    align-items: flex-start;
     width: calc(100% - 16px); /* match 8px each side */
     margin: 0 auto;
     max-width: 1400px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+/* Ensure column titles and content align vertically */
+.realhomes-footer .realhomes-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
 }
 
 .realhomes-footer .realhomes-col {
@@ -193,11 +202,17 @@ footer {
 }
 
 .realhomes-footer .footer-panel-title {
-    margin: 0 0 10px;
+    margin: 0 0 14px 0;
     padding: 0;
     background: transparent;
     border-left: 3px solid var(--footer-accent);
     color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
     font-size: 16px;
     font-weight: 700;
     line-height: 1.2;
@@ -403,7 +418,8 @@ footer {
 /* Responsive adjustments: stack nicely on small screens */
 @media (max-width: 991px) {
     .realhomes-footer-content {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
+        gap: 24px;
     }
     .realhomes-about-text { max-width: none; }
 }

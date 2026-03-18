@@ -87,11 +87,6 @@
     --theme-color-dark: #2f728a;
   }
 
-  /* Reserve space for the two-layer navbar so page content doesn't hide behind it */
-  body {
-    padding-top: calc(64px + 44px) !important;
-  }
-
   .register-menu.open .register-dropdown {
     display: block !important;
   }
