@@ -755,3 +755,28 @@ button {
    - Follow Bootstrap class naming conventions
    ============================================ */
 
+/* === Dashboard Layout Fix: Remove right-side gap === */
+.provider-main-content,
+.admin-main-content,
+.learner-main-content,
+.dashboard-content,
+.overview-grid,
+.charts-grid {
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    flex: 1 1 0% !important;
+    box-sizing: border-box;
+}
+
+/* If you use a wrapper for sidebar+content, ensure it's flex */
+.dashboard-layout,
+.provider-layout,
+.admin-layout,
+.learner-layout {
+    display: flex;
+    width: 100vw;
+    min-height: 100vh;
+}
+
