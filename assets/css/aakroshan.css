@@ -284,8 +284,7 @@ body.admin-dashboard {
 }
 
 .provider-sidebar {
-	position: fixed;
-	left: 0;
+	position: sticky;
 	top: 70px;
 	width: 250px;
 	height: calc(100vh - 70px);

@@ -320,7 +320,9 @@ body.learner-dashboard {
 }
 
 .provider-sidebar {
-	position: fixed;
+/* .provider-sidebar now uses flex/sticky layout from main.css */
+	/* position: fixed; removed for flex layout */
+	/* position: fixed; removed for flex layout */
 	left: 0;
 	top: 70px;
 	width: 250px;
@@ -350,9 +352,9 @@ body.learner-dashboard {
 }
 
 .sidebar-toggle-btn {
-	position: fixed;
-	left: 16px;
-	top: 88px;
+		margin-left: 24px;
+		position: sticky;
+		top: 92px;
 	width: 30px;
 	height: 24px;
 	background: none;

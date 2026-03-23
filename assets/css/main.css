@@ -1,3 +1,17 @@
+/* === Make sidebar toggle button sticky for all dashboards === */
+.sidebar-toggle-btn {
+    position: sticky !important;
+    top: 92px !important; /* Adjust as needed for your navbar height */
+    left: 0 !important;
+    z-index: 1100 !important;
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    cursor: pointer;
+}
 /**
  * Main Stylesheet
  * EduSkill Marketplace System (EMS)
@@ -754,6 +768,35 @@ button {
    - Only custom styles are added in this file
    - Follow Bootstrap class naming conventions
    ============================================ */
+
+/* === Force sidebar to static for all dashboards === */
+/* === Make all dashboard sidebars sticky === */
+.provider-sidebar,
+.admin-sidebar,
+.learner-sidebar,
+.sidebar {
+    position: sticky !important;
+    top: 88px !important; /* Adjust to match your navbar height */
+    align-self: flex-start;
+    z-index: 100 !important;
+    height: calc(100vh - 88px);
+    min-height: 400px;
+    max-height: calc(100vh - 88px);
+    overflow-y: auto;
+    left: unset !important;
+    right: unset !important;
+    bottom: unset !important;
+}
+
+/* Ensure dashboard wrappers use flex layout */
+.provider-layout,
+.admin-layout,
+.learner-layout,
+.dashboard-layout {
+    display: flex !important;
+    width: 100vw;
+    min-height: 100vh;
+}
 
 /* === Dashboard Layout Fix: Remove right-side gap === */
 .provider-main-content,

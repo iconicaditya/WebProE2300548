@@ -8,7 +8,7 @@
 
 // Dynamic Base URL for the application (works with any host/port)
 // Use static BASE_URL for XAMPP/Apache (no port)
-define('BASE_URL', 'http://localhost/eduskill-marketplace/');
+define('BASE_URL', 'http://localhost/WebProE2300548/');
 
 // Application name
 define('APP_NAME', 'EduSkill Marketplace System');
