@@ -1,3 +1,17 @@
+/* Ensure both sidebar and main content clear the fixed navbar */
+.provider-layout,
+.admin-layout {
+    padding-top: 88px;
+}
+
+/* Remove margin-top from admin-officer main content to avoid double spacing */
+.admin-dashboard .provider-main-content {
+    margin-top: 0;
+}
+/* === Fix: Ensure admin-officer main content is not hidden behind the navbar === */
+.admin-dashboard .provider-main-content {
+    margin-top: 32px;
+}
 /* === Make sidebar toggle button sticky for all dashboards === */
 .sidebar-toggle-btn {
     position: sticky !important;

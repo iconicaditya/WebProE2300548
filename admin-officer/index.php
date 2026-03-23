@@ -82,9 +82,9 @@ require_once(__DIR__ . '/../includes/header.php');
     </div>
 </nav>
 
-<?php include(__DIR__ . '/includes/sidebar.php'); ?>
 
-<div class="provider-dashboard-wrapper">
+<div class="provider-layout">
+    <?php include(__DIR__ . '/includes/sidebar.php'); ?>
     <div class="provider-main-content">
         <?php
         $page_file = __DIR__ . '/pages/' . $page . '.php';
