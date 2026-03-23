@@ -21,7 +21,9 @@ if (!in_array($page, $valid_pages)) {
     $page = 'dashboard';
 }
 
-// Include header (contains meta tags, CSS)
+
+// Use sandhya.css for all provider pages
+$pageStylesheet = 'sandhya.css';
 require_once(__DIR__ . '/../includes/header.php');
 require_once(__DIR__ . '/includes/topbar.php');
 

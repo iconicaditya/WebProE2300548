@@ -1,33 +1,38 @@
 <section id="step-1" class="addcourse-step" data-step="1" aria-labelledby="step-1-title">
 	<h5 id="step-1-title">Basic details</h5>
-	<p class="text-muted small">Start with the essentials: title, description and a strong thumbnail.</p>
+	<p class="text-muted small">Enter the core information for your course.</p>
 
 	<div class="mb-3">
-		<label class="form-label">Course title</label>
-		<input type="text" name="title" class="form-control" placeholder="e.g. Mastering React: From Zero to Production" required>
-		<div class="invalid-feedback">Please enter a course title.</div>
+		<label class="form-label">Course name</label>
+		<input type="text" name="title" class="form-control" placeholder="e.g. React.js & Modern Frontend Development" required>
 	</div>
 
 	<div class="mb-3">
 		<label class="form-label">Short description</label>
-		<textarea name="short_description" class="form-control" rows="3" placeholder="One-line summary for listing" required></textarea>
-		<div class="invalid-feedback">Please provide a short description.</div>
+		<textarea name="short_description" class="form-control" rows="2" placeholder="One-line summary for listing" required></textarea>
 	</div>
 
 	<div class="row">
 		<div class="col-md-6 mb-3">
-			<label class="form-label">Category</label>
-			<select name="category" class="form-select" required>
-				<option value="">Select category</option>
-				<option>Development</option>
-				<option>Design</option>
-				<option>Business</option>
-				<option>Marketing</option>
-				<option>Photography</option>
-			</select>
-			<div class="invalid-feedback">Choose a category.</div>
+			<label class="form-label">Course thumbnail</label>
+			<input type="file" name="thumbnail" accept="image/*" class="form-control" id="thumbnailInput">
+			<small class="text-muted">Recommended: 1280×720</small>
+			<div class="mt-2" id="thumbnailPreview" style="display:none;"><img src="" alt="thumbnail preview" class="img-fluid rounded" style="max-height:160px;"></div>
 		</div>
-		<div class="col-md-3 mb-3">
+		<div class="col-md-6 mb-3">
+			<label class="form-label">Duration</label>
+			<input type="text" name="duration" class="form-control" placeholder="e.g. 8 weeks">
+
+			<label class="form-label mt-3">Lessons (count)</label>
+			<input type="number" name="lessons" class="form-control" min="0" placeholder="e.g. 45">
+
+			<label class="form-label mt-3">Students (approx.)</label>
+			<input type="number" name="students" class="form-control" min="0" placeholder="e.g. 15420">
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-4 mb-3">
 			<label class="form-label">Level</label>
 			<select name="level" class="form-select">
 				<option>All levels</option>
@@ -36,45 +41,77 @@
 				<option>Advanced</option>
 			</select>
 		</div>
-		<div class="col-md-3 mb-3">
+		<div class="col-md-4 mb-3">
 			<label class="form-label">Language</label>
 			<input type="text" name="language" class="form-control" value="English">
 		</div>
-	</div>
-
-	<div class="row">
-		<div class="col-md-6 mb-3">
-			<label class="form-label">Thumbnail</label>
-			<input type="file" name="thumbnail" accept="image/*" class="form-control" id="thumbnailInput">
-			<small class="text-muted">Recommended size: 1280 x 720</small>
-			<div class="mt-2" id="thumbnailPreview" style="display:none;">
-				<img src="" alt="thumbnail preview" class="img-fluid rounded" style="max-height:160px;">
+		<div class="col-md-4 mb-3">
+			<label class="form-label">Certification</label>
+			<div>
+				<div class="form-check form-check-inline">
+					<input class="form-check-input" type="radio" name="certification" id="certYes" value="yes" checked>
+					<label class="form-check-label" for="certYes">Yes</label>
+				</div>
+				<div class="form-check form-check-inline">
+					<input class="form-check-input" type="radio" name="certification" id="certNo" value="no">
+					<label class="form-check-label" for="certNo">No</label>
+				</div>
 			</div>
-		</div>
-		<div class="col-md-6 mb-3">
-			<label class="form-label">Tags</label>
-			<input type="text" name="tags" class="form-control" placeholder="Add comma separated tags (e.g. react,frontend)" aria-label="Course tags">
-			<small class="text-muted">Tags help learners find your course.</small>
 		</div>
 	</div>
 
 	<div class="mb-3">
-		<label class="form-label">What will learners gain? (Learning outcomes)</label>
-		<div id="outcomesList">
-			<div class="input-group mb-2 outcome-item">
-				<input type="text" class="form-control" name="outcomes[]" placeholder="E.g. Build production-ready React apps" required>
-				<button type="button" class="btn btn-outline-danger btn-remove-outcome" title="Remove">&times;</button>
+		<label class="form-label">What's included</label>
+		<div class="row">
+			<div class="col-sm-6">
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="included[]" value="lifetime" id="incLifetime" checked>
+					<label class="form-check-label" for="incLifetime">Lifetime access</label>
+				</div>
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="included[]" value="videos" id="incVideos" checked>
+					<label class="form-check-label" for="incVideos">Video lectures</label>
+				</div>
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="included[]" value="resources" id="incResources" checked>
+					<label class="form-check-label" for="incResources">Downloadable resources</label>
+				</div>
+			</div>
+			<div class="col-sm-6">
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="included[]" value="certificate" id="incCertificate" checked>
+					<label class="form-check-label" for="incCertificate">Certificate of completion</label>
+				</div>
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="included[]" value="mobile" id="incMobile">
+					<label class="form-check-label" for="incMobile">Mobile-friendly</label>
+				</div>
 			</div>
 		</div>
-		<button type="button" class="btn btn-sm btn-outline-primary" id="addOutcomeBtn">Add another outcome</button>
+	</div>
+
+	<div class="mb-3">
+		<label class="form-label">Course description</label>
+		<textarea name="description" class="form-control" rows="6" placeholder="Full course description for the course landing page"></textarea>
+	</div>
+
+	<div class="mb-3">
+		<label class="form-label">Requirements</label>
+		<div id="requirementsList">
+			<div class="input-group mb-2 requirement-item">
+				<input type="text" name="requirements[]" class="form-control" placeholder="e.g. Basic knowledge of JavaScript (ES6+)">
+				<button type="button" class="btn btn-outline-danger btn-remove-requirement">&times;</button>
+			</div>
+		</div>
+		<button type="button" id="addRequirementBtn" class="btn btn-sm btn-outline-primary">Add requirement</button>
 	</div>
 
 	<hr>
 
 	<style>
-		/* Small styles to indicate clickability */
-		.btn-remove-outcome { cursor: pointer; }
-		#thumbnailPreview img { cursor: default; }
+		/* Basic styles inside step */
+		#thumbnailPreview img { cursor: default; max-width:100%; }
+		#addcourse-steps-nav .nav-link.active { box-shadow: inset 0 0 0 9999px rgba(10,88,202,0.02); }
 	</style>
 
 	<script>
@@ -92,27 +129,32 @@
 				if(f && previewImg){
 					previewImg.src = URL.createObjectURL(f);
 					preview.style.display = 'block';
-				} else if(preview){
-					preview.style.display = 'none';
-				}
+				} else if(preview){ preview.style.display = 'none'; }
 			});
 		}
 
-		// Outcomes add/remove
-		const outcomesList = section.querySelector('#outcomesList');
-		const addBtn = section.querySelector('#addOutcomeBtn');
-		if(addBtn && outcomesList){
-			addBtn.addEventListener('click', function(){
+		// Simple client-side sanitised preview for students count
+		const students = section.querySelector('input[name="students"]');
+		if(students){
+			students.addEventListener('input', function(){
+				if(this.value < 0) this.value = 0;
+			});
+		}
+
+		// Requirements dynamic add/remove
+		const reqList = section.querySelector('#requirementsList');
+		const addReqBtn = section.querySelector('#addRequirementBtn');
+		if(addReqBtn && reqList){
+			addReqBtn.addEventListener('click', function(){
 				const div = document.createElement('div');
-				div.className = 'input-group mb-2 outcome-item';
-				div.innerHTML = '<input type="text" class="form-control" name="outcomes[]" placeholder="E.g. Build production-ready React apps" required><button type="button" class="btn btn-outline-danger btn-remove-outcome" title="Remove">&times;</button>';
-				outcomesList.appendChild(div);
+				div.className = 'input-group mb-2 requirement-item';
+				div.innerHTML = '<input type="text" name="requirements[]" class="form-control" placeholder="Requirement"><button type="button" class="btn btn-outline-danger btn-remove-requirement">&times;</button>';
+				reqList.appendChild(div);
 			});
 
-			outcomesList.addEventListener('click', function(e){
-				if(e.target.closest('.btn-remove-outcome')){
-					const item = e.target.closest('.outcome-item');
-					if(item) item.remove();
+			reqList.addEventListener('click', function(e){
+				if(e.target.closest('.btn-remove-requirement')){
+					const item = e.target.closest('.requirement-item'); if(item) item.remove();
 				}
 			});
 		}

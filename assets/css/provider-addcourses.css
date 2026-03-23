@@ -1,15 +1,77 @@
+/* Fixed sidebar for addcourses */
+.addcourses-sidebar-fixed {
+    position: sticky;
+    top: 80px; /* adjust for navbar height */
+    height: calc(100vh - 80px);
+    z-index: 20;
+    background: #f8fafc;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border-radius: 8px;
+}
+@media (max-width: 767px) {
+    .addcourses-sidebar-fixed {
+        position: static;
+        height: auto;
+        box-shadow: none;
+        border-radius: 0;
+    }
+}
 /* Provider Add Course - custom styles */
 .addcourse-step { display: block; }
 .addcourse-step.d-none { display: none; }
 #addcourse-steps-nav .nav-link.active { font-weight: 600; color: #0d6efd; }
 #thumbnailPreview img { max-width: 100%; height: auto; }
-.module-item .card-body { padding: 1rem; }
-.lesson-item input.form-control { min-width: 0; }
 .outcome-item .btn-remove-outcome { border-radius: 0 4px 4px 0; }
 .step-badge { font-size: 0.85rem; }
 
 @media (max-width: 767px) {
     .col-md-3 { display: none; }
+}
+
+/* Sidebar nav improvements */
+#addcourse-steps-nav .nav-link {
+    display: block;
+    padding: 0.6rem 0.75rem;
+    margin: 0.15rem 0;
+    border-radius: 6px;
+    color: #0d6efd;
+}
+#addcourse-steps-nav .nav-link:hover {
+    background: rgba(13,110,253,0.06);
+    text-decoration: none;
+}
+#addcourse-steps-nav .nav-link.active {
+    background: #e9f2ff;
+    color: #0a58ca;
+    font-weight: 700;
+    border-left: 3px solid #0a58ca;
+}
+#addcourse-steps-nav .nav-link:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(13,110,253,0.12);
+}
+
+/* Requirement / outcome input styling: ensure remove button sits to the right */
+.requirement-item,
+.outcome-item {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.requirement-item .form-control,
+.outcome-item .form-control {
+    flex: 1 1 auto;
+}
+.btn-remove-requirement,
+.btn-remove-outcome {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
 }
 
 /* No manual spacer here — navbar.php already sets body padding-top. */

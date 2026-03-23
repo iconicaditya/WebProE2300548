@@ -201,18 +201,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function initLearnerDashboard() {
-        if (!isLearnerPage()) {
-            return;
-        }
-
+    // Always initialize sidebar toggle for both provider and learner dashboards
+    function initDashboardSidebarAndDropdowns() {
         initDropdowns();
         initSidebarToggle();
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initLearnerDashboard);
+        document.addEventListener('DOMContentLoaded', initDashboardSidebarAndDropdowns);
     } else {
-        initLearnerDashboard();
+        initDashboardSidebarAndDropdowns();
     }
 })();

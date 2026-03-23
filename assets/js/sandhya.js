@@ -197,7 +197,13 @@
             // Toggle active state on button too (for hamburger animation)
             toggleBtn.classList.toggle('active', isActive);
             this.setAttribute('aria-expanded', isActive);
-            console.log('Sidebar toggled:', isActive);
+            // Debug: Add a border to the button when toggled
+            if (isActive) {
+                toggleBtn.style.border = '2px solid #4186a0';
+            } else {
+                toggleBtn.style.border = '';
+            }
+            // console.log('[DEBUG] Sidebar toggled:', isActive);
         });
 
         // Close sidebar when menu item is clicked (mobile only)

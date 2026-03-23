@@ -6,7 +6,8 @@
  * Global constants and settings for the application
  */
 
-// Base URL for the application
+// Dynamic Base URL for the application (works with any host/port)
+// Use static BASE_URL for XAMPP/Apache (no port)
 define('BASE_URL', 'http://localhost/eduskill-marketplace/');
 
 // Application name

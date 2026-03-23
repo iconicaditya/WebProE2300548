@@ -135,12 +135,45 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.matches('.btn-remove-outcome')) {
             e.target.closest('.outcome-item')?.remove();
         }
+        if (e.target.matches('.btn-remove-module')) {
+            e.target.closest('.module-item')?.remove();
+        }
+        if (e.target.matches('.btn-remove-lesson')) {
+            e.target.closest('.lesson-item')?.remove();
+        }
+        if (e.target.matches('.btn-add-lesson')) {
+            const module = e.target.closest('.module-item');
+            const lessons = module.querySelector('.lessons-list');
+            const idx = lessons.querySelectorAll('.lesson-item').length;
+            const template = document.createElement('div');
+            template.className = 'lesson-item input-group mb-2';
+            template.innerHTML = '<input type="text" name="" class="form-control" placeholder="Lesson title">' +
+                '<input type="text" name="" class="form-control ms-2" placeholder="10:00">' +
+                '<select class="form-select ms-2" style="max-width:140px;"><option>video</option><option>quiz</option></select>' +
+                '<button type="button" class="btn btn-outline-danger btn-remove-lesson ms-2">&times;</button>';
+            lessons.appendChild(template);
+        }
         if (e.target.matches('.btn-remove-link')) {
             e.target.closest('.input-group')?.remove();
         }
     });
 
-    // Module UI removed — no module-specific handlers present.
+    // Add module
+    document.getElementById('addModuleBtn')?.addEventListener('click', function () {
+        const container = document.getElementById('modulesContainer');
+        const count = container.querySelectorAll('.module-item').length;
+        const card = document.createElement('div');
+        card.className = 'module-item card mb-3';
+        card.innerHTML = '<div class="card-body">' +
+            '<div class="d-flex align-items-start justify-content-between mb-2">' +
+            '<div><label class="form-label">Module title</label><input type="text" name="modules[' + count + '][title]" class="form-control" placeholder="Module title"></div>' +
+            '<div class="ms-3"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-module">Remove</button></div>' +
+            '</div>' +
+            '<div class="lessons-list mb-2"></div>' +
+            '<div><button type="button" class="btn btn-sm btn-outline-primary btn-add-lesson">Add lesson</button></div>' +
+            '</div>';
+        container.appendChild(card);
+    });
 
     // Price toggle
     document.querySelectorAll('input[name="access"]').forEach(r => r.addEventListener('change', function () {

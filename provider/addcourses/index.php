@@ -17,15 +17,14 @@ require_once(__DIR__ . '/includes/topbar.php');
 	<div class="card shadow-sm">
 		<div class="card-body p-0">
 			<div class="row g-0">
-				<div class="col-md-3 border-end p-3 bg-light">
+				<div class="col-md-3 border-end p-3 bg-light addcourses-sidebar-fixed">
 					<h5 class="mb-3">Course Builder</h5>
 					<nav class="nav flex-column" id="addcourse-steps-nav" aria-label="Course build steps">
 						<a href="#step-1" class="nav-link step-link active" data-step="1">1. Basic details</a>
-						<a href="#step-2" class="nav-link step-link" data-step="2">2. Course media</a>
-						<a href="#step-3" class="nav-link step-link" data-step="3">3. Modules & lessons</a>
-						<a href="#step-4" class="nav-link step-link" data-step="4">4. Price & offers</a>
-						<a href="#step-5" class="nav-link step-link" data-step="5">5. Resources</a>
-						<a href="#step-6" class="nav-link step-link" data-step="6">6. Publish</a>
+						<a href="#step-3" class="nav-link step-link" data-step="3">2. Modules & lessons</a>
+						<a href="#step-4" class="nav-link step-link" data-step="4">3. Price & offers</a>
+						<a href="#step-5" class="nav-link step-link" data-step="5">4. Resources</a>
+						<a href="#step-6" class="nav-link step-link" data-step="6">5. Preview & Publish</a>
 					</nav>
 				</div>
 
@@ -46,7 +45,7 @@ require_once(__DIR__ . '/includes/topbar.php');
 							</div>
 							<div>
 								<button type="button" class="btn btn-primary" id="nextBtn">Next</button>
-								<button type="submit" class="btn btn-success d-none" id="submitBtn">Publish</button>
+								<button type="submit" class="btn btn-success" id="submitBtn" style="display:none;">Publish</button>
 							</div>
 						</div>
 					</form>

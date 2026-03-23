@@ -180,7 +180,7 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
     .catalog-copy,
     .catalog-hero-card {
         background: rgba(255, 255, 255, 0.86);
-        border: 1px solid rgba(13, 110, 132, 0.12);
+        border: 1px solid rgba(13, 110, 132, 0.12); 
         backdrop-filter: blur(4px);
         border-radius: 18px;
         box-shadow: 0 14px 30px rgba(16, 24, 40, 0.08);

@@ -1,52 +1,105 @@
+
+
 <section id="step-5" class="addcourse-step d-none" data-step="5" aria-labelledby="step-5-title">
-	<h5 id="step-5-title">Resources</h5>
-	<p class="text-muted small">Upload PDFs, slides, and attachments learners can download.</p>
+	<h5 id="step-5-title">Course Resources</h5>
+	<p class="text-muted small">Upload supporting materials for your course. Accepted file types: PDF, Word, PPT. Please provide a clear title and description for each resource.</p>
 
-	<div class="mb-3">
-		<label class="form-label">Upload resources</label>
-		<input type="file" name="resources[]" class="form-control" multiple>
-		<small class="text-muted">PDF, PPT, ZIP and other helpful materials.</small>
-	</div>
+	<ul class="list-group mb-3">
+		<li class="list-group-item">
+			<strong>Tips:</strong>
+			<ul class="mb-0">
+				<li>Use descriptive titles for easy identification.</li>
+				<li>Subtitles can help clarify the resource purpose.</li>
+				<li>Maximum file size: 10MB per resource.</li>
+			</ul>
+		</li>
+	</ul>
 
-	<div class="mb-3">
-		<label class="form-label">External links</label>
-		<div id="resourceLinks">
-			<div class="input-group mb-2">
-				<input type="url" name="resource_links[]" class="form-control" placeholder="https://example.com/article">
-				<button type="button" class="btn btn-outline-danger btn-remove-link">&times;</button>
-			</div>
-		</div>
-		<button type="button" class="btn btn-sm btn-outline-primary" id="addResourceLink">Add link</button>
-	</div>
+	<button type="button" class="btn btn-primary mb-3" id="addResourceBtn">Add Resource</button>
 
-	<hr>
-
-	<style>
-		.btn-remove-link { cursor: pointer; }
-	</style>
+	<form id="resourcesForm" enctype="multipart/form-data" autocomplete="off">
+		<div id="resourceFields"></div>
+		<div id="resourceError" class="alert alert-danger d-none"></div>
+		<!-- Save Resources button removed as requested -->
+	</form>
 
 	<script>
-	(function(){
-		const section = document.querySelector('section.addcourse-step[data-step="5"]');
-		if(!section) return;
-		const linksContainer = section.querySelector('#resourceLinks');
-		const addBtn = section.querySelector('#addResourceLink');
+	function createResourceField(index) {
+		return `
+			<div class="card p-3 mb-3 resource-block">
+				<div class="mb-2">
+					<label for="resource-title-${index}">Resource Title <span class="text-danger">*</span></label>
+					<input type="text" id="resource-title-${index}" name="resources[${index}][title]" class="form-control" required maxlength="100" placeholder="e.g. Course Syllabus">
+				</div>
+				<div class="mb-2">
+					<label for="resource-subtitle-${index}">Resource Subtitle</label>
+					<input type="text" id="resource-subtitle-${index}" name="resources[${index}][subtitle]" class="form-control" maxlength="150" placeholder="e.g. Overview of course topics">
+				</div>
+				<div class="mb-2">
+					<label for="resource-file-${index}">Upload File <span class="text-danger">*</span></label>
+					<input type="file" id="resource-file-${index}" name="resources[${index}][file]" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx" required>
+					<small class="text-muted">PDF, Word (.doc/.docx), PPT (.ppt/.pptx) | Max 10MB</small>
+				</div>
+				<button type="button" class="btn btn-danger btn-sm remove-resource">Remove</button>
+			</div>
+		`;
+	}
 
-		if(addBtn && linksContainer){
-			addBtn.addEventListener('click', function(){
-				const div = document.createElement('div');
-				div.className = 'input-group mb-2';
-				div.innerHTML = '<input type="url" name="resource_links[]" class="form-control" placeholder="https://example.com/article"><button type="button" class="btn btn-outline-danger btn-remove-link">&times;</button>';
-				linksContainer.appendChild(div);
-			});
+	document.getElementById('addResourceBtn').addEventListener('click', function() {
+		const container = document.getElementById('resourceFields');
+		const index = container.children.length;
+		container.insertAdjacentHTML('beforeend', createResourceField(index));
+	});
 
-			linksContainer.addEventListener('click', function(e){
-				if(e.target.closest('.btn-remove-link')){
-					const item = e.target.closest('.input-group'); if(item) item.remove();
-				}
-			});
+	document.getElementById('resourceFields').addEventListener('click', function(e) {
+		if(e.target.classList.contains('remove-resource')) {
+			e.target.closest('.resource-block').remove();
 		}
-	})();
+	});
+
+	document.getElementById('resourcesForm').addEventListener('submit', function(e) {
+		e.preventDefault();
+		const errorDiv = document.getElementById('resourceError');
+		errorDiv.classList.add('d-none');
+		errorDiv.textContent = '';
+		let valid = true;
+		let errorMsg = '';
+		const fields = document.querySelectorAll('.resource-block');
+		if(fields.length === 0) {
+			valid = false;
+			errorMsg = 'Please add at least one resource.';
+		}
+		fields.forEach(function(field, idx) {
+			const title = field.querySelector('input[name^="resources"][name$="[title]"]');
+			const file = field.querySelector('input[type="file"]');
+			if(!title.value.trim()) {
+				valid = false;
+				errorMsg = 'Resource title is required.';
+			}
+			if(!file.files.length) {
+				valid = false;
+				errorMsg = 'Please upload a file for each resource.';
+			} else {
+				const f = file.files[0];
+				if(f.size > 10 * 1024 * 1024) {
+					valid = false;
+					errorMsg = 'File size must be less than 10MB.';
+				}
+				const allowed = ['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-powerpoint','application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+				if(!allowed.includes(f.type) && !f.name.match(/\.(pdf|doc|docx|ppt|pptx)$/i)) {
+					valid = false;
+					errorMsg = 'Invalid file type. Only PDF, Word, PPT allowed.';
+				}
+			}
+		});
+		if(!valid) {
+			errorDiv.textContent = errorMsg;
+			errorDiv.classList.remove('d-none');
+			return;
+		}
+		// TODO: AJAX submission or form handling here
+		alert('Resources saved successfully!');
+	});
 	</script>
 </section>
 

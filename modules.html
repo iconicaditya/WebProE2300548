@@ -1,81 +1,25 @@
+<section id="step-3" class="addcourse-step d-none" data-step="3" aria-labelledby="step-3-title">
+	<h5 id="step-3-title">Modules & Lessons</h5>
+	<p class="text-muted small">Use the + Add button to create lessons. Choose a type then fill its fields.</p>
 
-<section id="step-3" class="addcourse-step d-none" data-step="3" aria-labelledby="step-3-title" style="background:#f7f9fc; min-height:100vh; padding-top:32px;">
-	<div style="max-width:900px; margin:auto;">
-		<div style="display:flex; gap:8px; align-items:center; background:#8ca2bd; padding:12px 8px; border-radius:8px; margin-bottom:40px;">
-			<select id="sectionSelector" style="font-size:1.1rem; font-weight:600; border:none; background:transparent; color:#fff; width:140px;">
-				<option>Section-1</option>
-				<option>Section-2</option>
-				<option>Section-3</option>
-				<option>Section-4</option>
-				<option>Section-5</option>
-				<option>Section-6</option>
-				<option>Section-7</option>
-				<option>Section-8</option>
-				<option>Section-9</option>
-				<option>Section-10</option>
-				<option>Section-11</option>
-				<option>Section-12</option>
-				<option>Section-13</option>
-				<option>Section-14</option>
-				<option>Section-15</option>
-				<option>Section-16</option>
-				<option>Section-17</option>
-				<option>Section-18</option>
-				<option>Section-19</option>
-				<option>Section-20</option>
-				<option>Section-21</option>
-				<option>Section-22</option>
-				<option>Section-23</option>
-				<option>Section-24</option>
-				<option>Section-25</option>
-				<option>Section-26</option>
-				<option>Section-27</option>
-				<option>Section-28</option>
-				<option>Section-29</option>
-				<option>Section-30</option>
-			</select>
-			<span style="margin-left:-24px; color:#fff; font-size:1.3rem; pointer-events:none;">&#x25BE;</span>
-			</select>
-			<input type="text" placeholder="Enter section title name" style="font-size:1.1rem; border:none; background:rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; width:220px;">
+	<div id="modules-wrapper">
+		<div class="mb-3">
+			<button type="button" id="globalAddBtn" class="btn btn-primary">+ Add</button>
 		</div>
-		<div id="modules-wrapper">
-			<div id="emptyState" style="margin-top:60px; text-align:center;">
-				<div style="font-size:1.1rem; color:#222; margin-bottom:18px;">You have not added any Lessons & modules</div>
-				<button type="button" id="globalAddBtn" style="background:#3976e6; color:#fff; font-size:1.1rem; font-weight:500; border:none; border-radius:8px; padding:12px 36px; cursor:pointer;">+Add</button>
+
+		<div id="chooserArea" class="mb-3" style="display:none;">
+			<div class="btn-group" role="group">
+				<button type="button" class="btn btn-outline-primary choose-type" data-type="video">Video</button>
+				<button type="button" class="btn btn-outline-secondary choose-type" data-type="pdf">PDF</button>
+				<button type="button" class="btn btn-outline-success choose-type" data-type="quiz">Quiz</button>
 			</div>
-			<div id="chooserArea" class="mb-3" style="display:none; text-align:center; margin-top:30px;">
-				<div class="btn-group" role="group" style="display:inline-flex; gap:12px;">
-					<button type="button" class="btn choose-type" data-type="video" style="background:#3976e6; color:#fff; border-radius:8px; min-width:100px;">Video</button>
-					<button type="button" class="btn choose-type" data-type="pdf" style="background:#4a90e2; color:#fff; border-radius:8px; min-width:100px;">PDF</button>
-					<button type="button" class="btn choose-type" data-type="quiz" style="background:#2ecc71; color:#fff; border-radius:8px; min-width:100px;">Quiz</button>
-				</div>
-				<button type="button" id="chooserCancel" class="btn btn-link" style="margin-left:18px; background:#e53935; color:#fff;">Cancel</button>
-			</div>
-			<ul id="lessonsList" class="list-group" style="margin-top:40px;"></ul>
-			<div id="addBtnBottomWrapper" style="text-align:center; margin-top:24px; display:none;">
-				<button type="button" id="globalAddBtnBottom" style="background:#3976e6; color:#fff; font-size:1.1rem; font-weight:500; border:none; border-radius:8px; padding:12px 36px; cursor:pointer;">+Add</button>
-			</div>
+			<button type="button" id="chooserCancel" class="btn btn-link">Cancel</button>
 		</div>
+
+		<ul id="lessonsList" class="list-group"></ul>
 	</div>
 
 	<style>
-	#sectionSelector {
-		background: #8ca2bd;
-		color: #fff;
-		border-radius: 8px;
-		font-weight: 600;
-		padding: 8px 12px;
-		appearance: none;
-		-webkit-appearance: none;
-		-moz-appearance: none;
-	}
-	#sectionSelector option {
-		background: #f7f9fc;
-		color: #222;
-	}
-	#sectionSelector:focus {
-		outline: 2px solid #3976e6;
-	}
 		/* Modern card visuals */
 		#modules-wrapper .lesson-card { margin-bottom: 1rem; border: 0; }
 		#modules-wrapper .lesson-card .card { box-shadow: 0 6px 18px rgba(16,24,40,0.06); border-radius: 12px; }
@@ -98,7 +42,6 @@
 
 		/* Inputs and selects look cleaner */
 		.form-control, .form-select { border-radius: 8px; border: 1px solid #e6eef8; }
-
 		.form-control:focus, .form-select:focus { box-shadow: 0 6px 18px rgba(13,110,253,0.08); border-color: rgba(13,110,253,0.6); }
 
 		/* Small utility tweaks */
@@ -115,12 +58,9 @@
 	<script>
 	(function(){
 		const addBtn = document.getElementById('globalAddBtn');
-		const addBtnBottom = document.getElementById('globalAddBtnBottom');
-		const addBtnBottomWrapper = document.getElementById('addBtnBottomWrapper');
 		const chooser = document.getElementById('chooserArea');
 		const cancel = document.getElementById('chooserCancel');
 		const lessonsList = document.getElementById('lessonsList');
-		const emptyState = document.getElementById('emptyState');
 
 		function makeSectionOptions(){
 			let s = '';
@@ -148,6 +88,9 @@
 						<div class="d-flex mb-2">
 							<input type="text" name="lessons[][type]" value="video" hidden>
 							<input type="text" name="lessons[][title]" class="form-control me-2 lesson-title-input" placeholder="Video title">
+							<select name="lessons[][section]" class="form-select form-select-sm me-2 section-select" style="max-width:100px;">
+								${makeSectionOptions()}
+							</select>
 						</div>
 						<div>
 							<label class="form-label small">Upload video</label>
@@ -180,6 +123,9 @@
 						<div class="d-flex mb-2">
 							<input type="text" name="lessons[][type]" value="pdf" hidden>
 							<input type="text" name="lessons[][title]" class="form-control me-2 lesson-title-input" placeholder="PDF title">
+							<select name="lessons[][section]" class="form-select form-select-sm me-2 section-select" style="max-width:100px;">
+								${makeSectionOptions()}
+							</select>
 						</div>
 						<div>
 							<label class="form-label small">Upload PDF</label>
@@ -212,6 +158,9 @@
 						<div class="d-flex mb-2">
 							<input type="text" name="lessons[][type]" value="quiz" hidden>
 							<input type="text" name="lessons[][title]" class="form-control me-2 quiz-title" placeholder="Quiz title">
+							<select name="lessons[][section]" class="form-select form-select-sm me-2 section-select" style="max-width:100px;">
+								${makeSectionOptions()}
+							</select>
 						</div>
 						<div class="questions">
 							<!-- questions will be appended here -->
@@ -253,26 +202,8 @@
 			return div;
 		}
 
-		function updateEmptyStateAndAddBtn() {
-			if (lessonsList.children.length > 0) {
-				emptyState.style.display = 'none';
-				addBtnBottomWrapper.style.display = 'block';
-			} else {
-				emptyState.style.display = 'block';
-				addBtnBottomWrapper.style.display = 'none';
-			}
-		}
-
-		// Move chooser to the correct location
-		function showChooserAt(btn, wrapper) {
-			wrapper.insertBefore(chooser, btn.nextSibling);
-			chooser.style.display = 'block';
-			btn.style.display = 'none';
-		}
-
-		addBtn.addEventListener('click', function(){ showChooserAt(addBtn, emptyState); });
-		addBtnBottom.addEventListener('click', function(){ showChooserAt(addBtnBottom, addBtnBottomWrapper); });
-		cancel.addEventListener('click', function(){ chooser.style.display='none'; if(lessonsList.children.length === 0) addBtn.style.display='inline-block'; else addBtnBottomWrapper.style.display='block'; });
+		addBtn.addEventListener('click', function(){ chooser.style.display='block'; addBtn.style.display='none'; });
+		cancel.addEventListener('click', function(){ chooser.style.display='none'; addBtn.style.display='inline-block'; });
 
 		chooser.addEventListener('click', function(e){
 			if(!e.target.classList.contains('choose-type')) return;
@@ -282,22 +213,13 @@
 			else if(type === 'pdf') node = createPdfItem();
 			else node = createQuizItem();
 			lessonsList.appendChild(node);
-			chooser.style.display='none';
-			updateEmptyStateAndAddBtn();
-			// Restore add button after adding
-			if(lessonsList.children.length === 0) {
-				addBtn.style.display = 'inline-block';
-			} else {
-				addBtnBottomWrapper.style.display = 'block';
-				addBtnBottom.style.display = 'inline-block';
-			}
+			chooser.style.display='none'; addBtn.style.display='inline-block';
 		});
 
 		// Delegated events for dynamic controls
 		lessonsList.addEventListener('click', function(e){
 			if(e.target.closest('.btn-remove')){
 				e.target.closest('.lesson-card')?.remove();
-				updateEmptyStateAndAddBtn();
 				return;
 			}
 			// toggle expand/collapse
@@ -379,7 +301,6 @@
 			}
 		});
 
-		updateEmptyStateAndAddBtn();
 	})();
 	</script>
 

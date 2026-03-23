@@ -1,5 +1,5 @@
 <section id="step-6" class="addcourse-step d-none" data-step="6" aria-labelledby="step-6-title">
-	<h5 id="step-6-title">Publish</h5>
+	<h5 id="step-6-title">Preview & Publish</h5>
 	<p class="text-muted small">Review your course and publish when ready.</p>
 
 	<div class="mb-3">

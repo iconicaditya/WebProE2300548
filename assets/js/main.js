@@ -56,7 +56,57 @@ function initializeEventListeners() {
             console.log('Navigation clicked: ' + this.textContent);
         });
     });
-    
+
+    // Sidebar toggle for provider dashboard
+    const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn');
+    const providerSidebar = document.querySelector('.provider-sidebar');
+    const dashboardWrapper = document.querySelector('.provider-dashboard-wrapper');
+    if (sidebarToggleBtn && providerSidebar && dashboardWrapper) {
+        sidebarToggleBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isOpen = providerSidebar.classList.toggle('active');
+            sidebarToggleBtn.classList.toggle('active', isOpen);
+            sidebarToggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            dashboardWrapper.classList.toggle('sidebar-collapsed', isOpen);
+        });
+
+        // Close sidebar on link click (mobile)
+        const sidebarLinks = providerSidebar.querySelectorAll('.sidebar-menu-item a');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                if (window.innerWidth <= 768) {
+                    providerSidebar.classList.remove('active');
+                    sidebarToggleBtn.classList.remove('active');
+                    sidebarToggleBtn.setAttribute('aria-expanded', 'false');
+                    dashboardWrapper.classList.remove('sidebar-collapsed');
+                }
+            });
+        });
+
+        // Close sidebar when clicking outside (mobile)
+        document.addEventListener('click', function (e) {
+            if (window.innerWidth > 768) return;
+            const clickedInsideSidebar = providerSidebar.contains(e.target);
+            const clickedToggle = sidebarToggleBtn.contains(e.target);
+            if (!clickedInsideSidebar && !clickedToggle && providerSidebar.classList.contains('active')) {
+                providerSidebar.classList.remove('active');
+                sidebarToggleBtn.classList.remove('active');
+                sidebarToggleBtn.setAttribute('aria-expanded', 'false');
+                dashboardWrapper.classList.remove('sidebar-collapsed');
+            }
+        });
+
+        // Close sidebar with Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                providerSidebar.classList.remove('active');
+                sidebarToggleBtn.classList.remove('active');
+                sidebarToggleBtn.setAttribute('aria-expanded', 'false');
+                dashboardWrapper.classList.remove('sidebar-collapsed');
+            }
+        });
+    }
+
     // Add handler for all buttons
     const buttons = document.querySelectorAll('button');
     buttons.forEach(button => {
