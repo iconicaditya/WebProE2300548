@@ -1,387 +1,75 @@
+<section id="step-3" class="addcourse-step d-none" data-step="3" aria-labelledby="step-3-title">
+	<header class="mb-4">
+		<h5 id="step-3-title" class="mb-1">Modules & lessons</h5>
+		<p class="text-muted small mb-0">Build your course structure with video, PDF, and quiz lessons.</p>
+	</header>
 
-<section id="step-3" class="addcourse-step d-none" data-step="3" aria-labelledby="step-3-title" style="background:#f7f9fc; min-height:100vh; padding-top:32px;">
-	<div style="max-width:900px; margin:auto;">
-		<div style="display:flex; gap:8px; align-items:center; background:#8ca2bd; padding:12px 8px; border-radius:8px; margin-bottom:40px;">
-			<select id="sectionSelector" style="font-size:1.1rem; font-weight:600; border:none; background:transparent; color:#fff; width:140px;">
-				<option>Section-1</option>
-				<option>Section-2</option>
-				<option>Section-3</option>
-				<option>Section-4</option>
-				<option>Section-5</option>
-				<option>Section-6</option>
-				<option>Section-7</option>
-				<option>Section-8</option>
-				<option>Section-9</option>
-				<option>Section-10</option>
-				<option>Section-11</option>
-				<option>Section-12</option>
-				<option>Section-13</option>
-				<option>Section-14</option>
-				<option>Section-15</option>
-				<option>Section-16</option>
-				<option>Section-17</option>
-				<option>Section-18</option>
-				<option>Section-19</option>
-				<option>Section-20</option>
-				<option>Section-21</option>
-				<option>Section-22</option>
-				<option>Section-23</option>
-				<option>Section-24</option>
-				<option>Section-25</option>
-				<option>Section-26</option>
-				<option>Section-27</option>
-				<option>Section-28</option>
-				<option>Section-29</option>
-				<option>Section-30</option>
-			</select>
-			<span style="margin-left:-24px; color:#fff; font-size:1.3rem; pointer-events:none;">&#x25BE;</span>
-			</select>
-			<input type="text" placeholder="Enter section title name" style="font-size:1.1rem; border:none; background:rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; width:220px;">
-		</div>
-		<div id="modules-wrapper">
-			<div id="emptyState" style="margin-top:60px; text-align:center;">
-				<div style="font-size:1.1rem; color:#222; margin-bottom:18px;">You have not added any Lessons & modules</div>
-				<button type="button" id="globalAddBtn" style="background:#3976e6; color:#fff; font-size:1.1rem; font-weight:500; border:none; border-radius:8px; padding:12px 36px; cursor:pointer;">+Add</button>
-			</div>
-			<div id="chooserArea" class="mb-3" style="display:none; text-align:center; margin-top:30px;">
-				<div class="btn-group" role="group" style="display:inline-flex; gap:12px;">
-					<button type="button" class="btn choose-type" data-type="video" style="background:#3976e6; color:#fff; border-radius:8px; min-width:100px;">Video</button>
-					<button type="button" class="btn choose-type" data-type="pdf" style="background:#4a90e2; color:#fff; border-radius:8px; min-width:100px;">PDF</button>
-					<button type="button" class="btn choose-type" data-type="quiz" style="background:#2ecc71; color:#fff; border-radius:8px; min-width:100px;">Quiz</button>
+	<div class="card border-0 shadow-sm modules-shell mb-4">
+		<div class="card-body">
+			<div class="row g-3 align-items-end modules-toolbar">
+				<div class="col-md-4">
+					<label for="sectionSelector" class="form-label">Section</label>
+					<select id="sectionSelector" class="form-select">
+						<option value="1">Section-1</option>
+						<option value="2">Section-2</option>
+						<option value="3">Section-3</option>
+						<option value="4">Section-4</option>
+						<option value="5">Section-5</option>
+						<option value="6">Section-6</option>
+						<option value="7">Section-7</option>
+						<option value="8">Section-8</option>
+						<option value="9">Section-9</option>
+						<option value="10">Section-10</option>
+						<option value="11">Section-11</option>
+						<option value="12">Section-12</option>
+						<option value="13">Section-13</option>
+						<option value="14">Section-14</option>
+						<option value="15">Section-15</option>
+						<option value="16">Section-16</option>
+						<option value="17">Section-17</option>
+						<option value="18">Section-18</option>
+						<option value="19">Section-19</option>
+						<option value="20">Section-20</option>
+						<option value="21">Section-21</option>
+						<option value="22">Section-22</option>
+						<option value="23">Section-23</option>
+						<option value="24">Section-24</option>
+						<option value="25">Section-25</option>
+						<option value="26">Section-26</option>
+						<option value="27">Section-27</option>
+						<option value="28">Section-28</option>
+						<option value="29">Section-29</option>
+						<option value="30">Section-30</option>
+					</select>
 				</div>
-				<button type="button" id="chooserCancel" class="btn btn-link" style="margin-left:18px; background:#e53935; color:#fff;">Cancel</button>
+				<div class="col-md-8">
+					<label for="sectionTitleInput" class="form-label">Section title</label>
+					<input type="text" id="sectionTitleInput" class="form-control" placeholder="Enter section title name">
+				</div>
 			</div>
-			<ul id="lessonsList" class="list-group" style="margin-top:40px;"></ul>
-			<div id="addBtnBottomWrapper" style="text-align:center; margin-top:24px; display:none;">
-				<button type="button" id="globalAddBtnBottom" style="background:#3976e6; color:#fff; font-size:1.1rem; font-weight:500; border:none; border-radius:8px; padding:12px 36px; cursor:pointer;">+Add</button>
+
+			<div id="modules-wrapper" class="mt-4">
+				<div id="emptyState" class="text-center py-5 border rounded-3 bg-body-tertiary">
+					<div class="h6 mb-3">You have not added any lessons or modules</div>
+					<button type="button" id="globalAddBtn" class="btn btn-primary px-4">+ Add</button>
+				</div>
+
+				<div id="chooserArea" class="d-none text-center my-3">
+					<div class="btn-group modules-chooser" role="group" aria-label="Choose lesson type">
+						<button type="button" class="btn btn-primary choose-type" data-type="video">Video</button>
+						<button type="button" class="btn btn-info text-white choose-type" data-type="pdf">PDF</button>
+						<button type="button" class="btn btn-success choose-type" data-type="quiz">Quiz</button>
+					</div>
+					<button type="button" id="chooserCancel" class="btn btn-outline-secondary ms-2">Cancel</button>
+				</div>
+
+				<ul id="lessonsList" class="list-group list-group-flush"></ul>
+
+				<div id="addBtnBottomWrapper" class="text-center mt-4 d-none">
+					<button type="button" id="globalAddBtnBottom" class="btn btn-primary px-4">+ Add</button>
+				</div>
 			</div>
 		</div>
 	</div>
-
-	<style>
-	#sectionSelector {
-		background: #8ca2bd;
-		color: #fff;
-		border-radius: 8px;
-		font-weight: 600;
-		padding: 8px 12px;
-		appearance: none;
-		-webkit-appearance: none;
-		-moz-appearance: none;
-	}
-	#sectionSelector option {
-		background: #f7f9fc;
-		color: #222;
-	}
-	#sectionSelector:focus {
-		outline: 2px solid #3976e6;
-	}
-		/* Modern card visuals */
-		#modules-wrapper .lesson-card { margin-bottom: 1rem; border: 0; }
-		#modules-wrapper .lesson-card .card { box-shadow: 0 6px 18px rgba(16,24,40,0.06); border-radius: 12px; }
-		#modules-wrapper .lesson-card .card-body { padding: 1rem 1rem; }
-
-		/* Header / chooser */
-		#globalAddBtn { padding: 0.55rem 0.9rem; font-weight:600; border-radius:10px; }
-		#chooserArea .btn { min-width:100px; border-radius:10px; }
-		#chooserArea .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(13,110,253,0.08); }
-
-		/* Quiz / question styling */
-		.question { background: #fbfdff; border-radius: 8px; padding: .75rem; margin-bottom: .6rem; box-shadow: 0 2px 8px rgba(12,20,30,0.03); }
-		.question .question-text { border: 1px solid #eef2f6; border-radius:8px; padding: .45rem .6rem; }
-
-		/* Option rows with radio on the left */
-		.option-row { display:flex; gap:.5rem; align-items:center; margin-top: .45rem; }
-		.option-row .form-check-input { margin: 0 0 0 4px; accent-color: #0d6efd; }
-		.option-row input.option-text { flex:1 1 auto; border:1px solid #eef2f6; border-radius:8px; padding:.45rem .6rem; }
-		.option-row .btn-remove-option { border-radius:8px; }
-
-		/* Inputs and selects look cleaner */
-		.form-control, .form-select { border-radius: 8px; border: 1px solid #e6eef8; }
-
-		.form-control:focus, .form-select:focus { box-shadow: 0 6px 18px rgba(13,110,253,0.08); border-color: rgba(13,110,253,0.6); }
-
-		/* Small utility tweaks */
-		.video-preview video, .video-preview img { border-radius:8px; box-shadow: 0 4px 10px rgba(12,20,30,0.04); }
-		.btn-remove { border-radius:8px; }
-		.lesson-card .card-body .d-flex { gap: .5rem; }
-
-		@media (max-width: 575px) {
-			#chooserArea .btn { min-width: auto; padding: .4rem .6rem; }
-			.option-row { flex-direction: column; align-items:stretch; }
-		}
-	</style>
-
-	<script>
-	(function(){
-		const addBtn = document.getElementById('globalAddBtn');
-		const addBtnBottom = document.getElementById('globalAddBtnBottom');
-		const addBtnBottomWrapper = document.getElementById('addBtnBottomWrapper');
-		const chooser = document.getElementById('chooserArea');
-		const cancel = document.getElementById('chooserCancel');
-		const lessonsList = document.getElementById('lessonsList');
-		const emptyState = document.getElementById('emptyState');
-
-		function makeSectionOptions(){
-			let s = '';
-			for(let i=1;i<=20;i++) s += `<option value="${i}">${i}</option>`;
-			return s;
-		}
-
-		function createVideoItem(){
-			const li = document.createElement('li');
-			li.className = 'list-group-item lesson-card';
-			li.innerHTML = `
-				<div class="card">
-					<div class="card-header d-flex align-items-center justify-content-between" style="cursor:pointer;">
-						<div class="d-flex align-items-center gap-2">
-							<span class="badge bg-primary">Video</span>
-							<strong class="lesson-summary-title">Untitled video</strong>
-							<small class="text-muted ms-2 lesson-summary-section">Section 1</small>
-						</div>
-						<div>
-							<button type="button" class="btn btn-sm btn-outline-secondary btn-toggle">Edit</button>
-							<button type="button" class="btn btn-sm btn-outline-danger btn-remove">Remove</button>
-						</div>
-					</div>
-					<div class="card-body collapse show">
-						<div class="d-flex mb-2">
-							<input type="text" name="lessons[][type]" value="video" hidden>
-							<input type="text" name="lessons[][title]" class="form-control me-2 lesson-title-input" placeholder="Video title">
-						</div>
-						<div>
-							<label class="form-label small">Upload video</label>
-							<input type="file" accept="video/*" name="lessons[][video]" class="form-control form-control-sm video-upload">
-							<div class="mt-2 video-preview d-none"><video controls style="max-width:320px"></video><div class="small text-muted filename mt-1"></div></div>
-						</div>
-					</div>
-				</div>
-			`;
-			return li;
-		}
-
-		function createPdfItem(){
-			const li = document.createElement('li');
-			li.className = 'list-group-item lesson-card';
-			li.innerHTML = `
-				<div class="card">
-					<div class="card-header d-flex align-items-center justify-content-between" style="cursor:pointer;">
-						<div class="d-flex align-items-center gap-2">
-							<span class="badge bg-secondary">PDF</span>
-							<strong class="lesson-summary-title">Untitled PDF</strong>
-							<small class="text-muted ms-2 lesson-summary-section">Section 1</small>
-						</div>
-						<div>
-							<button type="button" class="btn btn-sm btn-outline-secondary btn-toggle">Edit</button>
-							<button type="button" class="btn btn-sm btn-outline-danger btn-remove">Remove</button>
-						</div>
-					</div>
-					<div class="card-body collapse show">
-						<div class="d-flex mb-2">
-							<input type="text" name="lessons[][type]" value="pdf" hidden>
-							<input type="text" name="lessons[][title]" class="form-control me-2 lesson-title-input" placeholder="PDF title">
-						</div>
-						<div>
-							<label class="form-label small">Upload PDF</label>
-							<input type="file" accept="application/pdf" name="lessons[][pdf]" class="form-control form-control-sm pdf-upload">
-							<div class="mt-2 pdf-filename small text-muted d-none"></div>
-						</div>
-					</div>
-				</div>
-			`;
-			return li;
-		}
-
-		function createQuizItem(){
-			const li = document.createElement('li');
-			li.className = 'list-group-item lesson-card';
-			li.innerHTML = `
-				<div class="card">
-					<div class="card-header d-flex align-items-center justify-content-between" style="cursor:pointer;">
-						<div class="d-flex align-items-center gap-2">
-							<span class="badge bg-success">Quiz</span>
-							<strong class="lesson-summary-title">Untitled Quiz</strong>
-							<small class="text-muted ms-2 lesson-summary-section">Section 1</small>
-						</div>
-						<div>
-							<button type="button" class="btn btn-sm btn-outline-secondary btn-toggle">Edit</button>
-							<button type="button" class="btn btn-sm btn-outline-danger btn-remove">Remove</button>
-						</div>
-					</div>
-					<div class="card-body collapse show">
-						<div class="d-flex mb-2">
-							<input type="text" name="lessons[][type]" value="quiz" hidden>
-							<input type="text" name="lessons[][title]" class="form-control me-2 quiz-title" placeholder="Quiz title">
-						</div>
-						<div class="questions">
-							<!-- questions will be appended here -->
-						</div>
-						<div class="mt-2">
-							<button type="button" class="btn btn-sm btn-outline-primary btn-add-question">Add question</button>
-						</div>
-					</div>
-				</div>
-			`;
-			return li;
-		}
-
-		function createQuestionNode(){
-			const wrapper = document.createElement('div');
-			wrapper.className = 'question';
-			wrapper.innerHTML = `
-				<div class="d-flex mb-2">
-					<input type="text" class="form-control me-2 question-text" placeholder="Question text">
-					<button type="button" class="btn btn-sm btn-outline-danger btn-remove-question">Remove</button>
-				</div>
-				<div class="options">
-				</div>
-				<div class="mt-2 d-flex gap-2">
-					<button type="button" class="btn btn-sm btn-outline-secondary btn-add-option">Add option</button>
-				</div>
-			`;
-			return wrapper;
-		}
-
-		function createOptionRow(){
-			const div = document.createElement('div');
-			div.className = 'option-row mt-2';
-			div.innerHTML = `
-				<input type="radio" class="form-check-input mt-0 correct-radio" style="margin-right:.5rem;">
-				<input type="text" class="form-control option-text" placeholder="Option text">
-				<button type="button" class="btn btn-sm btn-outline-danger btn-remove-option">Remove</button>
-			`;
-			return div;
-		}
-
-		function updateEmptyStateAndAddBtn() {
-			if (lessonsList.children.length > 0) {
-				emptyState.style.display = 'none';
-				addBtnBottomWrapper.style.display = 'block';
-			} else {
-				emptyState.style.display = 'block';
-				addBtnBottomWrapper.style.display = 'none';
-			}
-		}
-
-		// Move chooser to the correct location
-		function showChooserAt(btn, wrapper) {
-			wrapper.insertBefore(chooser, btn.nextSibling);
-			chooser.style.display = 'block';
-			btn.style.display = 'none';
-		}
-
-		addBtn.addEventListener('click', function(){ showChooserAt(addBtn, emptyState); });
-		addBtnBottom.addEventListener('click', function(){ showChooserAt(addBtnBottom, addBtnBottomWrapper); });
-		cancel.addEventListener('click', function(){ chooser.style.display='none'; if(lessonsList.children.length === 0) addBtn.style.display='inline-block'; else addBtnBottomWrapper.style.display='block'; });
-
-		chooser.addEventListener('click', function(e){
-			if(!e.target.classList.contains('choose-type')) return;
-			const type = e.target.dataset.type;
-			let node;
-			if(type === 'video') node = createVideoItem();
-			else if(type === 'pdf') node = createPdfItem();
-			else node = createQuizItem();
-			lessonsList.appendChild(node);
-			chooser.style.display='none';
-			updateEmptyStateAndAddBtn();
-			// Restore add button after adding
-			if(lessonsList.children.length === 0) {
-				addBtn.style.display = 'inline-block';
-			} else {
-				addBtnBottomWrapper.style.display = 'block';
-				addBtnBottom.style.display = 'inline-block';
-			}
-		});
-
-		// Delegated events for dynamic controls
-		lessonsList.addEventListener('click', function(e){
-			if(e.target.closest('.btn-remove')){
-				e.target.closest('.lesson-card')?.remove();
-				updateEmptyStateAndAddBtn();
-				return;
-			}
-			// toggle expand/collapse
-			if(e.target.closest('.btn-toggle')){
-				const card = e.target.closest('.card');
-				const body = card.querySelector('.card-body');
-				if(body.classList.contains('show')) body.classList.remove('show'); else body.classList.add('show');
-				return;
-			}
-			// clicking header toggles too
-			if(e.target.closest('.card-header')){
-				const header = e.target.closest('.card-header');
-				// ignore clicks on buttons inside header
-				if(e.target.closest('button')) return;
-				const card = header.parentElement;
-				const body = card.querySelector('.card-body');
-				if(body) body.classList.toggle('show');
-				return;
-			}
-			if(e.target.closest('.btn-add-question')){
-				const container = e.target.closest('.lesson-card').querySelector('.questions');
-				const q = createQuestionNode();
-				container.appendChild(q);
-				return;
-			}
-			if(e.target.closest('.btn-remove-question')){
-				e.target.closest('.question')?.remove();
-				return;
-			}
-			if(e.target.closest('.btn-add-option')){
-				const q = e.target.closest('.question');
-				const options = q.querySelector('.options');
-				const or = createOptionRow();
-				// ensure radios inside the same question share a name so only one correct
-				const radioName = 'correct_' + Math.random().toString(36).slice(2,8);
-				or.querySelectorAll('input[type=radio]').forEach(r => r.name = radioName);
-				options.appendChild(or);
-				return;
-			}
-			if(e.target.closest('.btn-remove-option')){
-				e.target.closest('.option-row')?.remove();
-				return;
-			}
-		});
-
-		// Update summary title/section when inputs change
-		lessonsList.addEventListener('input', function(e){
-			const lessonCard = e.target.closest('.lesson-card');
-			if(!lessonCard) return;
-			const title = lessonCard.querySelector('.lesson-title-input, .quiz-title')?.value || '';
-			const section = lessonCard.querySelector('.section-select')?.value || '1';
-			const summaryTitle = lessonCard.querySelector('.lesson-summary-title');
-			const summarySection = lessonCard.querySelector('.lesson-summary-section');
-			if(summaryTitle) summaryTitle.textContent = title.trim() || (lessonCard.querySelector('input[name="lessons[][type]"]')?.value || 'Lesson');
-			if(summarySection) summarySection.textContent = 'Section ' + section;
-		});
-
-		// File preview handlers
-		lessonsList.addEventListener('change', function(e){
-			const vid = e.target.closest('.video-upload');
-			if(vid){
-				const file = vid.files && vid.files[0];
-				const card = vid.closest('.lesson-card');
-				const preview = card.querySelector('.video-preview');
-				const v = preview.querySelector('video');
-				const fn = preview.querySelector('.filename');
-				if(!file){ preview.classList.add('d-none'); v.src=''; fn.textContent=''; return; }
-				const url = URL.createObjectURL(file); v.src = url; v.load(); preview.classList.remove('d-none'); fn.textContent = file.name;
-				return;
-			}
-			const pdf = e.target.closest('.pdf-upload');
-			if(pdf){
-				const file = pdf.files && pdf.files[0];
-				const card = pdf.closest('.lesson-card');
-				const fn = card.querySelector('.pdf-filename');
-				if(!file){ fn.classList.add('d-none'); fn.textContent=''; return; }
-				fn.textContent = file.name; fn.classList.remove('d-none');
-				return;
-			}
-		});
-
-		updateEmptyStateAndAddBtn();
-	})();
-	</script>
-
 </section>
 

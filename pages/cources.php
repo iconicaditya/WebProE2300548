@@ -769,41 +769,127 @@ $renderCoursesOnly = isset($renderCoursesOnly) && $renderCoursesOnly === true;
         color: #546679;
     }
 
-    @media (max-width: 1200px) {
+    @media (max-width: 1280px) {
         .catalog-layout {
-            grid-template-columns: 250px minmax(0, 1fr);
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: 22px;
         }
 
         .courses-grid {
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
     }
 
     @media (max-width: 1080px) {
+        .catalog-hero-inner {
+            grid-template-columns: 1fr;
+        }
+
         .catalog-layout {
             grid-template-columns: 1fr;
+            gap: 18px;
         }
 
         .catalog-filter-box {
             position: static;
-        }
-
-        .catalog-hero-inner {
-            grid-template-columns: 1fr;
+            top: auto;
         }
 
         .detail-grid {
             grid-template-columns: 1fr;
         }
+
+        .courses-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 900px) {
+        .catalog-headline-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .catalog-headline-row span {
+            font-size: 13px;
+        }
+
+        .courses-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
     }
 
     @media (max-width: 640px) {
+        .catalog-hero {
+            padding: 16px 0 12px;
+        }
+
+        .catalog-hero-inner,
+        .catalog-layout {
+            width: calc(100% - 24px);
+        }
+
+        .catalog-copy,
+        .catalog-hero-card {
+            border-radius: 14px;
+        }
+
+        .catalog-copy {
+            padding: 16px;
+        }
+
+        .catalog-copy h1 {
+            font-size: clamp(24px, 6vw, 30px);
+        }
+
+        .catalog-copy > p,
+        .catalog-hero-card p {
+            font-size: 14px;
+        }
+
         .catalog-metrics {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .catalog-hero-card {
+            padding: 16px;
         }
 
         .catalog-headline-row h2 {
             font-size: 22px;
+        }
+
+        .course-card-content {
+            padding: 10px;
+        }
+
+        .course-title {
+            font-size: 15px;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .catalog-metrics {
+            grid-template-columns: 1fr;
+        }
+
+        .courses-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .filter-chip {
+            padding: 7px 12px;
+            font-size: 12px;
+        }
+
+        .catalog-headline-row p {
+            font-size: 12px;
+        }
+
+        .course-meta-top,
+        .course-rating {
+            flex-wrap: wrap;
         }
     }
 
@@ -922,7 +1008,7 @@ $renderCoursesOnly = isset($renderCoursesOnly) && $renderCoursesOnly === true;
     }
 
     .courses-catalog-embedded .catalog-headline-row h2 {
-        font-size: 34px;
+        font-size: clamp(24px, 3.2vw, 30px);
     }
 
     .courses-catalog-embedded .catalog-headline-row p {
@@ -936,7 +1022,7 @@ $renderCoursesOnly = isset($renderCoursesOnly) && $renderCoursesOnly === true;
 
     .courses-catalog-embedded .courses-grid {
         gap: 12px;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         margin-top: 6px;
     }
 
@@ -1037,18 +1123,92 @@ $renderCoursesOnly = isset($renderCoursesOnly) && $renderCoursesOnly === true;
         transform: translateX(4px);
     }
 
-    @media (max-width: 900px) {
-        .courses-grid { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 1200px) {
+        .courses-catalog-embedded .catalog-layout {
+            grid-template-columns: 220px minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .courses-catalog-embedded .courses-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
     }
 
-    @media (max-width: 640px) {
-        .catalog-metrics { grid-template-columns: 1fr; }
-        .catalog-headline-row h2 { font-size: 22px; }
-        .courses-grid { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 1080px) {
+        .courses-catalog-embedded .catalog-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .courses-catalog-embedded .catalog-filter-box {
+            position: static;
+            top: auto;
+        }
+
+        .courses-catalog-embedded .catalog-hero-inner {
+            grid-template-columns: 1fr;
+        }
     }
 
-    @media (max-width: 480px) {
-        .courses-grid { grid-template-columns: 1fr; }
+    @media (max-width: 768px) {
+        .courses-catalog-embedded {
+            --embedded-side-gap: 12px;
+        }
+
+        .courses-catalog-embedded .catalog-headline-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .courses-catalog-embedded .catalog-headline-row h2 {
+            font-size: clamp(22px, 6vw, 28px);
+        }
+
+        .courses-catalog-embedded .courses-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .courses-catalog-embedded .view-all-wrap {
+            justify-content: center;
+            padding: 20px 0 8px;
+        }
+
+        .courses-catalog-embedded .view-all-btn {
+            width: min(360px, 100%);
+            justify-content: center;
+            padding: 12px 20px;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .courses-catalog-embedded .catalog-copy,
+        .courses-catalog-embedded .catalog-hero-card,
+        .courses-catalog-embedded .catalog-filter-box,
+        .courses-catalog-embedded .course-details {
+            border-radius: 10px;
+        }
+
+        .courses-catalog-embedded .catalog-metrics {
+            grid-template-columns: 1fr;
+        }
+
+        .courses-catalog-embedded .courses-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .courses-catalog-embedded .course-card-content {
+            padding: 10px;
+            gap: 6px;
+        }
+
+        .courses-catalog-embedded .course-title {
+            font-size: 15px;
+        }
+
+        .courses-catalog-embedded .course-meta-top,
+        .courses-catalog-embedded .course-rating {
+            flex-wrap: wrap;
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {

@@ -1,77 +1,411 @@
-/* Fixed sidebar for addcourses */
-.addcourses-sidebar-fixed {
-    position: sticky;
-    top: 80px; /* adjust for navbar height */
-    height: calc(100vh - 80px);
-    z-index: 20;
-    background: #f8fafc;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    border-radius: 8px;
+/* Provider Add Course - Bootstrap-first UI cleanup */
+
+/* -------------------------------------------------------------------------
+   Addcourse fallback helpers
+   - Ensure layout remains correct when Bootstrap CDN is unavailable and
+     only minimal fallback CSS is loaded.
+   ------------------------------------------------------------------------- */
+
+.container-xxl {
+    width: 100%;
+    max-width: 1320px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 15px;
+    padding-right: 15px;
 }
-@media (max-width: 767px) {
-    .addcourses-sidebar-fixed {
-        position: static;
-        height: auto;
-        box-shadow: none;
-        border-radius: 0;
+
+.addcourse-page .d-none { display: none !important; }
+.addcourse-page .d-block { display: block !important; }
+.addcourse-page .d-flex { display: flex !important; }
+.addcourse-page .flex-wrap { flex-wrap: wrap !important; }
+.addcourse-page .vstack { display: flex; flex-direction: column; }
+.addcourse-page .ms-auto { margin-left: auto !important; }
+.addcourse-page .w-100 { width: 100% !important; }
+.addcourse-page .gap-1 { gap: .25rem !important; }
+.addcourse-page .gap-2 { gap: .5rem !important; }
+.addcourse-page .gap-3 { gap: 1rem !important; }
+
+.addcourse-page .border-0 { border: 0 !important; }
+.addcourse-page .overflow-hidden { overflow: hidden !important; }
+.addcourse-page .bg-body-tertiary { background: #f8f9fa !important; }
+.addcourse-page .text-uppercase { text-transform: uppercase !important; }
+.addcourse-page .fw-semibold { font-weight: 600 !important; }
+
+.addcourse-page .row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -12px;
+    margin-right: -12px;
+}
+
+.addcourse-page .row > [class*="col-"] {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 12px;
+    padding-right: 12px;
+    box-sizing: border-box;
+}
+
+.addcourse-page .g-0 {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.addcourse-page .g-0 > [class*="col-"] {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+@media (min-width: 576px) {
+    .addcourse-page .col-sm-6 {
+        width: 50%;
+        max-width: 50%;
+        flex: 0 0 50%;
     }
 }
-/* Provider Add Course - custom styles */
-.addcourse-step { display: block; }
-.addcourse-step.d-none { display: none; }
-#addcourse-steps-nav .nav-link.active { font-weight: 600; color: #0d6efd; }
-#thumbnailPreview img { max-width: 100%; height: auto; }
-.outcome-item .btn-remove-outcome { border-radius: 0 4px 4px 0; }
-.step-badge { font-size: 0.85rem; }
 
-@media (max-width: 767px) {
-    .col-md-3 { display: none; }
+@media (min-width: 768px) {
+    .addcourse-page .col-md-3 {
+        width: 25%;
+        max-width: 25%;
+        flex: 0 0 25%;
+    }
+
+    .addcourse-page .col-md-4 {
+        width: 33.333333%;
+        max-width: 33.333333%;
+        flex: 0 0 33.333333%;
+    }
+
+    .addcourse-page .col-md-5 {
+        width: 41.666667%;
+        max-width: 41.666667%;
+        flex: 0 0 41.666667%;
+    }
+
+    .addcourse-page .col-md-6 {
+        width: 50%;
+        max-width: 50%;
+        flex: 0 0 50%;
+    }
+
+    .addcourse-page .col-md-7 {
+        width: 58.333333%;
+        max-width: 58.333333%;
+        flex: 0 0 58.333333%;
+    }
+
+    .addcourse-page .col-md-8 {
+        width: 66.666667%;
+        max-width: 66.666667%;
+        flex: 0 0 66.666667%;
+    }
 }
 
-/* Sidebar nav improvements */
-#addcourse-steps-nav .nav-link {
+@media (min-width: 992px) {
+    .addcourse-page .col-lg-3 {
+        width: 25%;
+        max-width: 25%;
+        flex: 0 0 25%;
+    }
+
+    .addcourse-page .col-lg-9 {
+        width: 75%;
+        max-width: 75%;
+        flex: 0 0 75%;
+    }
+}
+
+.addcourse-page .input-group {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+.addcourse-page .input-group > .form-control,
+.addcourse-page .input-group > .form-select {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.addcourse-page .input-group > .btn {
+    white-space: nowrap;
+}
+
+.addcourse-page .list-group {
+    display: flex;
+    flex-direction: column;
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+}
+
+.addcourse-page .list-group-flush > .list-group-item {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+}
+
+.addcourse-page .list-group-item {
+    position: relative;
     display: block;
-    padding: 0.6rem 0.75rem;
-    margin: 0.15rem 0;
-    border-radius: 6px;
-    color: #0d6efd;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
 }
+
+.addcourse-page .alert {
+    position: relative;
+    padding: .75rem 1rem;
+    border: 1px solid transparent;
+    border-radius: .5rem;
+}
+
+.addcourse-page .alert-info {
+    color: #084298;
+    background-color: #cfe2ff;
+    border-color: #b6d4fe;
+}
+
+.addcourse-page .alert-danger {
+    color: #842029;
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+}
+
+.addcourse-page .form-text {
+    margin-top: .25rem;
+    font-size: .875em;
+    color: #6c757d;
+}
+
+.addcourse-page .btn-success {
+    color: #fff;
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.addcourse-page .btn-info {
+    color: #fff;
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+}
+
+.addcourse-page .btn-outline-danger {
+    color: #dc3545;
+    background: transparent;
+    border-color: #dc3545;
+}
+
+.addcourse-page {
+    --addcourse-top-offset: 92px;
+}
+
+.addcourse-shell-card {
+    overflow: visible !important;
+}
+
+.addcourse-shell {
+    align-items: flex-start;
+}
+
+.addcourse-sidebar {
+    position: relative;
+    z-index: 2;
+}
+
+.addcourse-content {
+    position: relative;
+    z-index: 1;
+    min-height: 640px;
+}
+
+.addcourses-sidebar-fixed {
+    position: sticky;
+    top: var(--addcourse-top-offset);
+    align-self: flex-start;
+    max-height: calc(100vh - var(--addcourse-top-offset) - 1.25rem);
+    overflow-y: auto;
+    min-height: calc(100vh - var(--addcourse-top-offset) - 1.25rem);
+    border-radius: .5rem 0 0 .5rem;
+}
+
+.addcourse-step {
+    display: block;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
+
+.addcourse-step.d-none {
+    display: none;
+}
+
+#steps-container {
+    width: 100%;
+    min-height: 560px;
+}
+
+#addcourse-steps-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    border-radius: .65rem;
+    color: #2e4b72;
+    font-weight: 500;
+    transition: all .15s ease;
+}
+
 #addcourse-steps-nav .nav-link:hover {
-    background: rgba(13,110,253,0.06);
-    text-decoration: none;
+    background: rgba(13, 110, 253, .08);
+    color: #0a58ca;
 }
+
 #addcourse-steps-nav .nav-link.active {
-    background: #e9f2ff;
+    background: #e8f0ff;
     color: #0a58ca;
     font-weight: 700;
-    border-left: 3px solid #0a58ca;
-}
-#addcourse-steps-nav .nav-link:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(13,110,253,0.12);
 }
 
-/* Requirement / outcome input styling: ensure remove button sits to the right */
+#addcourse-steps-nav .nav-link:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .2);
+}
+
+#addcourse-steps-nav .step-index {
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: rgba(13, 110, 253, .14);
+    color: #0a58ca;
+    font-size: .8rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+#addcourse-steps-nav .nav-link.active .step-index {
+    background: #0d6efd;
+    color: #fff;
+}
+
+#thumbnailPreview img {
+    max-height: 180px;
+    width: auto;
+}
+
+#promoPreview a {
+    text-decoration: underline;
+}
+
 .requirement-item,
 .outcome-item {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
+    align-items: stretch;
 }
-.requirement-item .form-control,
-.outcome-item .form-control {
-    flex: 1 1 auto;
-}
+
 .btn-remove-requirement,
 .btn-remove-outcome {
-    flex: 0 0 auto;
-    width: 38px;
-    height: 38px;
+    width: 2.35rem;
+    min-width: 2.35rem;
     padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
 }
 
-/* No manual spacer here — navbar.php already sets body padding-top. */
+.modules-shell {
+    background: linear-gradient(180deg, rgba(13, 110, 253, .035), rgba(255, 255, 255, 0));
+}
+
+.modules-toolbar .form-select,
+.modules-toolbar .form-control {
+    border-color: #d8e3f4;
+}
+
+.modules-chooser .btn {
+    min-width: 100px;
+}
+
+#lessonsList .lesson-card {
+    background: transparent;
+}
+
+#lessonsList .card {
+    border: 1px solid #e8edf7;
+    border-radius: .8rem;
+}
+
+#lessonsList .lesson-card-header {
+    cursor: pointer;
+}
+
+#lessonsList .lesson-summary-title {
+    text-transform: capitalize;
+}
+
+#lessonsList .video-preview video {
+    max-height: 240px;
+    border-radius: .55rem;
+    background: #111827;
+}
+
+.question {
+    background: #f8fbff;
+    border: 1px solid #e6eefc;
+    border-radius: .65rem;
+    padding: .75rem;
+    margin-top: .75rem;
+}
+
+.option-row {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    margin-top: .5rem;
+}
+
+.resource-block {
+    border: 1px solid #e7edf8;
+    box-shadow: 0 .25rem .85rem rgba(20, 40, 80, .045);
+}
+
+.coupon-note:empty {
+    display: none;
+}
+
+#courseSummary {
+    cursor: pointer;
+}
+
+.summary-copy-note {
+    pointer-events: none;
+}
+
+@media (max-width: 991.98px) {
+    .addcourse-content {
+        min-height: auto;
+    }
+
+    .addcourses-sidebar-fixed {
+        position: static;
+        max-height: none;
+        min-height: auto;
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .modules-chooser {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+        justify-content: center;
+    }
+
+    .option-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

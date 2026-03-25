@@ -22,40 +22,54 @@
 <style>
     /* Ad-size hero: compact height with balanced vertical alignment */
     .hero-section-new.hero-ad-banner {
-        min-height: clamp(220px, 32vw, 300px) !important;
+        min-height: clamp(220px, 30vw, 300px) !important;
         padding-top: 10px !important;
         padding-bottom: 10px !important;
+        padding-left: clamp(12px, 2vw, 24px) !important;
+        padding-right: clamp(12px, 2vw, 24px) !important;
         align-items: center !important;
     }
 
     .hero-ad-banner .hero-content-wrapper {
         min-height: 100% !important;
-        max-width: 520px !important;
+        width: min(100%, 620px) !important;
+        max-width: 620px !important;
+        padding-inline: clamp(4px, 1vw, 12px) !important;
         justify-content: center !important;
     }
 
+    .hero-ad-banner .hero-text-content {
+        max-width: 56ch;
+    }
+
     .hero-ad-banner .hero-heading {
-        font-size: clamp(1.5rem, 3vw, 2.05rem) !important;
+        font-size: clamp(1.45rem, 2.7vw, 2rem) !important;
         margin-bottom: 8px !important;
-        line-height: 1.08 !important;
+        line-height: 1.12 !important;
+        text-wrap: balance;
     }
 
     .hero-ad-banner .hero-subheading {
-        font-size: clamp(0.74rem, 1.15vw, 0.88rem) !important;
+        font-size: clamp(0.78rem, 1.05vw, 0.92rem) !important;
         margin-bottom: 10px !important;
-        line-height: 1.35 !important;
-        max-width: 44ch;
+        line-height: 1.4 !important;
+        max-width: 50ch;
     }
 
     .hero-ad-banner .hero-buttons {
         gap: 8px !important;
+        align-items: center;
     }
 
     .hero-ad-banner .btn-primary-hero,
     .hero-ad-banner .btn-secondary-hero {
         padding: 8px 14px !important;
         font-size: 0.78rem !important;
-        min-height: 34px;
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
     }
 
     @media (max-width: 1024px) {
@@ -66,33 +80,79 @@
         }
 
         .hero-ad-banner .hero-content-wrapper {
-            max-width: 480px !important;
+            width: min(100%, 560px) !important;
+            max-width: 560px !important;
+        }
+
+        .hero-ad-banner .hero-heading {
+            font-size: clamp(1.35rem, 3.3vw, 1.8rem) !important;
+        }
+
+        .hero-ad-banner .hero-subheading {
+            max-width: 48ch;
         }
     }
 
     @media (max-width: 768px) {
         .hero-section-new.hero-ad-banner {
-            min-height: clamp(180px, 34vh, 230px) !important;
-            padding-top: 6px !important;
-            padding-bottom: 6px !important;
+            min-height: clamp(220px, 38vh, 280px) !important;
+            padding-top: 12px !important;
+            padding-bottom: 12px !important;
         }
 
         .hero-ad-banner .hero-heading {
-            font-size: clamp(1.25rem, 5.5vw, 1.55rem) !important;
-            margin-bottom: 7px !important;
+            font-size: clamp(1.2rem, 5.6vw, 1.5rem) !important;
+            margin-bottom: 8px !important;
         }
 
         .hero-ad-banner .hero-subheading {
-            font-size: 0.76rem !important;
-            margin-bottom: 9px !important;
-            line-height: 1.3 !important;
+            font-size: 0.8rem !important;
+            margin-bottom: 10px !important;
+            line-height: 1.35 !important;
+            max-width: 100%;
+        }
+
+        .hero-ad-banner .hero-buttons {
+            width: 100%;
+            gap: 10px !important;
+            justify-content: flex-start;
         }
 
         .hero-ad-banner .btn-primary-hero,
         .hero-ad-banner .btn-secondary-hero {
-            padding: 7px 12px !important;
-            font-size: 0.74rem !important;
-            min-height: 32px;
+            min-height: 40px;
+            padding: 9px 14px !important;
+            font-size: 0.78rem !important;
+        }
+    }
+
+    @media (max-width: 560px) {
+        .hero-section-new.hero-ad-banner {
+            min-height: clamp(240px, 46vh, 320px) !important;
+            padding-top: 14px !important;
+            padding-bottom: 14px !important;
+            justify-content: center !important;
+        }
+
+        .hero-ad-banner .hero-content-wrapper {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding-inline: 4px !important;
+        }
+
+        .hero-ad-banner .hero-text-content {
+            width: 100%;
+        }
+
+        .hero-ad-banner .hero-buttons {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .hero-ad-banner .btn-primary-hero,
+        .hero-ad-banner .btn-secondary-hero {
+            width: 100%;
+            font-size: 0.82rem !important;
         }
     }
 </style>

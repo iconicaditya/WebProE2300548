@@ -634,57 +634,127 @@ main.courses-catalog-page {
 	color: #546679;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1280px) {
 	.catalog-layout {
-		grid-template-columns: 250px minmax(0, 1fr);
+		grid-template-columns: 260px minmax(0, 1fr);
+		gap: 22px;
 	}
 
 	.courses-grid {
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 }
 
 @media (max-width: 1080px) {
+	.catalog-hero-inner {
+		grid-template-columns: 1fr;
+	}
+
 	.catalog-layout {
 		grid-template-columns: 1fr;
+		gap: 18px;
 	}
 
 	.catalog-filter-box {
 		position: static;
-	}
-
-	.catalog-hero-inner {
-		grid-template-columns: 1fr;
+		top: auto;
 	}
 
 	.detail-grid {
 		grid-template-columns: 1fr;
 	}
+
+	.courses-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
 }
 
 @media (max-width: 900px) {
+	.catalog-headline-row {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.catalog-headline-row span {
+		font-size: 13px;
+	}
+
 	.courses-grid {
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 
 @media (max-width: 640px) {
+	.catalog-hero {
+		padding: 16px 0 12px;
+	}
+
+	.catalog-hero-inner,
+	.catalog-layout {
+		width: calc(100% - 24px);
+	}
+
+	.catalog-copy,
+	.catalog-hero-card {
+		border-radius: 14px;
+	}
+
+	.catalog-copy {
+		padding: 16px;
+	}
+
+	.catalog-copy h1 {
+		font-size: clamp(24px, 6vw, 30px);
+	}
+
+	.catalog-copy > p,
+	.catalog-hero-card p {
+		font-size: 14px;
+	}
+
 	.catalog-metrics {
-		grid-template-columns: 1fr;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.catalog-hero-card {
+		padding: 16px;
 	}
 
 	.catalog-headline-row h2 {
 		font-size: 22px;
 	}
 
-	.courses-grid {
-		grid-template-columns: repeat(2, 1fr);
+	.course-card-content {
+		padding: 10px;
+	}
+
+	.course-title {
+		font-size: 15px;
 	}
 }
 
-@media (max-width: 480px) {
+@media (max-width: 520px) {
+	.catalog-metrics {
+		grid-template-columns: 1fr;
+	}
+
 	.courses-grid {
 		grid-template-columns: 1fr;
+		gap: 12px;
+	}
+
+	.filter-chip {
+		padding: 7px 12px;
+		font-size: 12px;
+	}
+
+	.catalog-headline-row p {
+		font-size: 12px;
+	}
+
+	.course-meta-top,
+	.course-rating {
+		flex-wrap: wrap;
 	}
 }
 
