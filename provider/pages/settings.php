@@ -1,4 +1,7 @@
 <main class="provider-main-content">
+    <?php
+    $providerSettingsEmail = ems_profile_text($portalUser['email'] ?? '', '');
+    ?>
     <!-- HEADER SECTION -->
     <div class="dashboard-header">
         <h1 class="dashboard-title">Account Settings</h1>
@@ -14,7 +17,7 @@
         <div class="settings-form">
             <div class="form-group">
                 <label>Email Address</label>
-                <input type="email" value="john@example.com" placeholder="your.email@example.com">
+                <input type="email" value="<?php echo ems_e($providerSettingsEmail); ?>" placeholder="your.email@example.com">
                 <small>We'll use this for your account notifications</small>
             </div>
 

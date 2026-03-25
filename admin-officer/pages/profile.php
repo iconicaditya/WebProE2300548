@@ -1,8 +1,24 @@
+<?php
+$officerProfileName = ems_profile_text($portalUser['full_name'] ?? '', 'Admin Officer');
+$officerProfileEmail = ems_profile_text($portalUser['email'] ?? '', 'Not provided');
+$officerProfileStatus = strtolower((string)($portalUser['status'] ?? 'inactive')) === 'active' ? 'Active' : 'Inactive';
+$officerProfileJoined = 'Not available';
+
+if (!empty($portalUser['created_at'])) {
+    $officerJoinedTs = strtotime((string)$portalUser['created_at']);
+    if ($officerJoinedTs !== false) {
+        $officerProfileJoined = date('F d, Y', $officerJoinedTs);
+    }
+}
+
+$officerEmployeeId = 'AO-' . str_pad((string)($portalUser['id'] ?? 0), 4, '0', STR_PAD_LEFT);
+?>
+
 <section class="ao-profile-page" id="aoProfilePage">
     <header class="ao-profile-header-card">
         <div class="ao-profile-head-left">
             <div class="ao-profile-avatar-wrap">
-                <div class="ao-profile-avatar" id="aoProfileAvatar">AO</div>
+                <div class="ao-profile-avatar" id="aoProfileAvatar"><?php echo ems_e($officerInitials); ?></div>
                 <button type="button" class="ao-avatar-edit-btn" aria-label="Change profile photo">
                     <i class="bi bi-camera"></i>
                 </button>
@@ -12,7 +28,7 @@
                 <p class="ao-profile-subtitle">Manage your account, preferences, and security settings</p>
                 <div class="ao-profile-badges">
                     <span class="ao-badge ao-badge-role"><i class="bi bi-shield-check"></i> System Administrator</span>
-                    <span class="ao-badge ao-badge-status"><i class="bi bi-circle-fill"></i> Active</span>
+                    <span class="ao-badge ao-badge-status"><i class="bi bi-circle-fill"></i> <?php echo ems_e($officerProfileStatus); ?></span>
                 </div>
             </div>
         </div>
@@ -30,7 +46,7 @@
             <div class="ao-stat-icon"><i class="bi bi-calendar-event"></i></div>
             <div>
                 <p class="ao-stat-label">Joined</p>
-                <p class="ao-stat-value">January 15, 2024</p>
+                <p class="ao-stat-value"><?php echo ems_e($officerProfileJoined); ?></p>
             </div>
         </article>
         <article class="ao-stat-card">
@@ -53,23 +69,23 @@
                 <div class="ao-form-grid">
                     <div class="ao-field">
                         <label for="aoFullName">Full Name</label>
-                        <input id="aoFullName" name="fullName" type="text" value="Admin Officer">
+                        <input id="aoFullName" name="fullName" type="text" value="<?php echo ems_e($officerProfileName); ?>">
                     </div>
                     <div class="ao-field">
                         <label for="aoDesignation">Designation</label>
-                        <input id="aoDesignation" name="designation" type="text" value="Admin Officer">
+                        <input id="aoDesignation" name="designation" type="text" value="System Administrator">
                     </div>
                     <div class="ao-field">
                         <label for="aoEmail">Email Address</label>
-                        <input id="aoEmail" name="email" type="email" value="admin@eduskill.com">
+                        <input id="aoEmail" name="email" type="email" value="<?php echo ems_e($officerProfileEmail); ?>">
                     </div>
                     <div class="ao-field">
                         <label for="aoPhone">Phone Number</label>
-                        <input id="aoPhone" name="phone" type="tel" value="+977 9864062605">
+                        <input id="aoPhone" name="phone" type="tel" value="Not provided">
                     </div>
                     <div class="ao-field">
                         <label for="aoEmployeeId">Employee ID</label>
-                        <input id="aoEmployeeId" name="employeeId" type="text" value="AO-2024-015">
+                        <input id="aoEmployeeId" name="employeeId" type="text" value="<?php echo ems_e($officerEmployeeId); ?>">
                     </div>
                     <div class="ao-field">
                         <label for="aoDepartment">Department</label>

@@ -1,14 +1,81 @@
 <?php
 require_once(__DIR__ . '/../config/config.php');
+require_once(__DIR__ . '/../config/db.php');
 require_once(__DIR__ . '/../includes/auth.php');
+
+if (ems_is_logged_in()) {
+    ems_redirect(ems_dashboard_path_for_role(ems_current_role()));
+}
 
 $providerErrors  = [];
 $uploadedPhotoUrl = null;
+$uploadedPhotoPath = null;
+
+$providerForm = [
+    'full_name'           => trim((string)($_POST['full_name'] ?? '')),
+    'professional_title'  => trim((string)($_POST['professional_title'] ?? '')),
+    'email'               => trim((string)($_POST['email'] ?? '')),
+    'mobile_number'       => trim((string)($_POST['mobile_number'] ?? '')),
+    'skill_category'      => trim((string)($_POST['skill_category'] ?? '')),
+    'teaching_experience' => trim((string)($_POST['teaching_experience'] ?? '')),
+    'short_bio'           => trim((string)($_POST['short_bio'] ?? '')),
+    'accept_terms'        => isset($_POST['accept_terms']) ? '1' : '',
+];
+
+$allowedSkillCategories = ['Programming', 'Business', 'Design', 'Digital Marketing', 'Data Science'];
+$allowedTeachingExperience = ['0-1 years', '2-4 years', '5-8 years', '9+ years'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $password        = (string)($_POST['password'] ?? '');
+    $confirmPassword = (string)($_POST['confirm_password'] ?? '');
+
     // CSRF guard
     if (!ems_verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $providerErrors[] = 'Security check failed. Please refresh the page and try again.';
+    }
+
+    if ($providerForm['full_name'] === '') {
+        $providerErrors[] = 'Full name is required.';
+    }
+
+    if ($providerForm['professional_title'] === '') {
+        $providerErrors[] = 'Professional title is required.';
+    }
+
+    if ($providerForm['email'] === '' || !filter_var($providerForm['email'], FILTER_VALIDATE_EMAIL)) {
+        $providerErrors[] = 'Please enter a valid email address.';
+    }
+
+    if ($providerForm['mobile_number'] === '') {
+        $providerErrors[] = 'Mobile number is required.';
+    }
+
+    if (!in_array($providerForm['skill_category'], $allowedSkillCategories, true)) {
+        $providerErrors[] = 'Please select a valid skill category.';
+    }
+
+    if (!in_array($providerForm['teaching_experience'], $allowedTeachingExperience, true)) {
+        $providerErrors[] = 'Please select a valid teaching experience.';
+    }
+
+    if ($providerForm['short_bio'] === '') {
+        $providerErrors[] = 'Short bio is required.';
+    }
+
+    if ($password === '') {
+        $providerErrors[] = 'Password is required.';
+    } elseif (strlen($password) < 8 || !preg_match('/[A-Za-z]/', $password) || !preg_match('/\d/', $password)) {
+        $providerErrors[] = 'Password must be at least 8 characters and include both letters and numbers.';
+    }
+
+    if ($confirmPassword === '') {
+        $providerErrors[] = 'Please confirm your password.';
+    } elseif ($password !== $confirmPassword) {
+        $providerErrors[] = 'Password and confirm password do not match.';
+    }
+
+    if ($providerForm['accept_terms'] !== '1') {
+        $providerErrors[] = 'You must agree to the provider terms and policy.';
     }
 
     // Profile photo upload
@@ -55,10 +122,124 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if (move_uploaded_file($photo['tmp_name'], $uploadDir . $safeName)) {
+                    $uploadedPhotoPath = $uploadDir . $safeName;
                     $uploadedPhotoUrl = BASE_URL . 'uploads/provider-profiles/' . $safeName;
                 } else {
                     $providerErrors[] = 'Failed to save profile photo. Please try again.';
                 }
+            }
+        }
+    }
+
+    if (empty($providerErrors)) {
+        $createProviderProfilesSql = "CREATE TABLE IF NOT EXISTS provider_profiles (
+            user_id INT UNSIGNED NOT NULL,
+            professional_title VARCHAR(150) NOT NULL,
+            mobile_number VARCHAR(30) NOT NULL,
+            skill_category VARCHAR(100) NOT NULL,
+            teaching_experience VARCHAR(50) NOT NULL,
+            short_bio TEXT NOT NULL,
+            profile_photo_url VARCHAR(255) DEFAULT NULL,
+            accepted_terms TINYINT(1) NOT NULL DEFAULT 1,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (user_id),
+            CONSTRAINT fk_provider_profiles_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+        if (!$conn->query($createProviderProfilesSql)) {
+            $providerErrors[] = 'Unable to prepare provider profile storage.';
+        }
+    }
+
+    if (empty($providerErrors)) {
+        $emailCheckStmt = $conn->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+
+        if ($emailCheckStmt) {
+            $emailCheckStmt->bind_param('s', $providerForm['email']);
+            $emailCheckStmt->execute();
+            $emailCheckStmt->store_result();
+
+            if ($emailCheckStmt->num_rows > 0) {
+                $providerErrors[] = 'An account with this email already exists. Please log in instead.';
+            }
+
+            $emailCheckStmt->close();
+        } else {
+            $providerErrors[] = 'Unable to validate email uniqueness right now. Please try again.';
+        }
+    }
+
+    if (!empty($providerErrors) && $uploadedPhotoPath && is_file($uploadedPhotoPath)) {
+        @unlink($uploadedPhotoPath);
+        $uploadedPhotoPath = null;
+        $uploadedPhotoUrl = null;
+    }
+
+    if (empty($providerErrors)) {
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+        $conn->begin_transaction();
+
+        try {
+            $role = 'provider';
+            $status = 'active';
+            $insertUserStmt = $conn->prepare('INSERT INTO users (full_name, email, password_hash, role, status) VALUES (?, ?, ?, ?, ?)');
+
+            if (!$insertUserStmt) {
+                throw new RuntimeException('Failed to prepare user insert statement.');
+            }
+
+            $insertUserStmt->bind_param('sssss', $providerForm['full_name'], $providerForm['email'], $passwordHash, $role, $status);
+
+            if (!$insertUserStmt->execute()) {
+                throw new RuntimeException('Failed to create provider account.');
+            }
+
+            $userId = (int)$conn->insert_id;
+            $insertUserStmt->close();
+
+            $acceptedTermsInt = 1;
+            $insertProfileStmt = $conn->prepare('INSERT INTO provider_profiles (user_id, professional_title, mobile_number, skill_category, teaching_experience, short_bio, profile_photo_url, accepted_terms) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+
+            if (!$insertProfileStmt) {
+                throw new RuntimeException('Failed to prepare provider profile insert statement.');
+            }
+
+            $insertProfileStmt->bind_param(
+                'issssssi',
+                $userId,
+                $providerForm['professional_title'],
+                $providerForm['mobile_number'],
+                $providerForm['skill_category'],
+                $providerForm['teaching_experience'],
+                $providerForm['short_bio'],
+                $uploadedPhotoUrl,
+                $acceptedTermsInt
+            );
+
+            if (!$insertProfileStmt->execute()) {
+                throw new RuntimeException('Failed to save provider profile.');
+            }
+
+            $insertProfileStmt->close();
+            $conn->commit();
+
+            ems_set_flash('success', 'Provider account created successfully. Please log in.');
+            ems_redirect('auth/login.php');
+        } catch (Throwable $e) {
+            $conn->rollback();
+
+            if ($uploadedPhotoPath && is_file($uploadedPhotoPath)) {
+                @unlink($uploadedPhotoPath);
+                $uploadedPhotoPath = null;
+                $uploadedPhotoUrl = null;
+            }
+
+            if (DEBUG_MODE) {
+                $providerErrors[] = 'Registration failed: ' . $e->getMessage();
+            } else {
+                $providerErrors[] = 'Registration failed. Please try again.';
             }
         }
     }
@@ -108,52 +289,52 @@ require_once(__DIR__ . '/../includes/navbar.php');
                 <div class="provider-grid two-col">
                     <div>
                         <label class="provider-label">Full Name</label>
-                        <input type="text" class="form-control provider-input" placeholder="Enter your full name" autocomplete="off">
+                        <input type="text" name="full_name" class="form-control provider-input" placeholder="Enter your full name" autocomplete="off" value="<?php echo ems_e($providerForm['full_name']); ?>">
                     </div>
                     <div>
                         <label class="provider-label">Professional Title</label>
-                        <input type="text" class="form-control provider-input" placeholder="Ex: Data Science Instructor" autocomplete="off">
+                        <input type="text" name="professional_title" class="form-control provider-input" placeholder="Ex: Data Science Instructor" autocomplete="off" value="<?php echo ems_e($providerForm['professional_title']); ?>">
                     </div>
                 </div>
 
                 <div class="provider-grid two-col">
                     <div>
                         <label class="provider-label">Email Address</label>
-                        <input type="email" class="form-control provider-input" placeholder="name@example.com" autocomplete="off" autocapitalize="off" spellcheck="false">
+                        <input type="email" name="email" class="form-control provider-input" placeholder="name@example.com" autocomplete="off" autocapitalize="off" spellcheck="false" value="<?php echo ems_e($providerForm['email']); ?>">
                     </div>
                     <div>
                         <label class="provider-label">Mobile Number</label>
-                        <input type="tel" class="form-control provider-input" placeholder="Enter mobile number" autocomplete="off">
+                        <input type="tel" name="mobile_number" class="form-control provider-input" placeholder="Enter mobile number" autocomplete="off" value="<?php echo ems_e($providerForm['mobile_number']); ?>">
                     </div>
                 </div>
 
                 <div class="provider-grid two-col">
                     <div>
                         <label class="provider-label">Primary Skill Category</label>
-                        <select class="form-select provider-input">
-                            <option selected disabled>Select category</option>
-                            <option>Programming</option>
-                            <option>Business</option>
-                            <option>Design</option>
-                            <option>Digital Marketing</option>
-                            <option>Data Science</option>
+                        <select name="skill_category" class="form-select provider-input">
+                            <option value="" disabled <?php echo $providerForm['skill_category'] === '' ? 'selected' : ''; ?>>Select category</option>
+                            <option value="Programming" <?php echo $providerForm['skill_category'] === 'Programming' ? 'selected' : ''; ?>>Programming</option>
+                            <option value="Business" <?php echo $providerForm['skill_category'] === 'Business' ? 'selected' : ''; ?>>Business</option>
+                            <option value="Design" <?php echo $providerForm['skill_category'] === 'Design' ? 'selected' : ''; ?>>Design</option>
+                            <option value="Digital Marketing" <?php echo $providerForm['skill_category'] === 'Digital Marketing' ? 'selected' : ''; ?>>Digital Marketing</option>
+                            <option value="Data Science" <?php echo $providerForm['skill_category'] === 'Data Science' ? 'selected' : ''; ?>>Data Science</option>
                         </select>
                     </div>
                     <div>
                         <label class="provider-label">Teaching Experience</label>
-                        <select class="form-select provider-input">
-                            <option selected disabled>Select experience</option>
-                            <option>0-1 years</option>
-                            <option>2-4 years</option>
-                            <option>5-8 years</option>
-                            <option>9+ years</option>
+                        <select name="teaching_experience" class="form-select provider-input">
+                            <option value="" disabled <?php echo $providerForm['teaching_experience'] === '' ? 'selected' : ''; ?>>Select experience</option>
+                            <option value="0-1 years" <?php echo $providerForm['teaching_experience'] === '0-1 years' ? 'selected' : ''; ?>>0-1 years</option>
+                            <option value="2-4 years" <?php echo $providerForm['teaching_experience'] === '2-4 years' ? 'selected' : ''; ?>>2-4 years</option>
+                            <option value="5-8 years" <?php echo $providerForm['teaching_experience'] === '5-8 years' ? 'selected' : ''; ?>>5-8 years</option>
+                            <option value="9+ years" <?php echo $providerForm['teaching_experience'] === '9+ years' ? 'selected' : ''; ?>>9+ years</option>
                         </select>
                     </div>
                 </div>
 
                 <div>
                     <label class="provider-label">Short Bio</label>
-                    <textarea name="short_bio" class="form-control provider-input provider-textarea" placeholder="Tell learners about your expertise and teaching approach" autocomplete="off"><?php echo ems_e($_POST['short_bio'] ?? ''); ?></textarea>
+                    <textarea name="short_bio" class="form-control provider-input provider-textarea" placeholder="Tell learners about your expertise and teaching approach" autocomplete="off"><?php echo ems_e($providerForm['short_bio']); ?></textarea>
                 </div>
 
                 <!-- ── Profile Photo Upload ── -->
@@ -208,16 +389,16 @@ require_once(__DIR__ . '/../includes/navbar.php');
                 <div class="provider-grid two-col">
                     <div>
                         <label class="provider-label">Create Password</label>
-                        <input type="password" class="form-control provider-input" placeholder="Create a strong password" autocomplete="new-password">
+                        <input type="password" name="password" class="form-control provider-input" placeholder="Create a strong password" autocomplete="new-password">
                     </div>
                     <div>
                         <label class="provider-label">Confirm Password</label>
-                        <input type="password" class="form-control provider-input" placeholder="Re-enter password" autocomplete="new-password">
+                        <input type="password" name="confirm_password" class="form-control provider-input" placeholder="Re-enter password" autocomplete="new-password">
                     </div>
                 </div>
 
                 <label class="provider-check-row">
-                    <input class="form-check-input" type="checkbox" name="accept_terms" value="1">
+                    <input class="form-check-input" type="checkbox" name="accept_terms" value="1" <?php echo $providerForm['accept_terms'] === '1' ? 'checked' : ''; ?>>
                     <span>I agree to the platform terms, provider policy, and course quality guidelines.</span>
                 </label>
 

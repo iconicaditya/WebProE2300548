@@ -6,12 +6,6 @@
 $isEmbeddedCoursesSection = isset($embedCoursesSection) && $embedCoursesSection === true;
 $useExternalAllCoursesAssets = isset($useExternalAllCoursesAssets) && $useExternalAllCoursesAssets === true;
 $renderCoursesOnly = isset($renderCoursesOnly) && $renderCoursesOnly === true;
-
-if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
-    $pageTitle = 'Explore Courses';
-    require_once(__DIR__ . '/../includes/header.php');
-    require_once(__DIR__ . '/../includes/navbar.php');
-}
 ?>
 
 <main class="courses-catalog-page<?php echo $isEmbeddedCoursesSection ? ' courses-catalog-embedded' : ''; ?>">
@@ -1376,5 +1370,3 @@ if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) {
 })();
 </script>
 <?php endif; ?>
-
-<?php if (!$isEmbeddedCoursesSection && !$renderCoursesOnly) require_once(__DIR__ . '/../includes/footer.php'); ?>

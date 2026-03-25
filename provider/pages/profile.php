@@ -99,19 +99,40 @@
 }
 </style>
 
+<?php
+$providerProfileName = ems_profile_text($portalUser['full_name'] ?? '', 'Provider');
+$providerProfileEmail = ems_profile_text($portalUser['email'] ?? '', 'Not provided');
+$providerProfilePhone = ems_profile_text($portalUser['mobile_number'] ?? '', 'Not provided');
+$providerProfileTitle = ems_profile_text($portalUser['professional_title'] ?? '', 'Not provided');
+$providerProfileCategory = ems_profile_text($portalUser['skill_category'] ?? '', 'Not provided');
+$providerProfileExperience = ems_profile_text($portalUser['teaching_experience'] ?? '', 'Not provided');
+$providerProfileBio = ems_profile_text($portalUser['short_bio'] ?? '', 'Not provided');
+$providerProfileInitials = ems_user_initials($providerProfileName);
+
+$providerJoinedDateLabel = 'Not available';
+if (!empty($portalUser['created_at'])) {
+    $joinedTimestamp = strtotime((string)$portalUser['created_at']);
+    if ($joinedTimestamp !== false) {
+        $providerJoinedDateLabel = date('F Y', $joinedTimestamp);
+    }
+}
+
+$providerVerifiedLabel = (($portalUser['status'] ?? '') === 'active') ? '✓ Verified Instructor' : 'Verification Pending';
+?>
+
 <div class="profile-page">
 
     <!-- Hero Banner -->
     <div class="profile-hero">
         <div class="profile-hero-inner">
-            <div class="profile-avatar">JD</div>
+            <div class="profile-avatar"><?php echo ems_e($providerProfileInitials); ?></div>
             <div class="profile-hero-info">
-                <h2>John Doe</h2>
-                <p class="hero-email">john@example.com</p>
+                <h2><?php echo ems_e($providerProfileName); ?></h2>
+                <p class="hero-email"><?php echo ems_e($providerProfileEmail); ?></p>
                 <div class="hero-badges">
-                    <span class="hero-badge verified">✓ Verified Instructor</span>
-                    <span class="hero-badge">🎓 Member since March 2024</span>
-                    <span class="hero-badge">📍 San Francisco, USA</span>
+                    <span class="hero-badge verified"><?php echo ems_e($providerVerifiedLabel); ?></span>
+                    <span class="hero-badge">🎓 Member since <?php echo ems_e($providerJoinedDateLabel); ?></span>
+                    <span class="hero-badge">🏷️ <?php echo ems_e($providerProfileCategory); ?></span>
                 </div>
             </div>
         </div>
@@ -157,13 +178,14 @@
         </div>
         <div class="profile-card-body">
             <div class="info-grid">
-                <div class="info-field"><label>Full Name</label><div class="field-value">John Doe</div></div>
-                <div class="info-field"><label>Email Address</label><div class="field-value">john@example.com</div></div>
-                <div class="info-field"><label>Phone Number</label><div class="field-value">+1 (555) 123-4567</div></div>
-                <div class="info-field"><label>Location</label><div class="field-value">San Francisco, USA</div></div>
-                <div class="info-field"><label>Specialization</label><div class="field-value">Web Development, UI/UX Design, JavaScript</div></div>
-                <div class="info-field"><label>Verification Status</label><div class="field-value badge-val"><span class="badge-verified">✓ Verified</span></div></div>
-                <div class="info-field full"><label>Bio</label><div class="field-value">Passionate about teaching web development and design. 10+ years of experience in the tech industry. I believe in hands-on learning and practical projects.</div></div>
+                <div class="info-field"><label>Full Name</label><div class="field-value"><?php echo ems_e($providerProfileName); ?></div></div>
+                <div class="info-field"><label>Email Address</label><div class="field-value"><?php echo ems_e($providerProfileEmail); ?></div></div>
+                <div class="info-field"><label>Phone Number</label><div class="field-value"><?php echo ems_e($providerProfilePhone); ?></div></div>
+                <div class="info-field"><label>Professional Title</label><div class="field-value"><?php echo ems_e($providerProfileTitle); ?></div></div>
+                <div class="info-field"><label>Skill Category</label><div class="field-value"><?php echo ems_e($providerProfileCategory); ?></div></div>
+                <div class="info-field"><label>Verification Status</label><div class="field-value badge-val"><span class="badge-verified"><?php echo ems_e($providerVerifiedLabel); ?></span></div></div>
+                <div class="info-field"><label>Teaching Experience</label><div class="field-value"><?php echo ems_e($providerProfileExperience); ?></div></div>
+                <div class="info-field full"><label>Bio</label><div class="field-value"><?php echo ems_e($providerProfileBio); ?></div></div>
             </div>
         </div>
     </div>

@@ -1,15 +1,82 @@
 <?php
 require_once(__DIR__ . '/../config/config.php');
+require_once(__DIR__ . '/../config/db.php');
 require_once(__DIR__ . '/../includes/auth.php');
+
+if (ems_is_logged_in()) {
+    ems_redirect(ems_dashboard_path_for_role(ems_current_role()));
+}
 
 $pageTitle = 'Register as Learner';
 $learnerErrors  = [];
 $uploadedPhotoUrl = null;
+$uploadedPhotoPath = null;
+
+$learnerForm = [
+    'full_name'         => trim((string)($_POST['full_name'] ?? '')),
+    'current_role'      => trim((string)($_POST['current_role'] ?? '')),
+    'email'             => trim((string)($_POST['email'] ?? '')),
+    'mobile_number'     => trim((string)($_POST['mobile_number'] ?? '')),
+    'learning_interest' => trim((string)($_POST['learning_interest'] ?? '')),
+    'experience_level'  => trim((string)($_POST['experience_level'] ?? '')),
+    'learning_goal'     => trim((string)($_POST['learning_goal'] ?? '')),
+    'accept_terms'      => isset($_POST['accept_terms']) ? '1' : '',
+];
+
+$allowedLearningInterests = ['Programming', 'Business', 'Design', 'Digital Marketing', 'Data Science'];
+$allowedExperienceLevels  = ['Beginner', 'Intermediate', 'Advanced'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $password        = (string)($_POST['password'] ?? '');
+    $confirmPassword = (string)($_POST['confirm_password'] ?? '');
+
     // CSRF guard
     if (!ems_verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $learnerErrors[] = 'Security check failed. Please refresh the page and try again.';
+    }
+
+    if ($learnerForm['full_name'] === '') {
+        $learnerErrors[] = 'Full name is required.';
+    }
+
+    if ($learnerForm['current_role'] === '') {
+        $learnerErrors[] = 'Current role is required.';
+    }
+
+    if ($learnerForm['email'] === '' || !filter_var($learnerForm['email'], FILTER_VALIDATE_EMAIL)) {
+        $learnerErrors[] = 'Please enter a valid email address.';
+    }
+
+    if ($learnerForm['mobile_number'] === '') {
+        $learnerErrors[] = 'Mobile number is required.';
+    }
+
+    if (!in_array($learnerForm['learning_interest'], $allowedLearningInterests, true)) {
+        $learnerErrors[] = 'Please select a valid learning interest.';
+    }
+
+    if (!in_array($learnerForm['experience_level'], $allowedExperienceLevels, true)) {
+        $learnerErrors[] = 'Please select a valid experience level.';
+    }
+
+    if ($learnerForm['learning_goal'] === '') {
+        $learnerErrors[] = 'Learning goal is required.';
+    }
+
+    if ($password === '') {
+        $learnerErrors[] = 'Password is required.';
+    } elseif (strlen($password) < 8 || !preg_match('/[A-Za-z]/', $password) || !preg_match('/\d/', $password)) {
+        $learnerErrors[] = 'Password must be at least 8 characters and include both letters and numbers.';
+    }
+
+    if ($confirmPassword === '') {
+        $learnerErrors[] = 'Please confirm your password.';
+    } elseif ($password !== $confirmPassword) {
+        $learnerErrors[] = 'Password and confirm password do not match.';
+    }
+
+    if ($learnerForm['accept_terms'] !== '1') {
+        $learnerErrors[] = 'You must agree to the terms and privacy policy.';
     }
 
     // Profile photo upload
@@ -56,10 +123,123 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if (move_uploaded_file($photo['tmp_name'], $uploadDir . $safeName)) {
+                    $uploadedPhotoPath = $uploadDir . $safeName;
                     $uploadedPhotoUrl = BASE_URL . 'uploads/learner-profiles/' . $safeName;
                 } else {
                     $learnerErrors[] = 'Failed to save profile photo. Please try again.';
                 }
+            }
+        }
+    }
+
+    if (empty($learnerErrors)) {
+        $createLearnerProfilesSql = "CREATE TABLE IF NOT EXISTS learner_profiles (
+            user_id INT UNSIGNED NOT NULL,
+            `current_role` VARCHAR(120) NOT NULL,
+            mobile_number VARCHAR(30) NOT NULL,
+            learning_interest VARCHAR(100) NOT NULL,
+            experience_level VARCHAR(50) NOT NULL,
+            learning_goal TEXT NOT NULL,
+            profile_photo_url VARCHAR(255) DEFAULT NULL,
+            accepted_terms TINYINT(1) NOT NULL DEFAULT 1,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (user_id),
+            CONSTRAINT fk_learner_profiles_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+        if (!$conn->query($createLearnerProfilesSql)) {
+            $learnerErrors[] = 'Unable to prepare learner profile storage.';
+        }
+    }
+
+    if (empty($learnerErrors)) {
+        $emailCheckStmt = $conn->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+        if ($emailCheckStmt) {
+            $emailCheckStmt->bind_param('s', $learnerForm['email']);
+            $emailCheckStmt->execute();
+            $emailCheckStmt->store_result();
+
+            if ($emailCheckStmt->num_rows > 0) {
+                $learnerErrors[] = 'An account with this email already exists. Please log in instead.';
+            }
+
+            $emailCheckStmt->close();
+        } else {
+            $learnerErrors[] = 'Unable to validate email uniqueness right now. Please try again.';
+        }
+    }
+
+    if (!empty($learnerErrors) && $uploadedPhotoPath && is_file($uploadedPhotoPath)) {
+        @unlink($uploadedPhotoPath);
+        $uploadedPhotoPath = null;
+        $uploadedPhotoUrl = null;
+    }
+
+    if (empty($learnerErrors)) {
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+        $conn->begin_transaction();
+
+        try {
+            $role = 'learner';
+            $status = 'active';
+            $insertUserStmt = $conn->prepare('INSERT INTO users (full_name, email, password_hash, role, status) VALUES (?, ?, ?, ?, ?)');
+
+            if (!$insertUserStmt) {
+                throw new RuntimeException('Failed to prepare user insert statement.');
+            }
+
+            $insertUserStmt->bind_param('sssss', $learnerForm['full_name'], $learnerForm['email'], $passwordHash, $role, $status);
+
+            if (!$insertUserStmt->execute()) {
+                throw new RuntimeException('Failed to create learner account.');
+            }
+
+            $userId = (int)$conn->insert_id;
+            $insertUserStmt->close();
+
+            $acceptedTermsInt = 1;
+            $insertProfileStmt = $conn->prepare('INSERT INTO learner_profiles (user_id, `current_role`, mobile_number, learning_interest, experience_level, learning_goal, profile_photo_url, accepted_terms) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+
+            if (!$insertProfileStmt) {
+                throw new RuntimeException('Failed to prepare learner profile insert statement.');
+            }
+
+            $insertProfileStmt->bind_param(
+                'issssssi',
+                $userId,
+                $learnerForm['current_role'],
+                $learnerForm['mobile_number'],
+                $learnerForm['learning_interest'],
+                $learnerForm['experience_level'],
+                $learnerForm['learning_goal'],
+                $uploadedPhotoUrl,
+                $acceptedTermsInt
+            );
+
+            if (!$insertProfileStmt->execute()) {
+                throw new RuntimeException('Failed to save learner profile.');
+            }
+
+            $insertProfileStmt->close();
+            $conn->commit();
+
+            ems_set_flash('success', 'Learner account created successfully. Please log in.');
+            ems_redirect('auth/login.php');
+        } catch (Throwable $e) {
+            $conn->rollback();
+
+            if ($uploadedPhotoPath && is_file($uploadedPhotoPath)) {
+                @unlink($uploadedPhotoPath);
+                $uploadedPhotoPath = null;
+                $uploadedPhotoUrl = null;
+            }
+
+            if (DEBUG_MODE) {
+                $learnerErrors[] = 'Registration failed: ' . $e->getMessage();
+            } else {
+                $learnerErrors[] = 'Registration failed. Please try again.';
             }
         }
     }
@@ -108,51 +288,51 @@ require_once(__DIR__ . '/../includes/navbar.php');
                 <div class="learner-grid two-col">
                     <div>
                         <label class="learner-label">Full Name</label>
-                        <input type="text" class="form-control learner-input" placeholder="Enter your full name" autocomplete="off">
+                        <input type="text" name="full_name" class="form-control learner-input" placeholder="Enter your full name" autocomplete="off" value="<?php echo ems_e($learnerForm['full_name']); ?>">
                     </div>
                     <div>
                         <label class="learner-label">Current Role</label>
-                        <input type="text" class="form-control learner-input" placeholder="Ex: Student, Job Seeker" autocomplete="off">
+                        <input type="text" name="current_role" class="form-control learner-input" placeholder="Ex: Student, Job Seeker" autocomplete="off" value="<?php echo ems_e($learnerForm['current_role']); ?>">
                     </div>
                 </div>
 
                 <div class="learner-grid two-col">
                     <div>
                         <label class="learner-label">Email Address</label>
-                        <input type="email" class="form-control learner-input" placeholder="name@example.com" autocomplete="off" autocapitalize="off" spellcheck="false">
+                        <input type="email" name="email" class="form-control learner-input" placeholder="name@example.com" autocomplete="off" autocapitalize="off" spellcheck="false" value="<?php echo ems_e($learnerForm['email']); ?>">
                     </div>
                     <div>
                         <label class="learner-label">Mobile Number</label>
-                        <input type="tel" class="form-control learner-input" placeholder="Enter mobile number" autocomplete="off">
+                        <input type="tel" name="mobile_number" class="form-control learner-input" placeholder="Enter mobile number" autocomplete="off" value="<?php echo ems_e($learnerForm['mobile_number']); ?>">
                     </div>
                 </div>
 
                 <div class="learner-grid two-col">
                     <div>
                         <label class="learner-label">Learning Interest</label>
-                        <select class="form-select learner-input">
-                            <option selected disabled>Select interest</option>
-                            <option>Programming</option>
-                            <option>Business</option>
-                            <option>Design</option>
-                            <option>Digital Marketing</option>
-                            <option>Data Science</option>
+                        <select name="learning_interest" class="form-select learner-input">
+                            <option value="" disabled <?php echo $learnerForm['learning_interest'] === '' ? 'selected' : ''; ?>>Select interest</option>
+                            <option value="Programming" <?php echo $learnerForm['learning_interest'] === 'Programming' ? 'selected' : ''; ?>>Programming</option>
+                            <option value="Business" <?php echo $learnerForm['learning_interest'] === 'Business' ? 'selected' : ''; ?>>Business</option>
+                            <option value="Design" <?php echo $learnerForm['learning_interest'] === 'Design' ? 'selected' : ''; ?>>Design</option>
+                            <option value="Digital Marketing" <?php echo $learnerForm['learning_interest'] === 'Digital Marketing' ? 'selected' : ''; ?>>Digital Marketing</option>
+                            <option value="Data Science" <?php echo $learnerForm['learning_interest'] === 'Data Science' ? 'selected' : ''; ?>>Data Science</option>
                         </select>
                     </div>
                     <div>
                         <label class="learner-label">Experience Level</label>
-                        <select class="form-select learner-input">
-                            <option selected disabled>Select level</option>
-                            <option>Beginner</option>
-                            <option>Intermediate</option>
-                            <option>Advanced</option>
+                        <select name="experience_level" class="form-select learner-input">
+                            <option value="" disabled <?php echo $learnerForm['experience_level'] === '' ? 'selected' : ''; ?>>Select level</option>
+                            <option value="Beginner" <?php echo $learnerForm['experience_level'] === 'Beginner' ? 'selected' : ''; ?>>Beginner</option>
+                            <option value="Intermediate" <?php echo $learnerForm['experience_level'] === 'Intermediate' ? 'selected' : ''; ?>>Intermediate</option>
+                            <option value="Advanced" <?php echo $learnerForm['experience_level'] === 'Advanced' ? 'selected' : ''; ?>>Advanced</option>
                         </select>
                     </div>
                 </div>
 
                 <div>
                     <label class="learner-label">Learning Goal</label>
-                    <textarea class="form-control learner-input learner-textarea" placeholder="Tell us what you want to achieve from learning" autocomplete="off"></textarea>
+                    <textarea name="learning_goal" class="form-control learner-input learner-textarea" placeholder="Tell us what you want to achieve from learning" autocomplete="off"><?php echo ems_e($learnerForm['learning_goal']); ?></textarea>
                 </div>
 
                 <!-- ── Profile Photo Upload ── -->
@@ -207,20 +387,20 @@ require_once(__DIR__ . '/../includes/navbar.php');
                 <div class="learner-grid two-col">
                     <div>
                         <label class="learner-label">Create Password</label>
-                        <input type="password" class="form-control learner-input" placeholder="Create a strong password" autocomplete="new-password">
+                        <input type="password" name="password" class="form-control learner-input" placeholder="Create a strong password" autocomplete="new-password">
                     </div>
                     <div>
                         <label class="learner-label">Confirm Password</label>
-                        <input type="password" class="form-control learner-input" placeholder="Re-enter password" autocomplete="new-password">
+                        <input type="password" name="confirm_password" class="form-control learner-input" placeholder="Re-enter password" autocomplete="new-password">
                     </div>
                 </div>
 
                 <label class="learner-check-row">
-                    <input class="form-check-input" type="checkbox">
+                    <input class="form-check-input" type="checkbox" name="accept_terms" value="1" <?php echo $learnerForm['accept_terms'] === '1' ? 'checked' : ''; ?>>
                     <span>I agree to the platform terms, privacy policy, and learner community guidelines.</span>
                 </label>
 
-                <button type="button" class="btn learner-submit-btn">Create Learner Account</button>
+                <button type="submit" class="btn learner-submit-btn">Create Learner Account</button>
 
                 <p class="learner-login-text">
                     Already have an account? <a href="<?php echo BASE_URL; ?>auth/login.php">Log in</a>

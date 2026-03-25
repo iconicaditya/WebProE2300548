@@ -30,8 +30,8 @@ $extraScripts = (isset($extraScripts) && is_array($extraScripts)) ? $extraScript
                     </div>
                 </div>
 
-                <div class="realhomes-col realhomes-col-contact-newsletter" style="display:flex; flex-direction:row; gap:32px; align-items:flex-start; justify-content:flex-end;">
-                    <div class="realhomes-col-contact" style="min-width:220px;">
+                <div class="realhomes-col realhomes-col-contact-newsletter">
+                    <div class="realhomes-col-contact">
                         <h5 class="footer-panel-title">Contact Us</h5>
                         <div class="footer-panel">
                         <ul class="realhomes-contact-list">
@@ -50,14 +50,14 @@ $extraScripts = (isset($extraScripts) && is_array($extraScripts)) ? $extraScript
                         </ul>
                         </div>
                     </div>
-                    <div class="realhomes-col-newsletter" style="min-width:260px;">
+                    <div class="realhomes-col-newsletter">
                         <h5 class="footer-panel-title">Stay Updated</h5>
                         <div class="footer-panel">
-                            <form class="realhomes-newsletter" action="#" method="post" onsubmit="return false;" style="display:flex; flex-direction:column; gap:8px; align-items:stretch;">
-                                <input type="email" placeholder="Enter your email address" aria-label="Your email address" style="width:100%;">
-                                <button type="submit" style="width:100%;">Subscribe</button>
+                            <form class="realhomes-newsletter" action="#" method="post" onsubmit="return false;">
+                                <input type="email" placeholder="Enter your email address" aria-label="Your email address">
+                                <button type="submit">Subscribe</button>
                             </form>
-                            <div class="realhomes-social" aria-label="Social links" style="margin-top:8px;">
+                            <div class="realhomes-social" aria-label="Social links">
                                 <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
                                 <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
                                 <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>

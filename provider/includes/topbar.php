@@ -116,8 +116,8 @@
             <!-- Profile Link (No Dropdown) -->
             <div class="provider-navbar-item">
                 <a href="<?php echo BASE_URL; ?>provider/?page=profile" class="provider-navbar-btn" title="My Profile" aria-label="My Profile">
-                    <span class="profile-avatar">👤</span>
-                    <span class="profile-name">John Doe</span>
+                    <span class="profile-avatar"><?php echo ems_e($providerInitials); ?></span>
+                    <span class="profile-name"><?php echo ems_e($providerDisplayName); ?></span>
                 </a>
             </div>
         </div>

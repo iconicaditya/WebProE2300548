@@ -102,7 +102,7 @@ h1, h2, h3, h4, h5, h6 {
     transform: scale(1.05);
 }
 
-/* Make custom eduskill navbar fixed to top and prevent content overlap */
+/* Public navbar (single source of truth) */
 .eduskill-navbar {
     position: fixed;
     top: 0;
@@ -110,35 +110,505 @@ h1, h2, h3, h4, h5, h6 {
     right: 0;
     z-index: 1050;
     width: 100%;
+    background: #fff;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    --theme-color: #4186a0;
+    --theme-color-dark: #2f728a;
 }
 
-/* Center navbar content and match footer horizontal padding */
 .eduskill-navbar .navbar-container {
-    /* Slightly tighter edges: 8px horizontal padding */
-    width: calc(100% - 16px); /* 8px each side */
+    width: calc(100% - 16px);
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 8px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    min-height: 64px;
+    background: #fff;
+    border: none;
+    box-shadow: none;
+    gap: 8px;
+}
+
+.eduskill-navbar .eduskill-logo {
+    display: flex;
+    align-items: center;
+    height: 64px;
+    flex: 0 0 auto;
+}
+
+.eduskill-navbar .eduskill-logo img {
+    height: 36px;
+    width: auto;
+    display: block;
+    transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.2, 1), filter 0.2s ease;
+    will-change: transform;
+    animation: logo-enter 0.8s ease both;
+}
+
+@keyframes logo-enter {
+    0% {
+        transform: translateY(-6px) scale(0.98);
+        opacity: 0;
+    }
+    60% {
+        transform: translateY(2px) scale(1.02);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.eduskill-navbar .eduskill-logo img:hover {
+    transform: scale(1.06) translateY(-2px);
+    filter: drop-shadow(0 6px 14px rgba(65, 134, 160, 0.12));
+}
+
+.eduskill-navbar .mobile-menu-toggle {
+    display: none;
+    background: #fff;
+    border: 1.5px solid var(--theme-color);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-right: 12px;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.eduskill-navbar .mobile-menu-toggle span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--theme-color);
+}
+
+.eduskill-navbar .eduskill-search {
+    position: relative;
+    flex: 0 1 520px;
+    margin: 0 8px;
+    max-width: 520px;
+}
+
+.eduskill-navbar .eduskill-search .search-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.eduskill-navbar .eduskill-search input {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 30px;
+    border: 2px solid #d1d7dc;
+    padding: 8px 36px 8px 34px;
+    font-size: 1rem;
+    background: #fff;
+    outline: none;
+    transition: border 0.2s;
+    box-shadow: none;
+}
+
+.eduskill-navbar .navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.eduskill-navbar .navbar-action-link {
+    color: #6a6f73;
+    font-size: 1.05rem;
+    text-decoration: none;
+    margin-right: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.16s ease, transform 0.12s ease;
+}
+
+.eduskill-navbar .navbar-action-link:hover {
+    color: #1f2937;
+    transform: translateY(-1px);
+}
+
+.eduskill-navbar .nav-link-icon {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 18px;
+    opacity: 0.95;
+}
+
+.eduskill-navbar .nav-link-icon svg {
+    display: block;
+}
+
+.eduskill-navbar .navbar-actions .cart-icon,
+.eduskill-navbar .navbar-actions .wishlist-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.12s ease, transform 0.08s ease;
+    cursor: pointer;
+}
+
+.eduskill-navbar .navbar-actions .cart-icon:hover,
+.eduskill-navbar .navbar-actions .wishlist-icon:hover {
+    transform: translateY(-2px) scale(1.04);
+    color: var(--theme-color-dark);
+}
+
+.eduskill-navbar .register-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.eduskill-navbar .btn-login {
+    background: #fff;
+    color: var(--theme-color);
+    border: 1.5px solid var(--theme-color);
+    border-radius: 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 6px 12px;
+    text-decoration: none;
+}
+
+.eduskill-navbar .btn-signup {
+    background: var(--theme-color);
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 6px 12px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.eduskill-navbar .register-menu.open .register-dropdown {
+    display: block !important;
+}
+
+.eduskill-navbar .register-menu .register-chevron {
+    display: inline-flex;
+    transition: transform 0.18s ease;
+}
+
+.eduskill-navbar .register-menu.open .register-chevron {
+    transform: rotate(180deg);
+}
+
+.eduskill-navbar .navbar-actions .btn-login:hover {
+    background: var(--theme-color) !important;
+    color: #fff !important;
+    border-color: var(--theme-color) !important;
+}
+
+.eduskill-navbar .navbar-actions .btn-signup:hover {
+    background: var(--theme-color-dark) !important;
+    color: #fff !important;
+    border-color: var(--theme-color-dark) !important;
+}
+
+.eduskill-navbar .register-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 8px;
+    min-width: 230px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+    padding: 8px;
+}
+
+.eduskill-navbar .register-dropdown a,
+.eduskill-navbar .register-dropdown a:visited {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-weight: 500;
+    color: #1f2937 !important;
+    text-decoration: none;
     background: transparent;
+    border: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.eduskill-navbar .register-dropdown a + a {
+    border-top: 1px solid #edf1f5;
+}
+
+.eduskill-navbar .register-dropdown a:hover,
+.eduskill-navbar .register-dropdown a:focus,
+.eduskill-navbar .register-dropdown a:focus-visible {
+    background: #eef6fa;
+    color: var(--theme-color-dark) !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none;
+}
+
+.eduskill-navbar .register-dropdown a:active {
+    background: #e2eef5;
+    color: #1f4f62 !important;
+}
+
+.eduskill-navbar .navbar-links {
+    background: var(--theme-color);
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    gap: 28px;
+}
+
+.eduskill-navbar .navbar-links > div {
+    width: calc(100% - 16px);
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.eduskill-navbar .navbar-links a {
+    color: #fff;
+    text-decoration: none;
+    position: relative;
+    padding: 6px;
+    display: inline-block;
+    transition: color 0.16s ease, transform 0.12s ease;
+    font-weight: 600;
+}
+
+.eduskill-navbar .navbar-links a::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%) scale(0.6);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    transition: transform 0.18s ease, background 0.18s ease, left 0.18s ease;
+}
+
+.eduskill-navbar .navbar-links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.eduskill-navbar .navbar-links a:hover {
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.eduskill-navbar .navbar-links a:hover::before {
+    left: -14px;
+    transform: translateY(-50%) scale(1);
+    background: rgba(255, 255, 255, 0.26);
+}
+
+.eduskill-navbar .navbar-links a:hover::after {
+    transform: scaleX(1);
+}
+
+.eduskill-navbar .navbar-links .more-link {
+    margin-left: auto;
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
 }
 
 /* Enforce identical horizontal container for header, subheader and footer */
 .site-aligned-container,
 .eduskill-navbar .navbar-container,
-.navbar-links > div,
+.eduskill-navbar .navbar-links > div,
 .realhomes-footer-inner {
-    width: calc(100% - 16px) !important; /* 8px each side */
+    width: calc(100% - 16px) !important;
     max-width: 1400px !important;
     margin: 0 auto !important;
     padding: 0 8px !important;
 }
 
-/* Account for navbar height — tuned to actual header height to avoid excess gap */
+/* Account for navbar height */
 body {
-    padding-top: 88px; /* was calc(64px + 44px) = 108px; reduced to 88px to match header rendering */
+    padding-top: 88px;
+}
+
+@media (max-width: 991px) {
+    .eduskill-navbar .mobile-menu-toggle {
+        display: inline-flex;
+    }
+
+    .eduskill-navbar .navbar-container {
+        flex-wrap: wrap;
+        padding: 8px 10px !important;
+        gap: 10px;
+    }
+
+    .eduskill-navbar .eduskill-logo {
+        height: auto !important;
+        margin-right: auto !important;
+        flex: 0 0 auto;
+        order: 1;
+    }
+
+    .eduskill-navbar .mobile-menu-toggle {
+        margin-left: auto;
+        margin-right: 0;
+        flex: 0 0 auto;
+        order: 2;
+    }
+
+    .eduskill-navbar .eduskill-search,
+    .eduskill-navbar .navbar-actions {
+        display: none !important;
+        width: 100%;
+        flex: 0 0 100%;
+    }
+
+    /* On mobile, hide category links row completely */
+    .eduskill-navbar .navbar-links {
+        display: none !important;
+    }
+
+    .eduskill-navbar.mobile-open .eduskill-search,
+    .eduskill-navbar.mobile-open .navbar-actions {
+        display: flex !important;
+    }
+
+    .eduskill-navbar.mobile-open .eduskill-search {
+        margin: 4px 0 0 !important;
+        max-width: 100% !important;
+        order: 3;
+    }
+
+    .eduskill-navbar.mobile-open .navbar-actions {
+        order: 4;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+        gap: 10px !important;
+        margin: 0 !important;
+        padding: 10px;
+        background: #fff;
+        border: 1px solid #d9e2e7;
+        border-radius: 10px;
+    }
+
+    .eduskill-navbar.mobile-open .navbar-actions > a:nth-of-type(1),
+    .eduskill-navbar.mobile-open .navbar-actions > a:nth-of-type(2) {
+        grid-column: 1 / -1;
+        display: flex !important;
+        font-size: 1.12rem !important;
+        text-align: center;
+        justify-content: center !important;
+        align-items: center;
+        margin: 0 !important;
+        padding: 2px 0;
+    }
+
+    .eduskill-navbar.mobile-open .navbar-actions > a,
+    .eduskill-navbar.mobile-open .navbar-actions .btn,
+    .eduskill-navbar.mobile-open .navbar-actions .register-menu {
+        width: 100%;
+        margin: 0 !important;
+    }
+
+    .eduskill-navbar.mobile-open .navbar-actions .cart-icon,
+    .eduskill-navbar.mobile-open .navbar-actions .wishlist-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        border: 1px solid #d9e2e7;
+        border-radius: 8px;
+        background: #fff;
+        padding: 0;
+    }
+
+    .eduskill-navbar.mobile-open .navbar-actions .cart-icon {
+        grid-column: 1;
+    }
+
+    .eduskill-navbar.mobile-open .navbar-actions .wishlist-icon {
+        grid-column: 2;
+    }
+
+    .eduskill-navbar.mobile-open .register-menu {
+        position: static !important;
+        grid-column: 1 / -1;
+    }
+
+    .eduskill-navbar.mobile-open .register-menu .btn-signup,
+    .eduskill-navbar.mobile-open .btn-login {
+        width: 100%;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.02rem !important;
+        border-radius: 0 !important;
+    }
+
+    .eduskill-navbar.mobile-open .btn-login {
+        grid-column: 1 / -1;
+    }
+
+    .eduskill-navbar.mobile-open .register-dropdown {
+        display: none !important;
+        position: static !important;
+        right: auto !important;
+        top: auto !important;
+        margin-top: 8px !important;
+        min-width: 100% !important;
+        box-shadow: none !important;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #f8fafb;
+        padding: 6px;
+        grid-column: 1 / -1;
+    }
+
+    .eduskill-navbar.mobile-open .register-menu.open .register-dropdown {
+        display: block !important;
+    }
+
+    .eduskill-navbar.mobile-open .register-dropdown a {
+        font-size: 1.05rem;
+        text-align: center;
+    }
+
+    .eduskill-navbar.mobile-open .navbar-links {
+        display: none !important;
+    }
 }
 
 /* ============================================
@@ -219,7 +689,6 @@ footer {
     flex-direction: column;
     align-items: flex-start;
 }
-}
 
 .realhomes-footer .realhomes-col {
     min-width: 0;
@@ -282,7 +751,6 @@ footer {
     max-width: 420px;
 }
 
-     margin: 0; /* remove manual offset */
 .realhomes-contact-list {
     list-style: none;
     margin: 0;
@@ -640,6 +1108,189 @@ footer {
 }
 
 /* ============================================
+   Footer mobile responsive overrides (final)
+   ============================================ */
+.realhomes-col-contact-newsletter {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+.realhomes-col-contact {
+    min-width: 220px;
+}
+
+.realhomes-col-newsletter {
+    min-width: 260px;
+}
+
+.realhomes-newsletter {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.realhomes-newsletter input,
+.realhomes-newsletter button {
+    width: 100%;
+}
+
+.realhomes-col-newsletter .realhomes-social {
+    margin-top: 8px;
+}
+
+@media (max-width: 767.98px) {
+    .realhomes-footer {
+        text-align: left;
+    }
+
+    .realhomes-footer-inner {
+        padding: 34px 14px 18px;
+    }
+
+    .realhomes-footer-content {
+        grid-template-columns: 1fr !important;
+        gap: 18px;
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+    }
+
+    .realhomes-footer .realhomes-col,
+    .realhomes-col,
+    .realhomes-col-about,
+    .realhomes-col-links,
+    .realhomes-col-contact,
+    .realhomes-col-newsletter,
+    .realhomes-col-contact-newsletter {
+        align-items: flex-start;
+        justify-content: flex-start;
+        text-align: left;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+    }
+
+    .realhomes-col-contact-newsletter {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .realhomes-footer .footer-panel-title {
+        justify-content: flex-start;
+        border-left: 3px solid var(--footer-accent);
+        padding-left: 10px;
+        margin: 0 0 10px;
+        font-size: 18px;
+        text-align: left;
+    }
+
+    .footer-panel,
+    .realhomes-footer .footer-panel-logo {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+        justify-content: flex-start;
+        align-items: flex-start;
+        text-align: left;
+        min-height: auto;
+    }
+
+    .footer-panel-logo img {
+        height: auto;
+        max-width: 158px;
+    }
+
+    .realhomes-about-text {
+        max-width: 100%;
+        margin: 8px 0 0;
+        font-size: 14px;
+        text-align: left;
+        line-height: 1.5;
+    }
+
+    .realhomes-links-list,
+    .realhomes-contact-list {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        text-align: left;
+    }
+
+    .realhomes-links-list li,
+    .realhomes-contact-list li {
+        margin-bottom: 10px;
+    }
+
+    .realhomes-links-list a {
+        padding-left: 22px;
+        text-align: left;
+    }
+
+    .realhomes-links-list a::before {
+        display: block;
+    }
+
+    .realhomes-contact-list li {
+        justify-content: flex-start;
+        align-items: flex-start;
+        text-align: left;
+        gap: 10px;
+    }
+
+    .realhomes-contact-list .icon {
+        margin-top: 2px;
+    }
+
+    .realhomes-newsletter {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        gap: 10px;
+    }
+
+    .realhomes-newsletter input {
+        margin-bottom: 0;
+        text-align: left;
+        height: 44px;
+    }
+
+    .realhomes-newsletter button {
+        min-width: 0;
+        height: 44px;
+        font-size: 15px;
+        padding: 0 14px;
+    }
+
+    .realhomes-col-newsletter .realhomes-social {
+        justify-content: flex-start;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .realhomes-footer-bottom {
+        margin-top: 20px;
+        padding: 14px 0 10px;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        text-align: left;
+        gap: 6px;
+        font-size: 12px;
+    }
+
+    .realhomes-footer-bottom span:first-child {
+        margin-left: 0;
+    }
+}
+
+/* ============================================
    5. UTILITY CLASSES
    ============================================ */
 
@@ -836,4 +1487,3 @@ button {
     width: 100vw;
     min-height: 100vh;
 }
-

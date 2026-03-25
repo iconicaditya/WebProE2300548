@@ -13,6 +13,28 @@ require_once(__DIR__ . '/../config/config.php');
 $assetVersion = isset($assetVersion) ? $assetVersion : APP_VERSION;
 $pageStylesheet = isset($pageStylesheet) ? $pageStylesheet : 'aaditya.css';
 $extraStylesheets = (isset($extraStylesheets) && is_array($extraStylesheets)) ? $extraStylesheets : [];
+
+// Strong CSS cache-busting: use filemtime when available.
+$resolveCssVersion = static function ($cssFile, $fallbackVersion) {
+    $safeFile = basename((string) $cssFile);
+    $absolutePath = __DIR__ . '/../assets/css/' . $safeFile;
+    if (is_file($absolutePath)) {
+        $mtime = @filemtime($absolutePath);
+        if ($mtime !== false) {
+            return (string) $mtime;
+        }
+    }
+    return (string) $fallbackVersion;
+};
+
+$bootstrapFallbackVersion = $resolveCssVersion('bootstrap-fallback.css', $assetVersion);
+$mainCssVersion = $resolveCssVersion('main.css', $assetVersion);
+$pageCssVersion = $resolveCssVersion($pageStylesheet, $assetVersion);
+$sandhyaCssVersion = $resolveCssVersion('sandhya.css', $assetVersion);
+$extraStylesheetVersions = [];
+foreach ($extraStylesheets as $sheet) {
+    $extraStylesheetVersions[$sheet] = $resolveCssVersion($sheet, $assetVersion);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -30,19 +52,19 @@ $extraStylesheets = (isset($extraStylesheets) && is_array($extraStylesheets)) ? 
           crossorigin="anonymous">
 
     <!-- Local fallback for environments where CDN is blocked -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/bootstrap-fallback.css?v=<?php echo $assetVersion; ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/bootstrap-fallback.css?v=<?php echo $bootstrapFallbackVersion; ?>">
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/main.css?v=<?php echo $assetVersion; ?>">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/<?php echo htmlspecialchars($pageStylesheet); ?>?v=<?php echo $assetVersion; ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/main.css?v=<?php echo $mainCssVersion; ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/<?php echo htmlspecialchars($pageStylesheet); ?>?v=<?php echo $pageCssVersion; ?>">
     <?php foreach ($extraStylesheets as $sheet): ?>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/<?php echo htmlspecialchars($sheet); ?>?v=<?php echo $assetVersion; ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/<?php echo htmlspecialchars($sheet); ?>?v=<?php echo $extraStylesheetVersions[$sheet]; ?>">
     <?php endforeach; ?>
     <?php if (!isset($skipSandhyaCss) || !$skipSandhyaCss): ?>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/sandhya.css?v=<?php echo $assetVersion; ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/sandhya.css?v=<?php echo $sandhyaCssVersion; ?>">
     <?php endif; ?>
     <!-- Brand fonts (Inter for UI, Merriweather for headings) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

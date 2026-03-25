@@ -7,6 +7,22 @@
  * Contains navbar and footer layout.
  */
 
+require_once(__DIR__ . '/../config/config.php');
+require_once(__DIR__ . '/../config/db.php');
+require_once(__DIR__ . '/../includes/auth.php');
+
+ems_require_login(['provider']);
+
+$portalUser = ems_load_portal_user($conn);
+if (!$portalUser || ($portalUser['role'] ?? '') !== 'provider') {
+    ems_logout_user();
+    ems_set_flash('danger', 'Unable to load your provider profile. Please log in again.');
+    ems_redirect('auth/login.php');
+}
+
+$providerDisplayName = ems_profile_text($portalUser['full_name'], 'Provider');
+$providerInitials = ems_user_initials($providerDisplayName);
+
 $pageTitle = 'Provider Dashboard';
 $assetVersion = 'provider.' . time();
 

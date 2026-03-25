@@ -1,4 +1,20 @@
 <?php
+require_once(__DIR__ . '/../config/config.php');
+require_once(__DIR__ . '/../config/db.php');
+require_once(__DIR__ . '/../includes/auth.php');
+
+ems_require_login(['officer']);
+
+$portalUser = ems_load_portal_user($conn);
+if (!$portalUser || ($portalUser['role'] ?? '') !== 'officer') {
+    ems_logout_user();
+    ems_set_flash('danger', 'Unable to load your admin profile. Please log in again.');
+    ems_redirect('auth/login.php');
+}
+
+$officerDisplayName = ems_profile_text($portalUser['full_name'], 'Admin Officer');
+$officerInitials = ems_user_initials($officerDisplayName);
+
 $pageTitle = 'Admin Officer Dashboard';
 $bodyClass = 'admin-dashboard';
 $skipSandhyaCss = true;
@@ -74,8 +90,8 @@ require_once(__DIR__ . '/../includes/header.php');
 
             <div class="provider-navbar-item">
                 <a href="<?php echo BASE_URL; ?>admin-officer/?page=profile" class="provider-navbar-btn profile-btn profile-static-link" title="My Profile" aria-label="My Profile">
-                    <span class="profile-avatar">👤</span>
-                    <span class="profile-name">Admin Officer</span>
+                    <span class="profile-avatar"><?php echo ems_e($officerInitials); ?></span>
+                    <span class="profile-name"><?php echo ems_e($officerDisplayName); ?></span>
                 </a>
             </div>
         </div>

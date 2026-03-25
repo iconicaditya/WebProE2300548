@@ -72,7 +72,7 @@
                 </a>
             </li>
             <li class="sidebar-menu-item sidebar-logout-item">
-                <a href="<?php echo BASE_URL; ?>auth/login.php">
+                <a href="<?php echo BASE_URL; ?>auth/logout.php" class="sidebar-logout-link">
                     <span class="sidebar-menu-text">Logout</span>
                 </a>
             </li>

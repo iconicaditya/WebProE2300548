@@ -1,7 +1,65 @@
 <?php
+require_once(__DIR__ . '/../config/config.php');
+require_once(__DIR__ . '/../config/db.php');
+require_once(__DIR__ . '/../includes/auth.php');
+
+if (ems_is_logged_in()) {
+    ems_redirect(ems_dashboard_path_for_role(ems_current_role()));
+}
+
+$loginErrors = [];
+$emailValue = trim((string)($_POST['email'] ?? ''));
+$rememberChecked = isset($_POST['remember']);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $passwordValue = (string)($_POST['password'] ?? '');
+
+    if (!ems_verify_csrf_token($_POST['csrf_token'] ?? '')) {
+        $loginErrors[] = 'Security check failed. Please refresh the page and try again.';
+    }
+
+    if ($emailValue === '' || !filter_var($emailValue, FILTER_VALIDATE_EMAIL)) {
+        $loginErrors[] = 'Please enter a valid email address.';
+    }
+
+    if ($passwordValue === '') {
+        $loginErrors[] = 'Password is required.';
+    }
+
+    if (empty($loginErrors)) {
+        $loginStmt = $conn->prepare('SELECT id, full_name, email, password_hash, role, status FROM users WHERE email = ? LIMIT 1');
+
+        if ($loginStmt) {
+            $loginStmt->bind_param('s', $emailValue);
+            $loginStmt->execute();
+            $result = $loginStmt->get_result();
+            $user = $result ? $result->fetch_assoc() : null;
+            $loginStmt->close();
+
+            if (!$user || !password_verify($passwordValue, $user['password_hash'])) {
+                $loginErrors[] = 'Invalid email or password.';
+            } elseif (($user['status'] ?? 'inactive') !== 'active') {
+                $loginErrors[] = 'Your account is inactive. Please contact support.';
+            } else {
+                ems_login_user([
+                    'id' => (int)$user['id'],
+                    'full_name' => $user['full_name'],
+                    'email' => $user['email'],
+                    'role' => $user['role'],
+                ]);
+
+                ems_redirect(ems_dashboard_path_for_role($user['role']));
+            }
+        } else {
+            $loginErrors[] = 'Unable to process login at the moment. Please try again.';
+        }
+    }
+}
+
 $pageTitle = 'Log In';
 require_once(__DIR__ . '/../includes/header.php');
 require_once(__DIR__ . '/../includes/navbar.php');
+require_once(__DIR__ . '/../includes/flash.php');
 ?>
 
 <main class="login-page">
@@ -20,7 +78,19 @@ require_once(__DIR__ . '/../includes/navbar.php');
                 <p>Enter your credentials to access your EduSkill account.</p>
             </div>
 
-            <form action="#" method="post" class="login-form" novalidate autocomplete="off">
+            <?php if (!empty($loginErrors)): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <ul class="mb-0 ps-3">
+                        <?php foreach ($loginErrors as $err): ?>
+                            <li><?php echo ems_e($err); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
+            <form action="" method="post" class="login-form" novalidate autocomplete="off">
+                <input type="hidden" name="csrf_token" value="<?php echo ems_e(ems_csrf_token()); ?>">
                 <!-- Hidden fields to prevent browser autofill from inserting saved credentials
                      Browsers often autofill the first username/password fields they detect.
                      These invisible fields capture autofill so the visible inputs remain empty. -->
@@ -28,7 +98,7 @@ require_once(__DIR__ . '/../includes/navbar.php');
                 <input type="password" name="prevent_autofill_password" id="prevent_autofill_password" autocomplete="current-password" style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; opacity:0; pointer-events:none;" />
                 <div>
                     <label class="login-label">Email Address</label>
-                    <input type="email" name="email" class="form-control login-input" placeholder="name@example.com" autocomplete="username" autocapitalize="off" spellcheck="false" value="">
+                    <input type="email" name="email" class="form-control login-input" placeholder="name@example.com" autocomplete="username" autocapitalize="off" spellcheck="false" value="<?php echo ems_e($emailValue); ?>">
                 </div>
 
                 <div>
@@ -37,7 +107,7 @@ require_once(__DIR__ . '/../includes/navbar.php');
                 </div>
 
                 <label class="login-check-row">
-                    <input class="form-check-input" type="checkbox" name="remember">
+                    <input class="form-check-input" type="checkbox" name="remember" <?php echo $rememberChecked ? 'checked' : ''; ?>>
                     <span>Remember me</span>
                 </label>
 
