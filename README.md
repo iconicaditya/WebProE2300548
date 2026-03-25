@@ -1,8 +1,8 @@
-# EduSkill Marketplace System (EMS)
+**# EduSkill Marketplace System (EMS)**
 
 BIT210 Web Programming Project (Assignment)
 
-## Group Members
+## Group Members:
 
 * Aaditya Chaudhary – E2300548
 * Aakroshan Chaudhary – E2300551
