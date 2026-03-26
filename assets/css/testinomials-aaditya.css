@@ -1,0 +1,269 @@
+.testi-pro-section {
+    --testi-brand-primary: #4186a0;
+    --testi-brand-secondary: #0d6e84;
+    --testi-brand-accent: #f2b134;
+    --testi-brand-text: #173247;
+    --testi-brand-muted: #4e6478;
+    position: relative;
+    overflow: hidden;
+    padding: clamp(4rem, 7vw, 6rem) 0;
+    background:
+        radial-gradient(circle at 14% 8%, rgba(65, 134, 160, 0.16), transparent 36%),
+        radial-gradient(circle at 92% 22%, rgba(13, 110, 132, 0.14), transparent 33%),
+        radial-gradient(circle at 90% 90%, rgba(242, 177, 52, 0.14), transparent 30%),
+        linear-gradient(135deg, #f4f9fc 0%, #edf4f8 46%, #e8f0f5 100%);
+}
+
+.testi-pro-glow {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 999px;
+    filter: blur(2px);
+}
+
+.testi-pro-glow--one {
+    width: 240px;
+    height: 240px;
+    left: -70px;
+    top: -70px;
+    background: rgba(65, 134, 160, 0.2);
+}
+
+.testi-pro-glow--two {
+    width: 280px;
+    height: 280px;
+    right: -90px;
+    bottom: -120px;
+    background: rgba(242, 177, 52, 0.22);
+}
+
+.testi-pro-head {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin-bottom: 1.5rem;
+}
+
+.testi-pro-kicker {
+    display: inline-block;
+    margin-bottom: 0.65rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    letter-spacing: 0.08em;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--testi-brand-secondary);
+    background: rgba(65, 134, 160, 0.12);
+    border: 1px solid rgba(65, 134, 160, 0.35);
+}
+
+.testi-pro-head h2 {
+    margin: 0;
+    color: var(--testi-brand-text);
+    font-family: 'Merriweather', serif;
+    font-size: clamp(1.65rem, 3.7vw, 2.5rem);
+    line-height: 1.2;
+}
+
+.testi-pro-head p {
+    margin: 0.8rem 0 0;
+    color: var(--testi-brand-muted);
+    line-height: 1.75;
+    font-size: 1rem;
+}
+
+.testi-pro-toolbar {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1.2rem;
+    padding: 0.85rem 1rem;
+    border-radius: 16px;
+    border: 1px solid rgba(65, 134, 160, 0.25);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.testi-pro-toolbar-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+}
+
+.testi-pro-toolbar-text strong {
+    color: var(--testi-brand-text);
+    font-size: 0.98rem;
+}
+
+.testi-pro-toolbar-text span {
+    color: var(--testi-brand-secondary);
+    font-size: 0.87rem;
+}
+
+.testi-pro-nav-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.testi-pro-nav {
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(65, 134, 160, 0.4);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--testi-brand-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 200ms ease, background-color 200ms ease, border-color 200ms ease;
+}
+
+.testi-pro-nav:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: var(--testi-brand-secondary);
+    color: #fff;
+    border-color: var(--testi-brand-secondary);
+}
+
+.testi-pro-nav:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.testi-pro-viewport {
+    position: relative;
+    z-index: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 0.5rem;
+}
+
+.testi-pro-viewport::-webkit-scrollbar {
+    display: none;
+}
+
+.testi-pro-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(280px, 1fr);
+    gap: 1rem;
+}
+
+.testi-pro-card {
+    min-height: 250px;
+    border-radius: 20px;
+    padding: 1.1rem 1.1rem 1.2rem;
+    border: 1px solid rgba(65, 134, 160, 0.26);
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(242, 247, 251, 0.96));
+    box-shadow: 0 18px 42px rgba(18, 41, 61, 0.12);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 300ms ease, border-color 260ms ease;
+}
+
+.testi-pro-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 22px 46px rgba(18, 41, 61, 0.18);
+    border-color: rgba(13, 110, 132, 0.35);
+}
+
+.testi-pro-rating {
+    display: inline-flex;
+    gap: 0.2rem;
+    color: var(--testi-brand-accent);
+    font-size: 0.9rem;
+}
+
+.testi-pro-quote {
+    margin: 0.85rem 0 0;
+    color: var(--testi-brand-muted);
+    line-height: 1.72;
+    font-size: 0.94rem;
+}
+
+.testi-pro-user {
+    margin-top: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.testi-pro-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #f8fafc;
+    font-size: 0.83rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    background: linear-gradient(140deg, var(--testi-brand-primary), var(--testi-brand-secondary));
+    overflow: hidden;
+}
+
+.testi-pro-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.testi-pro-user h3 {
+    margin: 0;
+    color: var(--testi-brand-text);
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.testi-pro-user p {
+    margin: 0.25rem 0 0;
+    color: var(--testi-brand-muted);
+    font-size: 0.82rem;
+}
+
+[data-testi-reveal] {
+    opacity: 0;
+    transform: translate3d(40px, 0, 0);
+    transition: opacity 760ms cubic-bezier(0.22, 1, 0.36, 1), transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-testi-reveal].is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+}
+
+@media (max-width: 991.98px) {
+    .testi-pro-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .testi-pro-nav-wrap {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .testi-pro-track {
+        grid-auto-columns: minmax(86vw, 1fr);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .testi-pro-nav,
+    [data-testi-reveal] {
+        transition: none !important;
+    }
+}

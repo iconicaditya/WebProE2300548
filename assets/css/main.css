@@ -737,10 +737,12 @@ footer {
     height: auto;
     width: auto;
     object-fit: contain;
+    display: block;
+    max-height: 64px;
 }
 
 .realhomes-about-text {
-    margin: 6px 0 0;
+    margin: 0;
     padding: 0;
     color: #c7d2db;
     font-size: 14px;
@@ -749,6 +751,11 @@ footer {
     text-transform: none;
     text-align: left;
     max-width: 420px;
+}
+
+.realhomes-footer .footer-panel-logo {
+    min-height: 0 !important;
+    margin-bottom: 6px;
 }
 
 .realhomes-contact-list {
@@ -1112,18 +1119,22 @@ footer {
    ============================================ */
 .realhomes-col-contact-newsletter {
     display: flex;
-    flex-direction: row;
-    gap: 32px;
+    flex-direction: column;
+    gap: 20px;
     align-items: flex-start;
-    justify-content: flex-end;
+    justify-content: flex-start;
+    width: 100%;
 }
 
 .realhomes-col-contact {
-    min-width: 220px;
+    min-width: 0;
+    width: 100%;
 }
 
 .realhomes-col-newsletter {
-    min-width: 260px;
+    min-width: 0;
+    width: 100%;
+    max-width: 360px;
 }
 
 .realhomes-newsletter {
@@ -1140,6 +1151,32 @@ footer {
 
 .realhomes-col-newsletter .realhomes-social {
     margin-top: 8px;
+}
+
+@media (min-width: 992px) {
+    .realhomes-footer-content {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 1fr);
+        gap: 28px;
+    }
+
+    .realhomes-col-contact-newsletter {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        gap: 24px;
+        max-width: none;
+    }
+
+    .realhomes-col-contact {
+        flex: 1 1 54%;
+        min-width: 220px;
+    }
+
+    .realhomes-col-newsletter {
+        flex: 1 1 46%;
+        min-width: 250px;
+        max-width: none;
+    }
 }
 
 @media (max-width: 767.98px) {
