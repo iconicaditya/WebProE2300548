@@ -2,6 +2,22 @@
 $providerUserId = (int)($portalUser['id'] ?? 0);
 $schemaReady = function_exists('ems_provider_tables_ready') ? ems_provider_tables_ready($conn) : false;
 $courses = $schemaReady ? ems_provider_fetch_courses($conn, $providerUserId, 100) : [];
+
+$approvalAccess = function_exists('ems_provider_course_creation_access')
+    ? ems_provider_course_creation_access($conn, $providerUserId, (string)($portalUser['status'] ?? 'active'))
+    : ['allowed' => false, 'status' => 'pending', 'message' => 'Your account must be approved by admin before you can create courses.'];
+
+$courseCreationBlocked = empty($approvalAccess['allowed']);
+$courseCreationMessage = (string)($approvalAccess['message'] ?? 'Your account must be approved by admin before you can create courses.');
+
+$courseCreationAlertMessage = $courseCreationMessage;
+if (strtolower(trim((string)($approvalAccess['status'] ?? 'pending'))) === 'pending') {
+    $courseCreationAlertMessage = 'Account is pending for admin review and approval. After approved, you can add courses.';
+}
+
+$createCourseButtonOnClick = $courseCreationBlocked
+    ? 'alert(' . json_encode($courseCreationAlertMessage, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '); return false;'
+    : 'window.location.href=\'' . BASE_URL . 'provider/addcourses/index.php\';';
 ?>
 
 <main class="provider-main-content">
@@ -16,10 +32,16 @@ $courses = $schemaReady ? ems_provider_fetch_courses($conn, $providerUserId, 100
         </div>
     <?php endif; ?>
 
+    <?php if ($courseCreationBlocked): ?>
+        <div class="alert alert-warning" role="alert">
+            <?php echo ems_e($courseCreationMessage); ?>
+        </div>
+    <?php endif; ?>
+
     <section class="dashboard-section">
         <div class="section-header">
             <h2 class="section-title">Course Management</h2>
-            <button class="btn btn-create-course" onclick="window.location.href='<?php echo BASE_URL; ?>provider/addcourses/index.php';">+ Create New Course</button>
+            <button class="btn btn-create-course" type="button" onclick="<?php echo ems_e($createCourseButtonOnClick); ?>">+ Create New Course</button>
         </div>
 
         <div class="dashboard-table-wrapper">
@@ -69,8 +91,8 @@ $courses = $schemaReady ? ems_provider_fetch_courses($conn, $providerUserId, 100
                                     <div class="action-buttons">
                                         <button
                                             class="action-btn edit-btn"
-                                            title="Edit"
-                                            onclick="window.location.href='<?php echo BASE_URL; ?>provider/addcourses/index.php?course_id=<?php echo (int)$course['id']; ?>'"
+                                            title="<?php echo ems_e($courseCreationBlocked ? $courseCreationMessage : 'Edit'); ?>"
+                                            <?php if ($courseCreationBlocked): ?>disabled aria-disabled="true"<?php else: ?>onclick="window.location.href='<?php echo BASE_URL; ?>provider/addcourses/index.php?course_id=<?php echo (int)$course['id']; ?>'"<?php endif; ?>
                                         >✏️</button>
                                         <button class="action-btn delete-btn" title="Delete (coming soon)" disabled>🗑️</button>
                                     </div>

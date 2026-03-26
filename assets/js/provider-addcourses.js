@@ -224,6 +224,11 @@ document.addEventListener('DOMContentLoaded', function () {
         return payload.data || {};
     }
 
+    function isApprovalRequiredError(error) {
+        const code = String(error && error.code ? error.code : '').toUpperCase();
+        return code === 'APPROVAL_REQUIRED';
+    }
+
     function updateCourseId(courseId) {
         const id = Number(courseId || 0);
         currentCourseId = Number.isNaN(id) || id < 0 ? 0 : id;
@@ -1403,6 +1408,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const parsed = normalizeApiError(error);
             if (parsed.errors) {
                 applyValidationErrors(parsed.errors);
+            } else if (isApprovalRequiredError(error)) {
+                showApiAlert('warning', parsed.message || 'Admin approval is required before creating courses.');
             } else {
                 showApiAlert('danger', parsed.message);
             }
@@ -1436,6 +1443,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const parsed = normalizeApiError(error);
             if (parsed.errors) {
                 applyValidationErrors(parsed.errors);
+            } else if (isApprovalRequiredError(error)) {
+                showApiAlert('warning', parsed.message || 'Admin approval is required before creating courses.');
             } else {
                 showApiAlert('danger', parsed.message);
             }
@@ -1524,6 +1533,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const parsed = normalizeApiError(error);
             if (parsed.errors) {
                 applyValidationErrors(parsed.errors);
+            } else if (isApprovalRequiredError(error)) {
+                showApiAlert('warning', parsed.message || 'Admin approval is required before creating courses.');
+                window.setTimeout(function () {
+                    window.location.href = (coursesUrl || (appBaseUrl + 'provider/?page=dashboard'));
+                }, 1200);
             } else {
                 showApiAlert('danger', parsed.message);
             }

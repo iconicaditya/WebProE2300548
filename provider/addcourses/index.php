@@ -2,6 +2,7 @@
 require_once(__DIR__ . '/../../config/config.php');
 require_once(__DIR__ . '/../../config/db.php');
 require_once(__DIR__ . '/../../includes/auth.php');
+require_once(__DIR__ . '/../includes/course_data.php');
 
 ems_require_login(['provider']);
 
@@ -10,6 +11,16 @@ if (!$portalUser || ($portalUser['role'] ?? '') !== 'provider') {
 	ems_logout_user();
 	ems_set_flash('danger', 'Unable to load your provider profile. Please log in again.');
 	ems_redirect('auth/login.php');
+}
+
+$providerUserId = (int)($portalUser['id'] ?? 0);
+$creationAccess = function_exists('ems_provider_course_creation_access')
+	? ems_provider_course_creation_access($conn, $providerUserId, (string)($portalUser['status'] ?? 'active'))
+	: ['allowed' => false, 'message' => 'Your account must be approved by admin before you can create courses.', 'status' => 'pending'];
+
+if (empty($creationAccess['allowed'])) {
+	ems_set_flash('warning', (string)($creationAccess['message'] ?? 'Your account must be approved by admin before you can create courses.'));
+	ems_redirect('provider/?page=dashboard');
 }
 
 $providerDisplayName = ems_profile_text($portalUser['full_name'], 'Provider');

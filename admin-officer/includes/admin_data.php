@@ -378,7 +378,7 @@ if (!function_exists('ems_admin_provider_fetch_management_rows')) {
             if ($safeFilter === 'rejected' && $status !== 'rejected') {
                 continue;
             }
-            if ($safeFilter === 'approved' && !in_array($status, ['approved', 'draft'], true)) {
+            if ($safeFilter === 'approved' && $status !== 'approved') {
                 continue;
             }
 
@@ -477,7 +477,7 @@ if (!function_exists('ems_admin_provider_review_application')) {
             }
 
             if (ems_admin_table_exists($conn, 'users')) {
-                $targetStatus = $nextStatus === 'approved' ? 'active' : 'inactive';
+                $targetStatus = 'active';
                 ems_admin_exec_prepared_row(
                     $conn,
                     'UPDATE users SET status = ? WHERE id = ? AND role = "provider" LIMIT 1',

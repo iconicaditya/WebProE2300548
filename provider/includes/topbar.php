@@ -1,4 +1,10 @@
 <!-- PROVIDER CUSTOM NAVBAR -->
+<?php
+$topbarProfilePhotoUrl = trim((string)($portalUser['profile_photo_url'] ?? ''));
+$topbarProfilePhotoSrc = $topbarProfilePhotoUrl !== ''
+    ? (preg_match('#^https?://#i', $topbarProfilePhotoUrl) ? $topbarProfilePhotoUrl : BASE_URL . ltrim($topbarProfilePhotoUrl, '/'))
+    : '';
+?>
 <nav class="provider-navbar">
     <div class="provider-navbar-container">
         <!-- Left: Logo Only -->
@@ -116,8 +122,14 @@
             <!-- Profile Link (No Dropdown) -->
             <div class="provider-navbar-item">
                 <a href="<?php echo BASE_URL; ?>provider/?page=profile" class="provider-navbar-btn" title="My Profile" aria-label="My Profile">
-                    <span class="profile-avatar"><?php echo ems_e($providerInitials); ?></span>
-                    <span class="profile-name"><?php echo ems_e($providerDisplayName); ?></span>
+                    <span class="topbar-profile-avatar">
+                        <?php if ($topbarProfilePhotoSrc !== ''): ?>
+                            <img src="<?php echo ems_e($topbarProfilePhotoSrc); ?>" alt="Profile" class="topbar-profile-avatar-img">
+                        <?php else: ?>
+                            <span class="topbar-profile-avatar-fallback"><?php echo ems_e($providerInitials); ?></span>
+                        <?php endif; ?>
+                    </span>
+                    <span class="topbar-profile-name"><?php echo ems_e($providerDisplayName); ?></span>
                 </a>
             </div>
         </div>

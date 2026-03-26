@@ -2,6 +2,7 @@
 require_once(__DIR__ . '/../../config/config.php');
 require_once(__DIR__ . '/../../config/db.php');
 require_once(__DIR__ . '/../../includes/auth.php');
+require_once(__DIR__ . '/../includes/course_data.php');
 
 ems_require_login(['provider']);
 
@@ -13,6 +14,16 @@ if (!$portalUser || ($portalUser['role'] ?? '') !== 'provider') {
 $providerUserId = (int)($portalUser['id'] ?? 0);
 if ($providerUserId <= 0) {
     ems_api_fail('FORBIDDEN', 'Invalid provider account.', 403);
+}
+
+$creationAccess = function_exists('ems_provider_course_creation_access')
+    ? ems_provider_course_creation_access($conn, $providerUserId, (string)($portalUser['status'] ?? 'active'))
+    : ['allowed' => false, 'message' => 'Your account must be approved by admin before you can create courses.'];
+
+if (empty($creationAccess['allowed'])) {
+    ems_api_fail('APPROVAL_REQUIRED', (string)($creationAccess['message'] ?? 'Your account must be approved by admin before you can create courses.'), 403, [
+        'approval_status' => (string)($creationAccess['status'] ?? 'pending'),
+    ]);
 }
 
 $action = isset($_REQUEST['action']) ? trim((string)$_REQUEST['action']) : '';

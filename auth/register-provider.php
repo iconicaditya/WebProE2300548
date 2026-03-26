@@ -153,6 +153,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($providerErrors)) {
+        $createProviderApprovalRequestsSql = "CREATE TABLE IF NOT EXISTS provider_approval_requests (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            provider_user_id INT UNSIGNED NOT NULL,
+            request_status ENUM('draft','pending','approved','rejected') NOT NULL DEFAULT 'draft',
+            submitted_at DATETIME NULL,
+            reviewed_at DATETIME NULL,
+            reviewed_by_user_id INT UNSIGNED NULL,
+            completion_score DECIMAL(5,2) NOT NULL DEFAULT 0,
+            review_note TEXT NULL,
+            snapshot_json JSON NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            CONSTRAINT fk_provider_approval_requests_user FOREIGN KEY (provider_user_id) REFERENCES users(id) ON DELETE CASCADE,
+            CONSTRAINT fk_provider_approval_requests_reviewer FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+            UNIQUE KEY uq_provider_approval_requests_provider (provider_user_id),
+            INDEX idx_provider_approval_requests_status (request_status, submitted_at),
+            INDEX idx_provider_approval_requests_reviewed_at (reviewed_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+        if (!$conn->query($createProviderApprovalRequestsSql)) {
+            $providerErrors[] = 'Unable to prepare provider approval request storage.';
+        }
+    }
+
+    if (empty($providerErrors)) {
         $emailCheckStmt = $conn->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
 
         if ($emailCheckStmt) {
@@ -223,9 +248,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $insertProfileStmt->close();
+
+            $approvalSnapshotPayload = [
+                'provider_user_id' => $userId,
+                'full_name' => $providerForm['full_name'],
+                'email' => $providerForm['email'],
+                'professional_title' => $providerForm['professional_title'],
+                'mobile_number' => $providerForm['mobile_number'],
+                'skill_category' => $providerForm['skill_category'],
+                'teaching_experience' => $providerForm['teaching_experience'],
+                'short_bio' => $providerForm['short_bio'],
+                'profile_photo_url' => $uploadedPhotoUrl,
+                'auto_submitted_from_registration' => true,
+            ];
+
+            $approvalSnapshotJson = json_encode($approvalSnapshotPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if (!is_string($approvalSnapshotJson) || $approvalSnapshotJson === '') {
+                $approvalSnapshotJson = '{}';
+            }
+
+            $approvalStatus = 'pending';
+            $completionScore = 0.0;
+            $insertApprovalStmt = $conn->prepare(
+                'INSERT INTO provider_approval_requests
+                    (provider_user_id, request_status, submitted_at, reviewed_at, reviewed_by_user_id, completion_score, review_note, snapshot_json, created_at, updated_at)
+                 VALUES (?, ?, NOW(), NULL, NULL, ?, NULL, ?, NOW(), NOW())
+                 ON DUPLICATE KEY UPDATE
+                    request_status = "pending",
+                    submitted_at = NOW(),
+                    reviewed_at = NULL,
+                    reviewed_by_user_id = NULL,
+                    completion_score = VALUES(completion_score),
+                    review_note = NULL,
+                    snapshot_json = VALUES(snapshot_json),
+                    updated_at = NOW()'
+            );
+
+            if (!$insertApprovalStmt) {
+                throw new RuntimeException('Failed to prepare provider approval request statement.');
+            }
+
+            $insertApprovalStmt->bind_param('isds', $userId, $approvalStatus, $completionScore, $approvalSnapshotJson);
+            if (!$insertApprovalStmt->execute()) {
+                $insertApprovalStmt->close();
+                throw new RuntimeException('Failed to create provider approval request.');
+            }
+            $insertApprovalStmt->close();
+
             $conn->commit();
 
-            ems_set_flash('success', 'Provider account created successfully. Please log in.');
+            ems_set_flash('success', 'Provider account created successfully. Your application has been submitted for admin approval.');
             ems_redirect('auth/login.php');
         } catch (Throwable $e) {
             $conn->rollback();

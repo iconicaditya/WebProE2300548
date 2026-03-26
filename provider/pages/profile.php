@@ -337,7 +337,16 @@ $completionPercent = max(0, min(100, (int)round($completionPercent)));
 $approval = $summary['approval'] ?? ['request_status' => 'draft'];
 $approvalStatus = strtolower(trim((string)($approval['request_status'] ?? 'draft')));
 
-$providerVerifiedLabel = (($portalUser['status'] ?? '') === 'active') ? '✓ Verified Instructor' : 'Verification Pending';
+$providerVerifiedLabel = 'Verification Pending';
+$providerVerifiedClass = 'pending';
+if ($approvalStatus === 'approved') {
+    $providerVerifiedLabel = '✓ Verified Instructor';
+    $providerVerifiedClass = 'verified';
+} elseif ($approvalStatus === 'rejected') {
+    $providerVerifiedLabel = 'Verification Rejected';
+    $providerVerifiedClass = 'rejected';
+}
+
 $approvalLabel = 'Profile Draft';
 $approvalClass = 'pending';
 if ($approvalStatus === 'pending') {
@@ -389,7 +398,7 @@ document.body.classList.add('provider-profile-body');
                 <h2><?php echo ems_e($providerProfileName); ?></h2>
                 <p class="hero-email"><?php echo ems_e($providerProfileEmail); ?></p>
                 <div class="hero-badges">
-                    <span class="hero-badge verified"><?php echo ems_e($providerVerifiedLabel); ?></span>
+                    <span class="hero-badge <?php echo ems_e($providerVerifiedClass); ?>"><?php echo ems_e($providerVerifiedLabel); ?></span>
                     <span class="hero-badge">🎓 Member since <?php echo ems_e($providerJoinedDateLabel); ?></span>
                     <span class="hero-badge">🏷️ <?php echo ems_e($providerProfileCategory); ?></span>
                     <span class="hero-badge <?php echo ems_e($approvalClass); ?>">🛡️ <?php echo ems_e($approvalLabel); ?></span>
