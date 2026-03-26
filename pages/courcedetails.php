@@ -2,6 +2,19 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 require_once(__DIR__ . '/../config/config.php');
+require_once(__DIR__ . '/../config/db.php');
+require_once(__DIR__ . '/../includes/auth.php');
+require_once(__DIR__ . '/../learner/includes/learner_data.php');
+
+$activeLearner = null;
+$activeLearnerId = 0;
+if (ems_is_logged_in() && ems_current_role() === 'learner') {
+    $activeLearner = ems_load_portal_user($conn);
+    $activeLearnerId = (int)($activeLearner['id'] ?? 0);
+}
+
+$courseContext = ems_learner_get_course_by_title($conn, 'React.js & Modern Frontend Development');
+$courseContextId = (int)($courseContext['id'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -402,7 +415,7 @@ require_once(__DIR__ . '/../config/config.php');
                         </div>
 
                         <!-- Price Card -->
-                        <div class="price-card">
+                        <div class="price-card" data-course-id="<?php echo (int)$courseContextId; ?>" data-learner-auth="<?php echo $activeLearnerId > 0 ? '1' : '0'; ?>">
                             <!-- Price Section -->
                             <div class="price-section">
                                 <div class="price-badge">
@@ -416,16 +429,16 @@ require_once(__DIR__ . '/../config/config.php');
                             </div>
 
                             <!-- Primary Action Button -->
-                            <a href="payment.php" class="btn btn-enroll-primary w-100 mb-3">
+                            <a href="payment.php<?php echo $courseContextId > 0 ? '?course_id=' . (int)$courseContextId : ''; ?>" class="btn btn-enroll-primary w-100 mb-3" data-course-id="<?php echo (int)$courseContextId; ?>">
                                 <i class="fas fa-graduation-cap me-2"></i>Enroll Now
                             </a>
 
                             <!-- Secondary Actions -->
                             <div class="secondary-actions">
-                                <button class="btn btn-add-cart w-100 mb-2">
+                                <button class="btn btn-add-cart w-100 mb-2" data-course-id="<?php echo (int)$courseContextId; ?>" data-action="add-to-cart">
                                     <i class="fas fa-shopping-cart me-2"></i>Add to Cart
                                 </button>
-                                <button class="btn btn-wishlist w-100">
+                                <button class="btn btn-wishlist w-100" data-course-id="<?php echo (int)$courseContextId; ?>" data-action="toggle-wishlist">
                                     <i class="far fa-heart me-2"></i>Save for Later
                                 </button>
                             </div>
@@ -608,6 +621,15 @@ require_once(__DIR__ . '/../config/config.php');
     <?php include '../includes/footer.php'; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/js/courcedetails.js?v=2"></script>
+    <script>
+    window.eduSkillCourseDetailsContext = {
+        courseId: <?php echo (int)$courseContextId; ?>,
+        isLearnerLoggedIn: <?php echo $activeLearnerId > 0 ? 'true' : 'false'; ?>,
+        csrfToken: <?php echo json_encode((string)ems_csrf_token(), JSON_UNESCAPED_UNICODE); ?>,
+        learnerApiUrl: <?php echo json_encode((string)(BASE_URL . 'learner/api.php'), JSON_UNESCAPED_UNICODE); ?>,
+        loginUrl: <?php echo json_encode((string)(BASE_URL . 'auth/login.php'), JSON_UNESCAPED_UNICODE); ?>,
+    };
+    </script>
+    <script src="../assets/js/courcedetails.js?v=3"></script>
 </body>
 </html>
