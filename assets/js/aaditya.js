@@ -201,10 +201,169 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function getLearnerContext() {
+        const fallback = {
+            apiUrl: '',
+            csrfToken: '',
+            loginUrl: 'auth/login.php'
+        };
+
+        if (!window.eduSkillLearnerContext || typeof window.eduSkillLearnerContext !== 'object') {
+            return fallback;
+        }
+
+        return Object.assign({}, fallback, window.eduSkillLearnerContext || {});
+    }
+
+    function learnerApiRequest(action, payload) {
+        const ctx = getLearnerContext();
+        if (!ctx.apiUrl) {
+            return Promise.reject(new Error('Learner API is unavailable.'));
+        }
+
+        const fd = new FormData();
+        fd.set('action', String(action || ''));
+        fd.set('csrf_token', String(ctx.csrfToken || ''));
+
+        Object.keys(payload || {}).forEach(function (key) {
+            const value = payload[key];
+            if (value !== undefined && value !== null) {
+                fd.set(key, String(value));
+            }
+        });
+
+        return fetch(ctx.apiUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: fd
+        }).then(function (response) {
+            return response.json().catch(function () {
+                throw new Error('Invalid API response.');
+            }).then(function (apiPayload) {
+                if (!response.ok || !apiPayload || apiPayload.ok !== true) {
+                    throw new Error((apiPayload && apiPayload.message) || 'Request failed.');
+                }
+                return apiPayload.data || {};
+            });
+        });
+    }
+
+    function initLearnerActionButtons() {
+        if (!isLearnerPage()) {
+            return;
+        }
+
+        const ctx = getLearnerContext();
+        if (!ctx.apiUrl) {
+            return;
+        }
+
+        document.addEventListener('click', function (event) {
+            const actionEl = event.target.closest('[data-action]');
+            if (!actionEl) {
+                return;
+            }
+
+            const action = String(actionEl.getAttribute('data-action') || '').trim();
+            if (!action) {
+                return;
+            }
+
+            if (action === 'cart-remove') {
+                event.preventDefault();
+                const courseId = Number(actionEl.getAttribute('data-course-id') || 0);
+                if (courseId <= 0) {
+                    return;
+                }
+
+                actionEl.disabled = true;
+                learnerApiRequest('cart_remove', { course_id: courseId })
+                    .then(function () {
+                        window.location.reload();
+                    })
+                    .catch(function (error) {
+                        actionEl.disabled = false;
+                        alert(error.message || 'Unable to remove item from cart.');
+                    });
+                return;
+            }
+
+            if (action === 'wishlist-add-to-cart') {
+                event.preventDefault();
+                const courseId = Number(actionEl.getAttribute('data-course-id') || 0);
+                if (courseId <= 0) {
+                    return;
+                }
+
+                actionEl.disabled = true;
+                learnerApiRequest('cart_add', { course_id: courseId })
+                    .then(function () {
+                        return learnerApiRequest('wishlist_toggle', { course_id: courseId }).catch(function () {
+                            return {};
+                        });
+                    })
+                    .then(function () {
+                        window.location.reload();
+                    })
+                    .catch(function (error) {
+                        actionEl.disabled = false;
+                        alert(error.message || 'Unable to move this course to cart.');
+                    });
+                return;
+            }
+
+            if (action === 'notification-mark-read') {
+                const notificationId = Number(actionEl.getAttribute('data-notification-id') || 0);
+                if (notificationId <= 0) {
+                    return;
+                }
+
+                learnerApiRequest('notification_mark_read', { notification_id: notificationId })
+                    .then(function () {
+                        actionEl.classList.remove('unread');
+                    })
+                    .catch(function () {
+                        // Keep UI silent for dropdown quick actions.
+                    });
+                return;
+            }
+
+            if (action === 'notifications-mark-all-read') {
+                event.preventDefault();
+                learnerApiRequest('notification_mark_all_read', {})
+                    .then(function () {
+                        document.querySelectorAll('.notification-item.unread').forEach(function (item) {
+                            item.classList.remove('unread');
+                        });
+                    })
+                    .catch(function (error) {
+                        alert(error.message || 'Unable to mark notifications as read.');
+                    });
+                return;
+            }
+
+            if (action === 'message-mark-read') {
+                const messageId = Number(actionEl.getAttribute('data-message-id') || 0);
+                if (messageId <= 0) {
+                    return;
+                }
+
+                learnerApiRequest('message_mark_read', { message_id: messageId })
+                    .then(function () {
+                        actionEl.classList.remove('unread');
+                    })
+                    .catch(function () {
+                        // Keep UI silent for dropdown quick actions.
+                    });
+            }
+        });
+    }
+
     // Always initialize sidebar toggle for both provider and learner dashboards
     function initDashboardSidebarAndDropdowns() {
         initDropdowns();
         initSidebarToggle();
+        initLearnerActionButtons();
     }
 
     if (document.readyState === 'loading') {

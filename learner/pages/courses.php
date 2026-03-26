@@ -4,6 +4,9 @@
  * Fully self-contained: all CSS + JS inside this file only.
  * No dependency on sandhya.css or any external stylesheet for portal layout.
  */
+
+$learnerUserId = (int)($learnerUserId ?? ($portalUser['id'] ?? 0));
+$portalCourses = ems_learner_fetch_learning_portal_courses($conn, $learnerUserId, 30);
 ?>
 
 <style>
@@ -343,100 +346,13 @@
    DATA
 ══════════════════════════════════════════ */
 var BASE = '<?php echo BASE_URL; ?>';
-var COURSES = [
-    {
-        id:'c1',
-        title:'React.js & Modern Frontend Development',
-        instructor:'Saurav Pandey', category:'Programming', progress:42,
-        image: BASE+'assets/images/cources/react-frontend.jpg',
-        desc:'Master React hooks, state management, routing, and deployment to build real-world single-page applications with industry best practices.',
-        sections:[
-            { title:'React Fundamentals & JSX', dur:'2h 30m', lessons:[
-                { name:'1. Introduction to React',                    type:'video',   dur:'15:30', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'2. Components and Props',                     type:'video',   dur:'22:45', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'3. JSX Deep Dive',                            type:'video',   dur:'18:20', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'4. Rendering Lists and Conditional Rendering',type:'video',   dur:'25:10', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'5. Quiz: React Basics',                       type:'quiz',    dur:'',      quiz:{ title:'Quiz: React Basics', qs:[
-                    { q:'What does JSX stand for?',               opts:['JavaScript XML','JavaScript Extension','Java Syntax Extension','None of the above'] },
-                    { q:'Which hook manages local state in React?',opts:['useEffect','useState','useRef','useContext'] }
-                ]}},
-                { name:'6. Project: Build a Todo App',                type:'project', dur:'1h 15m',proj:{ title:'Build a Todo App', desc:'Build a fully functional Todo App using React with add, complete, and delete features. Style it with CSS modules.' }}
-            ]},
-            { title:'React Hooks & State Management', dur:'3h 45m', lessons:[
-                { name:'1. useState Hook',                type:'video',   dur:'20:15', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'2. useEffect Hook',               type:'video',   dur:'28:40', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'3. useContext for Global State',  type:'video',   dur:'25:30', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'4. Custom Hooks',                 type:'video',   dur:'22:50', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'5. Quiz: React Hooks',            type:'quiz',    dur:'',      quiz:{ title:'Quiz: React Hooks', qs:[
-                    { q:'What is the purpose of useEffect?',     opts:['State management','Side effects','Routing','Styling'] },
-                    { q:'Custom hooks must start with?',          opts:['use','hook','custom','fn'] }
-                ]}},
-                { name:'6. Project: Weather App with Hooks', type:'project', dur:'1h 30m', proj:{ title:'Weather App with Hooks', desc:'Build a weather app using useEffect to fetch live weather data from an API and display it dynamically.' }}
-            ]},
-            { title:'React Router & Navigation', dur:'2h 10m', lessons:[
-                { name:'1. Setting up React Router', type:'video', dur:'18:00', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'2. Dynamic Routes & Params', type:'video', dur:'24:15', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'3. Reading: Router Docs',    type:'pdf',   dur:'',      src:'https://www.w3.org/WAI/WCAG21/Techniques/pdf/PDF1' },
-                { name:'4. Quiz: Routing',           type:'quiz',  dur:'',      quiz:{ title:'Quiz: React Router', qs:[
-                    { q:'Which component wraps your app for routing?', opts:['Route','BrowserRouter','Link','Switch'] }
-                ]}}
-            ]}
-        ]
-    },
-    {
-        id:'c2',
-        title:'Python Data Science Masterclass',
-        instructor:'Priya Dhakal', category:'Data Science', progress:68,
-        image: BASE+'assets/images/cources/python.jpg',
-        desc:'Learn NumPy, Pandas, Matplotlib and scikit-learn to analyse real-world datasets and build machine-learning models from scratch.',
-        sections:[
-            { title:'Python & NumPy Fundamentals', dur:'3h', lessons:[
-                { name:'1. Python Recap',           type:'video',   dur:'20:00', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'2. NumPy Arrays',           type:'video',   dur:'30:00', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'3. Quiz: NumPy Basics',     type:'quiz',    dur:'',      quiz:{ title:'Quiz: NumPy', qs:[
-                    { q:'Which function creates a NumPy array?', opts:['np.array()','np.list()','array.new()','np.create()'] }
-                ]}},
-                { name:'4. Project: Data Cleaning', type:'project', dur:'1h',    proj:{ title:'Data Cleaning Project', desc:'Use Pandas to clean a messy CSV dataset — handle nulls, duplicates, and type mismatches.' }}
-            ]}
-        ]
-    },
-    {
-        id:'c3',
-        title:'UI/UX Design for Digital Products',
-        instructor:'Karan Basnet', category:'Design', progress:85,
-        image: BASE+'assets/images/cources/ui-ux.jpg',
-        desc:'Design user-centred interfaces with strong visual hierarchy, accessibility standards, and a complete design-system foundation.',
-        sections:[
-            { title:'Design Thinking & Research', dur:'2h', lessons:[
-                { name:'1. UX Research Methods',   type:'video', dur:'22:00', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'2. User Personas',          type:'video', dur:'18:30', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'3. Design System Docs',     type:'pdf',   dur:'',      src:'https://www.w3.org/WAI/WCAG21/Techniques/pdf/PDF1' },
-                { name:'4. Quiz: Design Thinking',  type:'quiz',  dur:'',      quiz:{ title:'Quiz: Design Thinking', qs:[
-                    { q:'What is a user persona?', opts:['A fictional user profile','A real user','A logo design','A wireframe'] }
-                ]}}
-            ]}
-        ]
-    },
-    {
-        id:'c4',
-        title:'Full-Stack Web Development Bootcamp',
-        instructor:'Aaditya Sharma', category:'Programming', progress:25,
-        image: BASE+'assets/images/cources/web-dev.jpg',
-        desc:'Build responsive websites and web apps from scratch using HTML, CSS, JavaScript, PHP, and MySQL.',
-        sections:[
-            { title:'HTML & CSS Foundations', dur:'2h', lessons:[
-                { name:'1. HTML5 Semantic Structure', type:'video', dur:'20:00', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'2. CSS Flexbox & Grid',        type:'video', dur:'28:00', src:'https://www.w3schools.com/html/mov_bbb.mp4' },
-                { name:'3. Reading: CSS Reference',    type:'pdf',   dur:'',      src:'https://www.w3.org/WAI/WCAG21/Techniques/pdf/PDF1' },
-                { name:'4. Quiz: HTML & CSS',          type:'quiz',  dur:'',      quiz:{ title:'Quiz: HTML & CSS', qs:[
-                    { q:'Which tag creates a hyperlink?',    opts:['<link>','<a>','<href>','<url>'] },
-                    { q:'What does CSS stand for?',          opts:['Computer Style Sheets','Creative Style Sheets','Cascading Style Sheets','Colorful Style Sheets'] }
-                ]}},
-                { name:'5. Project: Portfolio Page', type:'project', dur:'1h 30m', proj:{ title:'Build a Portfolio Page', desc:'Create a fully responsive personal portfolio page using HTML5 and CSS Grid/Flexbox.' }}
-            ]}
-        ]
-    }
-];
+var COURSES = <?php echo json_encode($portalCourses, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+
+if (!Array.isArray(COURSES)) {
+    COURSES = [];
+}
+
+// Backend-only source: no static fallback courses are rendered here.
 
 /* ══ STATE ══ */
 var currentCourse    = null;
@@ -447,6 +363,12 @@ var currentIdx       = 0;
 function renderGrid(){
     var g = document.getElementById('enrolledGrid');
     g.innerHTML = '';
+
+    if (!Array.isArray(COURSES) || COURSES.length === 0) {
+        g.innerHTML = '<p style="margin:0;color:var(--muted);font-size:.93rem;">No enrolled courses found yet.</p>';
+        return;
+    }
+
     COURSES.forEach(function(c){
         var card = document.createElement('div');
         card.className = 'enroll-card';

@@ -5,10 +5,60 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCurriculumCollapse();
     initializeTabNavigation();
     initializeEnrollButton();
+    initializeCartButton();
     initializeWishlistButton();
     initializeShareButtons();
     initializeSmoothScroll();
 });
+
+function getCourseDetailsContext() {
+    const fallback = {
+        courseId: 0,
+        isLearnerLoggedIn: false,
+        csrfToken: '',
+        learnerApiUrl: '',
+        loginUrl: 'auth/login.php'
+    };
+
+    if (!window.eduSkillCourseDetailsContext || typeof window.eduSkillCourseDetailsContext !== 'object') {
+        return fallback;
+    }
+
+    return Object.assign({}, fallback, window.eduSkillCourseDetailsContext || {});
+}
+
+function postLearnerAction(action, payload) {
+    const ctx = getCourseDetailsContext();
+    if (!ctx.learnerApiUrl) {
+        return Promise.reject(new Error('Learner API URL is missing.'));
+    }
+
+    const fd = new FormData();
+    fd.set('action', String(action || ''));
+    fd.set('csrf_token', String(ctx.csrfToken || ''));
+
+    Object.keys(payload || {}).forEach(function(key) {
+        const value = payload[key];
+        if (value !== undefined && value !== null) {
+            fd.set(key, String(value));
+        }
+    });
+
+    return fetch(ctx.learnerApiUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: fd
+    }).then(function(response) {
+        return response.json().catch(function() {
+            throw new Error('Invalid JSON response from learner API.');
+        }).then(function(payloadResponse) {
+            if (!response.ok || !payloadResponse || payloadResponse.ok !== true) {
+                throw new Error((payloadResponse && payloadResponse.message) || 'Learner API request failed.');
+            }
+            return payloadResponse.data || {};
+        });
+    });
+}
 
 // Curriculum Module Collapse/Expand
 function initializeCurriculumCollapse() {
@@ -44,35 +94,111 @@ function initializeTabNavigation() {
 // Enroll Button
 function initializeEnrollButton() {
     const enrollBtn = document.querySelector('.btn-enroll-primary');
+    const ctx = getCourseDetailsContext();
+
     if (enrollBtn) {
         enrollBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            window.location.href = 'payment.php';
+
+            if (!ctx.isLearnerLoggedIn) {
+                window.location.href = ctx.loginUrl || 'auth/login.php';
+                return;
+            }
+
+            const courseId = Number(this.getAttribute('data-course-id') || ctx.courseId || 0);
+            const paymentUrl = courseId > 0
+                ? ('payment.php?course_id=' + encodeURIComponent(String(courseId)))
+                : 'payment.php';
+
+            window.location.href = paymentUrl;
         });
     }
 }
 
+function initializeCartButton() {
+    const cartBtn = document.querySelector('.btn-add-cart');
+    const ctx = getCourseDetailsContext();
+    if (!cartBtn) return;
+
+    cartBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const courseId = Number(this.getAttribute('data-course-id') || ctx.courseId || 0);
+        if (courseId <= 0) {
+            alert('Course is unavailable at the moment.');
+            return;
+        }
+
+        if (!ctx.isLearnerLoggedIn) {
+            window.location.href = ctx.loginUrl || 'auth/login.php';
+            return;
+        }
+
+        const originalHtml = this.innerHTML;
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+
+        postLearnerAction('cart_add', { course_id: courseId })
+            .then(function() {
+                cartBtn.innerHTML = '<i class="fas fa-check me-2"></i>Added to Cart';
+                window.setTimeout(function() {
+                    cartBtn.disabled = false;
+                    cartBtn.innerHTML = originalHtml;
+                }, 1200);
+            })
+            .catch(function(error) {
+                cartBtn.disabled = false;
+                cartBtn.innerHTML = originalHtml;
+                alert(error.message || 'Unable to add this course to cart.');
+            });
+    });
+}
+
 // Wishlist Button Toggle
 function initializeWishlistButton() {
-    const wishlistBtn = document.querySelector('.btn-outline-secondary');
-    
+    const wishlistBtn = document.querySelector('.btn-wishlist');
+    const ctx = getCourseDetailsContext();
+
     if (wishlistBtn) {
         wishlistBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            this.classList.toggle('active');
-            
-            const icon = this.querySelector('i');
-            if (this.classList.contains('active')) {
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-                this.style.background = '#f0f4f8';
-                this.style.borderColor = var(--primary-color);
-            } else {
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-                this.style.background = '';
-                this.style.borderColor = '';
+
+            const courseId = Number(this.getAttribute('data-course-id') || ctx.courseId || 0);
+            if (courseId <= 0) {
+                alert('Course is unavailable at the moment.');
+                return;
             }
+
+            if (!ctx.isLearnerLoggedIn) {
+                window.location.href = ctx.loginUrl || 'auth/login.php';
+                return;
+            }
+
+            const self = this;
+            const icon = self.querySelector('i');
+            const originalHtml = self.innerHTML;
+
+            self.disabled = true;
+            self.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating...';
+
+            postLearnerAction('wishlist_toggle', { course_id: courseId })
+                .then(function(data) {
+                    const isAdded = String((data && data.state) || '') === 'added';
+                    self.disabled = false;
+                    self.innerHTML = originalHtml;
+
+                    self.classList.toggle('active', isAdded);
+                    const currentIcon = self.querySelector('i') || icon;
+                    if (currentIcon) {
+                        currentIcon.classList.toggle('fas', isAdded);
+                        currentIcon.classList.toggle('far', !isAdded);
+                    }
+                })
+                .catch(function(error) {
+                    self.disabled = false;
+                    self.innerHTML = originalHtml;
+                    alert(error.message || 'Unable to update wishlist.');
+                });
         });
     }
 }
