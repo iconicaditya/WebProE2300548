@@ -15,6 +15,13 @@
 	var avatarBtn = document.querySelector('.ao-avatar-edit-btn');
 	var changePasswordBtn = document.getElementById('aoChangePasswordBtn');
 	var twoFaToggleBtn = document.getElementById('aoTwoFaToggleBtn');
+	var twoFaHiddenInput = document.getElementById('aoTwoFaHidden');
+	var prefEmailAlertsCheckbox = document.getElementById('aoPrefEmailAlerts');
+	var prefDailyDigestCheckbox = document.getElementById('aoPrefDailyDigest');
+	var prefAutoArchiveCheckbox = document.getElementById('aoPrefAutoArchive');
+	var prefEmailAlertsHidden = document.getElementById('aoPrefEmailAlertsHidden');
+	var prefDailyDigestHidden = document.getElementById('aoPrefDailyDigestHidden');
+	var prefAutoArchiveHidden = document.getElementById('aoPrefAutoArchiveHidden');
 	var manageSessionsBtn = document.getElementById('aoManageSessionsBtn');
 	var passwordMeta = document.getElementById('aoPasswordMeta');
 	var twoFaMeta = document.getElementById('aoTwoFaMeta');
@@ -26,6 +33,9 @@
 
 	var originalValues = {};
 	fields.forEach(function (input) {
+		if (!input.name) {
+			return;
+		}
 		originalValues[input.name] = input.value;
 	});
 
@@ -102,6 +112,9 @@
 			twoFaToggleBtn.classList.toggle('ao-chip-danger', !securityState.twoFaEnabled);
 			twoFaToggleBtn.setAttribute('aria-pressed', securityState.twoFaEnabled ? 'true' : 'false');
 		}
+		if (twoFaHiddenInput) {
+			twoFaHiddenInput.value = securityState.twoFaEnabled ? '1' : '0';
+		}
 		if (twoFaMeta) {
 			twoFaMeta.textContent = securityState.twoFaEnabled ? 'Currently enabled' : 'Currently disabled';
 		}
@@ -113,27 +126,26 @@
 		}
 	}
 
-	function persistState() {
-		try {
-			window.localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeState()));
-		} catch (e) {
-			// Ignore storage failures in strict/private browser modes.
+	function syncPreferenceHiddenFields() {
+		if (prefEmailAlertsHidden && prefEmailAlertsCheckbox) {
+			prefEmailAlertsHidden.value = prefEmailAlertsCheckbox.checked ? '1' : '0';
+		}
+		if (prefDailyDigestHidden && prefDailyDigestCheckbox) {
+			prefDailyDigestHidden.value = prefDailyDigestCheckbox.checked ? '1' : '0';
+		}
+		if (prefAutoArchiveHidden && prefAutoArchiveCheckbox) {
+			prefAutoArchiveHidden.value = prefAutoArchiveCheckbox.checked ? '1' : '0';
 		}
 	}
 
+	function persistState() {
+		// Backend persistence is now the source of truth for profile state.
+		return;
+	}
+
 	function restoreState() {
-		try {
-			var raw = window.localStorage.getItem(STORAGE_KEY);
-			if (!raw) {
-				updateIdentityUI();
-				applySecurityState();
-				return;
-			}
-			applySerializedState(JSON.parse(raw));
-		} catch (e) {
-			updateIdentityUI();
-			applySecurityState();
-		}
+		updateIdentityUI();
+		applySecurityState();
 	}
 
 	function isValidEmail(email) {
@@ -147,12 +159,13 @@
 	function validateForm() {
 		var email = document.getElementById('aoEmail');
 		var phone = document.getElementById('aoPhone');
+		var phoneValue = phone ? phone.value.trim() : '';
 		if (email && !isValidEmail(email.value.trim())) {
 			showToast('Please enter a valid email address');
 			email.focus();
 			return false;
 		}
-		if (phone && !isValidPhone(phone.value.trim())) {
+		if (phone && phoneValue !== '' && !isValidPhone(phoneValue)) {
 			showToast('Please enter a valid phone number');
 			phone.focus();
 			return false;
@@ -193,6 +206,9 @@
 	if (cancelBtn) {
 		cancelBtn.addEventListener('click', function () {
 			fields.forEach(function (field) {
+				if (!field.name) {
+					return;
+				}
 				if (Object.prototype.hasOwnProperty.call(originalValues, field.name)) {
 					if (field.type === 'checkbox') {
 						field.checked = Boolean(originalValues[field.name]);
@@ -209,11 +225,15 @@
 
 	if (form) {
 		form.addEventListener('submit', function (e) {
-			e.preventDefault();
 			if (!validateForm()) {
+				e.preventDefault();
 				return;
 			}
+			syncPreferenceHiddenFields();
 			fields.forEach(function (field) {
+				if (!field.name) {
+					return;
+				}
 				if (field.type === 'checkbox') {
 					originalValues[field.name] = field.checked;
 				} else {
@@ -226,9 +246,14 @@
 	}
 
 	if (saveBtn) {
-		saveBtn.addEventListener('click', function () {
+		saveBtn.addEventListener('click', function (e) {
+			e.preventDefault();
 			if (form) {
-				form.requestSubmit();
+				if (!validateForm()) {
+					return;
+				}
+				syncPreferenceHiddenFields();
+				form.submit();
 			}
 		});
 	}
@@ -260,5 +285,18 @@
 		});
 	}
 
+	if (prefEmailAlertsCheckbox) {
+		prefEmailAlertsCheckbox.addEventListener('change', syncPreferenceHiddenFields);
+	}
+
+	if (prefDailyDigestCheckbox) {
+		prefDailyDigestCheckbox.addEventListener('change', syncPreferenceHiddenFields);
+	}
+
+	if (prefAutoArchiveCheckbox) {
+		prefAutoArchiveCheckbox.addEventListener('change', syncPreferenceHiddenFields);
+	}
+
 	restoreState();
+	syncPreferenceHiddenFields();
 })();

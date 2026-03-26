@@ -2,6 +2,7 @@
 require_once(__DIR__ . '/../config/config.php');
 require_once(__DIR__ . '/../config/db.php');
 require_once(__DIR__ . '/../includes/auth.php');
+require_once(__DIR__ . '/includes/admin_data.php');
 
 ems_require_login(['officer']);
 
@@ -23,7 +24,7 @@ $assetVersion = 'admin.' . time();
 
 $page = isset($_GET['page']) ? strtolower(trim((string)$_GET['page'])) : 'dashboard';
 $page = preg_replace('/[^a-z0-9\-]/', '', $page);
-$valid_pages = ['dashboard', 'profile', 'providermanagement', 'learnermanagement', 'analytic-reports', 'settings'];
+$valid_pages = ['dashboard', 'profile', 'providermanagement', 'learnermanagement', 'analytic-reports', 'settings', 'courses', 'reports', 'users'];
 
 $extraStylesheets = [];
 
@@ -38,6 +39,13 @@ if ($page === 'providermanagement') {
 if (!in_array($page, $valid_pages)) {
     $page = 'dashboard';
 }
+
+$adminNotifications = function_exists('ems_admin_fetch_notifications')
+    ? ems_admin_fetch_notifications($conn, (int)($portalUser['id'] ?? 0), 5)
+    : [];
+$adminUnreadNotifications = function_exists('ems_admin_count_unread_notifications')
+    ? ems_admin_count_unread_notifications($conn, (int)($portalUser['id'] ?? 0))
+    : 0;
 
 require_once(__DIR__ . '/../includes/header.php');
 ?>
@@ -59,31 +67,36 @@ require_once(__DIR__ . '/../includes/header.php');
             <div class="provider-navbar-item notifications-dropdown">
                 <button class="provider-navbar-btn notifications-btn" title="Alerts" aria-label="Alerts">
                     <span class="notification-icon">🔔</span>
-                    <span class="notification-badge">5</span>
+                    <span class="notification-badge"><?php echo (int)$adminUnreadNotifications; ?></span>
                 </button>
                 <div class="notifications-menu">
                     <div class="notifications-header">
                         <h4>System Alerts</h4>
-                        <a href="#" class="mark-all-read">Clear all</a>
+                        <a href="<?php echo BASE_URL; ?>admin-officer/?page=reports" class="mark-all-read">View reports</a>
                     </div>
                     <ul class="notifications-list">
-                        <li class="notification-item unread">
-                            <span class="notification-avatar">⚠️</span>
+                        <?php if (empty($adminNotifications)): ?>
+                        <li class="notification-item">
+                            <span class="notification-avatar">ℹ️</span>
                             <div class="notification-content">
-                                <p class="notification-text">New course pending approval: <strong>Advanced Python</strong></p>
-                                <span class="notification-time">15 min ago</span>
+                                <p class="notification-text">No recent notifications.</p>
+                                <span class="notification-time">Just now</span>
                             </div>
                         </li>
-                        <li class="notification-item unread">
-                            <span class="notification-avatar">✅</span>
-                            <div class="notification-content">
-                                <p class="notification-text">Dispute resolved: <strong>Payment #12345</strong></p>
-                                <span class="notification-time">1 hour ago</span>
-                            </div>
-                        </li>
+                        <?php else: ?>
+                            <?php foreach ($adminNotifications as $notification): ?>
+                            <li class="notification-item<?php echo !empty($notification['is_read']) ? '' : ' unread'; ?>">
+                                <span class="notification-avatar"><?php echo !empty($notification['is_read']) ? '✅' : '⚠️'; ?></span>
+                                <div class="notification-content">
+                                    <p class="notification-text"><?php echo ems_e((string)($notification['title'] ?? 'Notification')); ?></p>
+                                    <span class="notification-time"><?php echo ems_e((string)($notification['time_ago'] ?? 'Just now')); ?></span>
+                                </div>
+                            </li>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </ul>
                     <div class="notifications-footer">
-                        <a href="#" class="view-all-notifications">View all alerts</a>
+                        <a href="<?php echo BASE_URL; ?>admin-officer/?page=reports" class="view-all-notifications">View all alerts</a>
                     </div>
                 </div>
             </div>
@@ -102,6 +115,7 @@ require_once(__DIR__ . '/../includes/header.php');
 <div class="provider-layout">
     <?php include(__DIR__ . '/includes/sidebar.php'); ?>
     <div class="provider-main-content">
+        <?php include(__DIR__ . '/../includes/flash.php'); ?>
         <?php
         $page_file = __DIR__ . '/pages/' . $page . '.php';
         if (file_exists($page_file)) {

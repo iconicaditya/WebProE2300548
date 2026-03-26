@@ -1,18 +1,88 @@
 <?php
-$officerProfileName = ems_profile_text($portalUser['full_name'] ?? '', 'Admin Officer');
-$officerProfileEmail = ems_profile_text($portalUser['email'] ?? '', 'Not provided');
-$officerProfileStatus = strtolower((string)($portalUser['status'] ?? 'inactive')) === 'active' ? 'Active' : 'Inactive';
-$officerProfileJoined = 'Not available';
+$officerProfile = function_exists('ems_admin_fetch_officer_profile')
+    ? ems_admin_fetch_officer_profile($conn, (int)($portalUser['id'] ?? 0), $portalUser)
+    : [
+        'full_name' => ems_profile_text($portalUser['full_name'] ?? '', 'Admin Officer'),
+        'email' => ems_profile_text($portalUser['email'] ?? '', 'Not provided'),
+        'status' => (string)($portalUser['status'] ?? 'inactive'),
+        'joined_on' => 'Not available',
+        'designation' => 'System Administrator',
+        'phone' => '',
+        'employee_id' => 'AO-' . str_pad((string)($portalUser['id'] ?? 0), 4, '0', STR_PAD_LEFT),
+        'department' => 'Platform Operations',
+        'location' => 'EduSkill Marketplace Office, Kathmandu, Nepal',
+        'timezone' => 'Asia/Kathmandu (UTC+05:45)',
+        'language' => 'English',
+        'responsibilities' => 'Provider approval workflow, learner complaint resolution, course quality monitoring, and monthly compliance reporting.',
+        'last_login_text' => 'Not available',
+        'password_meta' => 'Last changed recently',
+        'pref_email_alerts' => true,
+        'pref_daily_digest' => true,
+        'pref_auto_archive' => false,
+        'two_factor_enabled' => true,
+        'active_sessions' => 1,
+    ];
 
-if (!empty($portalUser['created_at'])) {
-    $officerJoinedTs = strtotime((string)$portalUser['created_at']);
-    if ($officerJoinedTs !== false) {
-        $officerProfileJoined = date('F d, Y', $officerJoinedTs);
+$profileFeedback = null;
+$profileErrors = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (string)($_POST['profile_action'] ?? '') === 'save_profile') {
+    if (!ems_verify_csrf_token((string)($_POST['csrf_token'] ?? ''))) {
+        $profileFeedback = ['type' => 'error', 'message' => 'Invalid security token.'];
+    } else {
+        $saveResult = function_exists('ems_admin_update_officer_profile')
+            ? ems_admin_update_officer_profile($conn, (int)($portalUser['id'] ?? 0), [
+                'full_name' => trim((string)($_POST['full_name'] ?? '')),
+                'designation' => trim((string)($_POST['designation'] ?? '')),
+                'email' => trim((string)($_POST['email'] ?? '')),
+                'phone' => trim((string)($_POST['phone'] ?? '')),
+                'employee_id' => trim((string)($_POST['employee_id'] ?? '')),
+                'department' => trim((string)($_POST['department'] ?? '')),
+                'location' => trim((string)($_POST['location'] ?? '')),
+                'timezone' => trim((string)($_POST['timezone'] ?? '')),
+                'language' => trim((string)($_POST['language'] ?? '')),
+                'responsibilities' => trim((string)($_POST['responsibilities'] ?? '')),
+            ])
+            : ['ok' => false, 'message' => 'Profile handler unavailable.', 'errors' => []];
+
+        if (!empty($saveResult['ok']) && function_exists('ems_admin_update_officer_preferences')) {
+            $prefResult = ems_admin_update_officer_preferences($conn, (int)($portalUser['id'] ?? 0), [
+                'pref_email_alerts' => !empty($_POST['pref_email_alerts']),
+                'pref_daily_digest' => !empty($_POST['pref_daily_digest']),
+                'pref_auto_archive' => !empty($_POST['pref_auto_archive']),
+                'two_factor_enabled' => !empty($_POST['two_factor_enabled']),
+            ]);
+
+            if (empty($prefResult['ok'])) {
+                $saveResult = ['ok' => false, 'message' => (string)($prefResult['message'] ?? 'Unable to update preferences.'), 'errors' => []];
+            }
+        }
+
+        $profileFeedback = [
+            'type' => !empty($saveResult['ok']) ? 'success' : 'error',
+            'message' => (string)($saveResult['message'] ?? 'Unable to update profile.'),
+        ];
+        $profileErrors = (array)($saveResult['errors'] ?? []);
     }
+
+    $officerProfile = function_exists('ems_admin_fetch_officer_profile')
+        ? ems_admin_fetch_officer_profile($conn, (int)($portalUser['id'] ?? 0), $portalUser)
+        : $officerProfile;
 }
 
-$officerEmployeeId = 'AO-' . str_pad((string)($portalUser['id'] ?? 0), 4, '0', STR_PAD_LEFT);
+$officerProfileName = ems_profile_text($officerProfile['full_name'] ?? '', 'Admin Officer');
+$officerProfileEmail = ems_profile_text($officerProfile['email'] ?? '', 'Not provided');
+$officerProfileStatus = strtolower((string)($officerProfile['status'] ?? 'inactive')) === 'active' ? 'Active' : 'Inactive';
+$officerProfileJoined = ems_profile_text($officerProfile['joined_on'] ?? '', 'Not available');
+$officerEmployeeId = ems_profile_text($officerProfile['employee_id'] ?? '', 'AO-0000');
+$csrf = ems_csrf_token();
 ?>
+
+<?php if (is_array($profileFeedback)): ?>
+<div class="pm-inline-alert <?php echo $profileFeedback['type'] === 'success' ? 'success' : 'error'; ?>">
+    <?php echo ems_e((string)$profileFeedback['message']); ?>
+</div>
+<?php endif; ?>
 
 <section class="ao-profile-page" id="aoProfilePage">
     <header class="ao-profile-header-card">
@@ -39,7 +109,7 @@ $officerEmployeeId = 'AO-' . str_pad((string)($portalUser['id'] ?? 0), 4, '0', S
             <div class="ao-stat-icon"><i class="bi bi-clock-history"></i></div>
             <div>
                 <p class="ao-stat-label">Last Login</p>
-                <p class="ao-stat-value">Today, 10:30 AM</p>
+                <p class="ao-stat-value"><?php echo ems_e((string)($officerProfile['last_login_text'] ?? 'Not available')); ?></p>
             </div>
         </article>
         <article class="ao-stat-card">
@@ -53,7 +123,7 @@ $officerEmployeeId = 'AO-' . str_pad((string)($portalUser['id'] ?? 0), 4, '0', S
             <div class="ao-stat-icon"><i class="bi bi-person-check"></i></div>
             <div>
                 <p class="ao-stat-label">Managed Providers</p>
-                <p class="ao-stat-value">248</p>
+                <p class="ao-stat-value"><?php echo number_format((int)(function_exists('ems_admin_fetch_user_management_rows') ? count(ems_admin_fetch_user_management_rows($conn, 'provider', 'all', '', 999)) : 0)); ?></p>
             </div>
         </article>
     </div>
@@ -65,47 +135,56 @@ $officerEmployeeId = 'AO-' . str_pad((string)($portalUser['id'] ?? 0), 4, '0', S
                 <p>Update your admin profile details. All fields below are directly editable.</p>
             </div>
 
-            <form class="ao-profile-form" id="aoProfileForm" novalidate>
+            <form class="ao-profile-form" id="aoProfileForm" method="post" novalidate>
+                <input type="hidden" name="csrf_token" value="<?php echo ems_e($csrf); ?>">
+                <input type="hidden" name="profile_action" value="save_profile">
+                <input type="hidden" name="pref_email_alerts" id="aoPrefEmailAlertsHidden" value="<?php echo !empty($officerProfile['pref_email_alerts']) ? '1' : '0'; ?>">
+                <input type="hidden" name="pref_daily_digest" id="aoPrefDailyDigestHidden" value="<?php echo !empty($officerProfile['pref_daily_digest']) ? '1' : '0'; ?>">
+                <input type="hidden" name="pref_auto_archive" id="aoPrefAutoArchiveHidden" value="<?php echo !empty($officerProfile['pref_auto_archive']) ? '1' : '0'; ?>">
+                <input type="hidden" name="two_factor_enabled" id="aoTwoFaHidden" value="<?php echo !empty($officerProfile['two_factor_enabled']) ? '1' : '0'; ?>">
                 <div class="ao-form-grid">
                     <div class="ao-field">
                         <label for="aoFullName">Full Name</label>
-                        <input id="aoFullName" name="fullName" type="text" value="<?php echo ems_e($officerProfileName); ?>">
+                        <input id="aoFullName" name="full_name" type="text" value="<?php echo ems_e($officerProfileName); ?>">
+                        <?php if (!empty($profileErrors['full_name'])): ?><small class="text-danger"><?php echo ems_e((string)$profileErrors['full_name']); ?></small><?php endif; ?>
                     </div>
                     <div class="ao-field">
                         <label for="aoDesignation">Designation</label>
-                        <input id="aoDesignation" name="designation" type="text" value="System Administrator">
+                        <input id="aoDesignation" name="designation" type="text" value="<?php echo ems_e((string)($officerProfile['designation'] ?? 'System Administrator')); ?>">
                     </div>
                     <div class="ao-field">
                         <label for="aoEmail">Email Address</label>
                         <input id="aoEmail" name="email" type="email" value="<?php echo ems_e($officerProfileEmail); ?>">
+                        <?php if (!empty($profileErrors['email'])): ?><small class="text-danger"><?php echo ems_e((string)$profileErrors['email']); ?></small><?php endif; ?>
                     </div>
                     <div class="ao-field">
                         <label for="aoPhone">Phone Number</label>
-                        <input id="aoPhone" name="phone" type="tel" value="Not provided">
+                        <input id="aoPhone" name="phone" type="tel" value="<?php echo ems_e((string)($officerProfile['phone'] ?? '')); ?>">
+                        <?php if (!empty($profileErrors['phone'])): ?><small class="text-danger"><?php echo ems_e((string)$profileErrors['phone']); ?></small><?php endif; ?>
                     </div>
                     <div class="ao-field">
                         <label for="aoEmployeeId">Employee ID</label>
-                        <input id="aoEmployeeId" name="employeeId" type="text" value="<?php echo ems_e($officerEmployeeId); ?>">
+                        <input id="aoEmployeeId" name="employee_id" type="text" value="<?php echo ems_e($officerEmployeeId); ?>">
                     </div>
                     <div class="ao-field">
                         <label for="aoDepartment">Department</label>
-                        <input id="aoDepartment" name="department" type="text" value="Platform Operations">
+                        <input id="aoDepartment" name="department" type="text" value="<?php echo ems_e((string)($officerProfile['department'] ?? 'Platform Operations')); ?>">
                     </div>
                     <div class="ao-field ao-field-full">
                         <label for="aoLocation">Office Location</label>
-                        <input id="aoLocation" name="location" type="text" value="EduSkill Marketplace Office, Kathmandu, Nepal">
+                        <input id="aoLocation" name="location" type="text" value="<?php echo ems_e((string)($officerProfile['location'] ?? '')); ?>">
                     </div>
                     <div class="ao-field">
                         <label for="aoTimezone">Timezone</label>
-                        <input id="aoTimezone" name="timezone" type="text" value="Asia/Kathmandu (UTC+05:45)">
+                        <input id="aoTimezone" name="timezone" type="text" value="<?php echo ems_e((string)($officerProfile['timezone'] ?? 'Asia/Kathmandu (UTC+05:45)')); ?>">
                     </div>
                     <div class="ao-field">
                         <label for="aoLanguage">Preferred Language</label>
-                        <input id="aoLanguage" name="language" type="text" value="English">
+                        <input id="aoLanguage" name="language" type="text" value="<?php echo ems_e((string)($officerProfile['language'] ?? 'English')); ?>">
                     </div>
                     <div class="ao-field ao-field-full">
                         <label for="aoResponsibilities">Core Responsibilities</label>
-                        <textarea id="aoResponsibilities" name="responsibilities" rows="4">Provider approval workflow, learner complaint resolution, course quality monitoring, and monthly compliance reporting.</textarea>
+                        <textarea id="aoResponsibilities" name="responsibilities" rows="4"><?php echo ems_e((string)($officerProfile['responsibilities'] ?? '')); ?></textarea>
                     </div>
                 </div>
 
@@ -132,7 +211,7 @@ $officerEmployeeId = 'AO-' . str_pad((string)($portalUser['id'] ?? 0), 4, '0', S
                 <div class="ao-security-item">
                     <div>
                         <p class="ao-security-title">Password</p>
-                        <p class="ao-security-desc" id="aoPasswordMeta">Last changed 28 days ago</p>
+                        <p class="ao-security-desc" id="aoPasswordMeta"><?php echo ems_e((string)($officerProfile['password_meta'] ?? 'Last changed recently')); ?></p>
                     </div>
                     <button type="button" class="ao-btn ao-btn-outline-sm" id="aoChangePasswordBtn">Change</button>
                 </div>
@@ -140,15 +219,15 @@ $officerEmployeeId = 'AO-' . str_pad((string)($portalUser['id'] ?? 0), 4, '0', S
                 <div class="ao-security-item">
                     <div>
                         <p class="ao-security-title">Two-factor Authentication</p>
-                        <p class="ao-security-desc" id="aoTwoFaMeta">Currently enabled</p>
+                        <p class="ao-security-desc" id="aoTwoFaMeta"><?php echo !empty($officerProfile['two_factor_enabled']) ? 'Currently enabled' : 'Currently disabled'; ?></p>
                     </div>
-                    <button type="button" class="ao-chip-success" id="aoTwoFaToggleBtn" aria-pressed="true">Enabled</button>
+                    <button type="button" class="ao-chip-success<?php echo empty($officerProfile['two_factor_enabled']) ? ' ao-chip-danger' : ''; ?>" id="aoTwoFaToggleBtn" aria-pressed="<?php echo !empty($officerProfile['two_factor_enabled']) ? 'true' : 'false'; ?>"><?php echo !empty($officerProfile['two_factor_enabled']) ? 'Enabled' : 'Disabled'; ?></button>
                 </div>
 
                 <div class="ao-security-item">
                     <div>
                         <p class="ao-security-title">Active Sessions</p>
-                        <p class="ao-security-desc" id="aoSessionMeta">2 devices connected</p>
+                        <p class="ao-security-desc" id="aoSessionMeta"><?php echo (int)($officerProfile['active_sessions'] ?? 1); ?> device<?php echo (int)($officerProfile['active_sessions'] ?? 1) === 1 ? '' : 's'; ?> connected</p>
                     </div>
                     <button type="button" class="ao-btn ao-btn-outline-sm" id="aoManageSessionsBtn">Manage</button>
                 </div>
@@ -164,15 +243,15 @@ $officerEmployeeId = 'AO-' . str_pad((string)($portalUser['id'] ?? 0), 4, '0', S
             <div class="ao-switch-list">
                 <label class="ao-switch-row">
                     <span>Email alerts for new providers</span>
-                    <input type="checkbox" id="aoPrefEmailAlerts" name="prefEmailAlerts" checked>
+                    <input type="checkbox" id="aoPrefEmailAlerts" <?php echo !empty($officerProfile['pref_email_alerts']) ? 'checked' : ''; ?>>
                 </label>
                 <label class="ao-switch-row">
                     <span>Daily analytics digest</span>
-                    <input type="checkbox" id="aoPrefDailyDigest" name="prefDailyDigest" checked>
+                    <input type="checkbox" id="aoPrefDailyDigest" <?php echo !empty($officerProfile['pref_daily_digest']) ? 'checked' : ''; ?>>
                 </label>
                 <label class="ao-switch-row">
                     <span>Auto-archive resolved alerts</span>
-                    <input type="checkbox" id="aoPrefAutoArchive" name="prefAutoArchive">
+                    <input type="checkbox" id="aoPrefAutoArchive" <?php echo !empty($officerProfile['pref_auto_archive']) ? 'checked' : ''; ?>>
                 </label>
             </div>
         </aside>
