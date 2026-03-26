@@ -14,6 +14,7 @@ if (!$portalUser || ($portalUser['role'] ?? '') !== 'provider') {
 
 $providerDisplayName = ems_profile_text($portalUser['full_name'], 'Provider');
 $providerInitials = ems_user_initials($providerDisplayName);
+$initialCourseId = isset($_GET['course_id']) ? (int)$_GET['course_id'] : 0;
 
 // Provider Add Course - frontend-only wizard UI
 $pageTitle = 'Create Course';
@@ -63,7 +64,16 @@ require_once(__DIR__ . '/includes/topbar.php');
 
 			<div class="col-lg-9 addcourse-content">
 				<div class="p-3 p-md-4 p-xl-5">
-					<form id="addCourseForm" class="needs-validation" novalidate>
+					<form
+						id="addCourseForm"
+						class="needs-validation"
+						novalidate
+						data-api-url="<?php echo BASE_URL; ?>provider/addcourses/api.php"
+						data-courses-url="<?php echo BASE_URL; ?>provider/?page=courses"
+						data-course-id="<?php echo $initialCourseId; ?>"
+					>
+						<input type="hidden" name="csrf_token" value="<?php echo ems_csrf_token(); ?>">
+						<input type="hidden" name="course_id" id="courseIdField" value="<?php echo $initialCourseId; ?>">
 						<div id="steps-container">
 							<?php require_once(__DIR__ . '/pages/basicdetails.php'); ?>
 							<?php require_once(__DIR__ . '/pages/coursemedia.php'); ?>

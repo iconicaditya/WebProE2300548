@@ -10,6 +10,7 @@
 require_once(__DIR__ . '/../config/config.php');
 require_once(__DIR__ . '/../config/db.php');
 require_once(__DIR__ . '/../includes/auth.php');
+require_once(__DIR__ . '/includes/course_data.php');
 
 ems_require_login(['provider']);
 
@@ -25,6 +26,7 @@ $providerInitials = ems_user_initials($providerDisplayName);
 
 $pageTitle = 'Provider Dashboard';
 $assetVersion = 'provider.' . time();
+$bodyClass = 'provider-dashboard-body';
 
 // Get page from query parameter (default to dashboard)
 $page = isset($_GET['page']) ? sanitize_input($_GET['page']) : 'dashboard';

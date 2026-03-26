@@ -1,6 +1,5 @@
 /* provider-addcourses.js
- * Frontend behavior for provider/addcourses multi-step builder.
- * Keeps all step interactivity in one file (no inline scripts in templates).
+ * Provider add-course wizard with backend draft/save/publish integration.
  */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -15,10 +14,34 @@ document.addEventListener('DOMContentLoaded', function () {
     const submitBtn = document.getElementById('submitBtn');
 
     const navContainer = document.querySelector('.addcourse-form-nav');
+    const stepsContainer = document.getElementById('steps-container');
+
+    const apiUrl = (form.dataset.apiUrl || '').trim();
+    const coursesUrl = (form.dataset.coursesUrl || '').trim();
+    const csrfTokenInput = form.querySelector('input[name="csrf_token"]');
+    const courseIdField = document.getElementById('courseIdField');
+    const appBaseUrl = apiUrl
+        ? apiUrl.replace(/provider\/addcourses\/api\.php.*$/i, '')
+        : (window.location.origin + '/');
 
     let currentStep = 0;
     let maxVisited = 0;
     let resourceCounter = 0;
+
+    let currentCourseId = Number(form.dataset.courseId || courseIdField?.value || 0);
+    if (Number.isNaN(currentCourseId) || currentCourseId < 0) {
+        currentCourseId = 0;
+    }
+
+    let busy = false;
+    let sectionTitleMap = {};
+
+    const apiAlert = document.createElement('div');
+    apiAlert.id = 'addcourseApiAlert';
+    apiAlert.className = 'alert d-none';
+    if (stepsContainer && stepsContainer.parentElement) {
+        stepsContainer.parentElement.insertBefore(apiAlert, stepsContainer);
+    }
 
     function escapeHtml(value) {
         return String(value).replace(/[&<>"']/g, function (char) {
@@ -30,6 +53,184 @@ document.addEventListener('DOMContentLoaded', function () {
                 "'": '&#39;'
             })[char];
         });
+    }
+
+    function toPublicUrl(path) {
+        const value = String(path || '').trim();
+        if (!value) return '';
+        if (/^https?:\/\//i.test(value)) return value;
+        return appBaseUrl + value.replace(/^\/+/, '');
+    }
+
+    function showApiAlert(type, message, timeoutMs) {
+        if (!apiAlert) return;
+        apiAlert.className = 'alert alert-' + type;
+        apiAlert.textContent = message;
+        apiAlert.classList.remove('d-none');
+        if (timeoutMs && timeoutMs > 0) {
+            window.setTimeout(function () {
+                apiAlert.classList.add('d-none');
+            }, timeoutMs);
+        }
+    }
+
+    function clearApiAlert() {
+        if (!apiAlert) return;
+        apiAlert.classList.add('d-none');
+    }
+
+    function clearFieldErrors() {
+        form.querySelectorAll('.is-invalid').forEach(function (field) {
+            field.classList.remove('is-invalid');
+        });
+    }
+
+    function markFieldError(name) {
+        if (!name) return;
+        const selectors = [
+            '[name="' + name + '"]',
+            '[name="' + name + '[]"]',
+            '[name^="' + name + '["]'
+        ];
+
+        for (let i = 0; i < selectors.length; i++) {
+            const field = form.querySelector(selectors[i]);
+            if (field) {
+                field.classList.add('is-invalid');
+                return;
+            }
+        }
+
+        if (name === 'title') {
+            form.querySelector('#courseTitle')?.classList.add('is-invalid');
+        } else if (name === 'short_description') {
+            form.querySelector('#courseShortDescription')?.classList.add('is-invalid');
+        }
+    }
+
+    function applyValidationErrors(errors) {
+        clearFieldErrors();
+        const keys = Object.keys(errors || {});
+        keys.forEach(markFieldError);
+
+        if (keys.length > 0) {
+            const firstMessage = errors[keys[0]];
+            showApiAlert('danger', firstMessage || 'Please correct the highlighted fields.');
+        }
+    }
+
+    function setBusy(isBusy, buttonText) {
+        busy = !!isBusy;
+
+        const defaultNext = 'Next';
+        const defaultSubmit = 'Publish';
+
+        if (prevBtn) prevBtn.disabled = busy || currentStep === 0;
+        if (nextBtn) {
+            nextBtn.disabled = busy;
+            if (buttonText && !nextBtn.classList.contains('d-none')) {
+                nextBtn.textContent = buttonText;
+            } else {
+                nextBtn.textContent = defaultNext;
+            }
+        }
+        if (submitBtn) {
+            submitBtn.disabled = busy;
+            if (buttonText && !submitBtn.classList.contains('d-none')) {
+                submitBtn.textContent = buttonText;
+            } else {
+                submitBtn.textContent = defaultSubmit;
+            }
+        }
+    }
+
+    function normalizeApiError(error) {
+        if (!error) {
+            return {
+                message: 'Unexpected error occurred.',
+                errors: null
+            };
+        }
+
+        if (error.validationErrors) {
+            return {
+                message: error.message || 'Validation failed.',
+                errors: error.validationErrors
+            };
+        }
+
+        return {
+            message: error.message || 'Request failed.',
+            errors: null
+        };
+    }
+
+    async function apiRequest(action, config) {
+        if (!apiUrl) {
+            throw new Error('API endpoint URL is missing.');
+        }
+
+        const options = Object.assign({
+            method: 'GET',
+            params: null,
+            formData: null
+        }, config || {});
+
+        const method = String(options.method || 'GET').toUpperCase();
+        let url = apiUrl;
+        const fetchOptions = {
+            method: method,
+            credentials: 'same-origin'
+        };
+
+        if (method === 'GET') {
+            const params = new URLSearchParams();
+            params.set('action', action);
+            Object.entries(options.params || {}).forEach(function (entry) {
+                const key = entry[0];
+                const value = entry[1];
+                if (value !== undefined && value !== null && String(value) !== '') {
+                    params.set(key, String(value));
+                }
+            });
+            url += (url.indexOf('?') >= 0 ? '&' : '?') + params.toString();
+        } else {
+            const fd = options.formData instanceof FormData ? options.formData : new FormData();
+            fd.set('action', action);
+            const csrfToken = String(csrfTokenInput?.value || '');
+            if (csrfToken) {
+                fd.set('csrf_token', csrfToken);
+            }
+            fetchOptions.body = fd;
+        }
+
+        const response = await fetch(url, fetchOptions);
+        let payload = null;
+        try {
+            payload = await response.json();
+        } catch (error) {
+            throw new Error('Server returned invalid JSON response.');
+        }
+
+        if (!response.ok || !payload || payload.ok !== true) {
+            const err = new Error((payload && payload.message) || 'Request failed.');
+            err.code = payload && payload.code ? payload.code : 'REQUEST_FAILED';
+            if (payload && payload.errors && typeof payload.errors === 'object') {
+                err.validationErrors = payload.errors;
+            }
+            throw err;
+        }
+
+        return payload.data || {};
+    }
+
+    function updateCourseId(courseId) {
+        const id = Number(courseId || 0);
+        currentCourseId = Number.isNaN(id) || id < 0 ? 0 : id;
+        if (courseIdField) {
+            courseIdField.value = String(currentCourseId);
+        }
+        form.dataset.courseId = String(currentCourseId);
     }
 
     function getStepFromHash() {
@@ -52,13 +253,12 @@ document.addEventListener('DOMContentLoaded', function () {
     function setNavButtons(stepIndex) {
         if (!prevBtn || !nextBtn || !submitBtn) return;
 
-        prevBtn.disabled = stepIndex === 0;
+        prevBtn.disabled = busy || stepIndex === 0;
 
         const isLastStep = stepIndex === steps.length - 1;
         nextBtn.classList.toggle('d-none', isLastStep);
         submitBtn.classList.toggle('d-none', !isLastStep);
 
-        // Defensive fallback when utility classes are unavailable.
         nextBtn.style.display = isLastStep ? 'none' : '';
         submitBtn.style.display = isLastStep ? '' : 'none';
     }
@@ -116,31 +316,74 @@ document.addEventListener('DOMContentLoaded', function () {
         showStep(currentStep, options);
     }
 
-    // Step navigation
-    stepLinks.forEach(function (link) {
-        link.addEventListener('click', function (event) {
-            event.preventDefault();
-            const target = Number(link.dataset.step) - 1;
-            if (Number.isNaN(target)) return;
-            goToStep(target);
+    function appendInputsFromSection(fd, sectionElement) {
+        if (!sectionElement) return;
+        const controls = Array.from(sectionElement.querySelectorAll('input, select, textarea'));
+
+        controls.forEach(function (control) {
+            if (!control || control.disabled || !control.name) return;
+
+            const tag = control.tagName.toLowerCase();
+            const type = (control.type || '').toLowerCase();
+
+            if (tag === 'input' && ['button', 'submit', 'reset'].includes(type)) return;
+
+            if (type === 'checkbox' || type === 'radio') {
+                if (control.checked) {
+                    fd.append(control.name, control.value || '1');
+                }
+                return;
+            }
+
+            if (type === 'file') {
+                if (control.files && control.files.length) {
+                    Array.from(control.files).forEach(function (file) {
+                        fd.append(control.name, file);
+                    });
+                }
+                return;
+            }
+
+            fd.append(control.name, control.value || '');
         });
-    });
+    }
 
-    window.addEventListener('hashchange', function () {
-        const hashStep = getStepFromHash();
-        if (hashStep === null) return;
-        goToStep(hashStep, { updateUrl: false });
-    });
+    async function ensureDraftExists() {
+        if (currentCourseId > 0) {
+            return currentCourseId;
+        }
 
-    prevBtn?.addEventListener('click', function () {
-        goToStep(currentStep - 1);
-    });
+        const title = String(form.querySelector('input[name="title"]')?.value || '').trim();
+        const shortDescription = String(form.querySelector('textarea[name="short_description"]')?.value || '').trim();
 
-    nextBtn?.addEventListener('click', function () {
-        goToStep(currentStep + 1);
-    });
+        const validation = {};
+        if (!title) validation.title = 'Course name is required.';
+        if (!shortDescription) validation.short_description = 'Short description is required.';
 
-    // Basic details: thumbnail preview
+        if (Object.keys(validation).length > 0) {
+            const err = new Error('Please fill required fields to create draft.');
+            err.validationErrors = validation;
+            throw err;
+        }
+
+        const draftPayload = new FormData();
+        draftPayload.append('title', title);
+        draftPayload.append('short_description', shortDescription);
+
+        const draftResponse = await apiRequest('create_draft', {
+            method: 'POST',
+            formData: draftPayload
+        });
+
+        const newCourseId = Number(draftResponse.course_id || 0);
+        if (newCourseId <= 0) {
+            throw new Error('Server did not return a valid draft id.');
+        }
+
+        updateCourseId(newCourseId);
+        return currentCourseId;
+    }
+
     const thumbnailInput = document.getElementById('thumbnailInput');
     const thumbnailPreview = document.getElementById('thumbnailPreview');
     const thumbnailPreviewImg = thumbnailPreview ? thumbnailPreview.querySelector('img') : null;
@@ -159,13 +402,11 @@ document.addEventListener('DOMContentLoaded', function () {
         thumbnailPreview.classList.remove('d-none');
     });
 
-    // Basic details: prevent negative students count
     const studentsInput = document.querySelector('input[name="students"]');
     studentsInput?.addEventListener('input', function () {
         if (Number(this.value) < 0) this.value = 0;
     });
 
-    // Dynamic outcomes/requirements
     const outcomesList = document.getElementById('outcomesList');
     const addOutcomeBtn = document.getElementById('addOutcomeBtn');
 
@@ -202,7 +443,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Step 2: Promo URL preview
     const promoInput = document.getElementById('promoVideoUrl') || document.querySelector('input[name="promo_video_url"]');
     const promoPreview = document.getElementById('promoPreview');
 
@@ -225,7 +465,6 @@ document.addEventListener('DOMContentLoaded', function () {
     promoInput?.addEventListener('change', updatePromoPreview);
     promoInput?.addEventListener('input', updatePromoPreview);
 
-    // Step 3: Modules & lessons builder
     const emptyState = document.getElementById('emptyState');
     const lessonsList = document.getElementById('lessonsList');
     const chooserArea = document.getElementById('chooserArea');
@@ -234,6 +473,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const addBtnBottom = document.getElementById('globalAddBtnBottom');
     const chooserCancel = document.getElementById('chooserCancel');
     const sectionSelector = document.getElementById('sectionSelector');
+    const sectionTitleInput = document.getElementById('sectionTitleInput');
 
     function createSectionOptionsMarkup() {
         const options = [];
@@ -330,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return wrapper.firstElementChild;
     }
 
-    function createQuestionNode() {
+    function createQuestionNode(config) {
         const questionId = 'q_' + Math.random().toString(36).slice(2, 10);
         const wrapper = document.createElement('div');
         wrapper.className = 'question';
@@ -342,16 +582,36 @@ document.addEventListener('DOMContentLoaded', function () {
             '</div>' +
             '<div class="options"></div>' +
             '<button type="button" class="btn btn-sm btn-outline-secondary btn-add-option mt-2">Add option</button>';
+
+        if (config && config.text) {
+            const questionTextInput = wrapper.querySelector('.question-text');
+            if (questionTextInput) questionTextInput.value = config.text;
+        }
+
+        if (config && Array.isArray(config.options) && config.options.length) {
+            const optionsWrap = wrapper.querySelector('.options');
+            config.options.forEach(function (optionText, index) {
+                const optionNode = createOptionRow(questionId, optionText, index === Number(config.correct_index));
+                optionsWrap?.appendChild(optionNode);
+            });
+        }
+
         return wrapper;
     }
 
-    function createOptionRow(questionId) {
+    function createOptionRow(questionId, value, checked) {
         const row = document.createElement('div');
         row.className = 'option-row';
         row.innerHTML = '' +
             '<input type="radio" class="form-check-input correct-radio" name="correct_' + questionId + '">' +
             '<input type="text" class="form-control option-text" placeholder="Option text">' +
             '<button type="button" class="btn btn-sm btn-outline-danger btn-remove-option">Remove</button>';
+
+        const optionText = row.querySelector('.option-text');
+        const correctRadio = row.querySelector('.correct-radio');
+        if (optionText) optionText.value = value || '';
+        if (correctRadio) correctRadio.checked = !!checked;
+
         return row;
     }
 
@@ -379,6 +639,24 @@ document.addEventListener('DOMContentLoaded', function () {
         addBtnTop?.classList.add('d-none');
         addBtnBottomWrapper?.classList.add('d-none');
     }
+
+    function syncSectionTitleInputFromMap() {
+        if (!sectionSelector || !sectionTitleInput) return;
+        const sectionOrder = String(sectionSelector.value || '1');
+        sectionTitleInput.value = sectionTitleMap[sectionOrder] || '';
+    }
+
+    sectionSelector?.addEventListener('change', syncSectionTitleInputFromMap);
+    sectionTitleInput?.addEventListener('input', function () {
+        if (!sectionSelector) return;
+        const sectionOrder = String(sectionSelector.value || '1');
+        const title = String(sectionTitleInput.value || '').trim();
+        if (title) {
+            sectionTitleMap[sectionOrder] = title;
+        } else {
+            delete sectionTitleMap[sectionOrder];
+        }
+    });
 
     addBtnTop?.addEventListener('click', showChooser);
     addBtnBottom?.addEventListener('click', showChooser);
@@ -475,7 +753,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const optionsWrap = question.querySelector('.options');
             const questionId = question.dataset.questionId || ('q_' + Math.random().toString(36).slice(2, 8));
             question.dataset.questionId = questionId;
-            optionsWrap?.appendChild(createOptionRow(questionId));
+            optionsWrap?.appendChild(createOptionRow(questionId, '', false));
             return;
         }
 
@@ -539,7 +817,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Step 4: Price & offer interactions
     const accessRadios = Array.from(document.querySelectorAll('input[name="access"]'));
     const priceFields = document.getElementById('priceFields');
     const applyCouponBtn = document.getElementById('applyCouponBtn');
@@ -560,7 +837,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const note = wrapper ? wrapper.querySelector('.coupon-note') : null;
         if (!note) return;
 
-        note.textContent = 'Coupon applied (frontend demo)';
+        note.textContent = 'Coupon applied';
         note.classList.remove('d-none');
         window.setTimeout(function () {
             note.textContent = '';
@@ -568,30 +845,33 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 2200);
     });
 
-    // Step 5: Resources builder & validation
     const addResourceBtn = document.getElementById('addResourceBtn');
     const resourceFields = document.getElementById('resourceFields');
     const resourceError = document.getElementById('resourceError');
 
-    function createResourceField(index) {
+    function createResourceField(index, existingData) {
+        const hasExisting = existingData && existingData.file_path;
+        const existingName = hasExisting ? String(existingData.file_path).split('/').pop() : '';
+
         return '' +
-            '<div class="card resource-block">' +
+            '<div class="card resource-block" data-file-path="' + escapeHtml(hasExisting ? existingData.file_path : '') + '" data-file-mime="' + escapeHtml(hasExisting ? (existingData.mime_type || '') : '') + '" data-file-size="' + escapeHtml(hasExisting ? String(existingData.file_size_bytes || 0) : '0') + '">' +
             '  <div class="card-body">' +
             '    <div class="row g-3">' +
             '      <div class="col-md-5">' +
             '        <label for="resource-title-' + index + '" class="form-label">Resource title <span class="text-danger">*</span></label>' +
-            '        <input type="text" id="resource-title-' + index + '" name="resources[' + index + '][title]" class="form-control" required maxlength="100" placeholder="e.g. Course Syllabus">' +
+            '        <input type="text" id="resource-title-' + index + '" name="resources[' + index + '][title]" class="form-control" required maxlength="100" placeholder="e.g. Course Syllabus" value="' + escapeHtml(existingData?.title || '') + '">' +
             '      </div>' +
             '      <div class="col-md-4">' +
             '        <label for="resource-subtitle-' + index + '" class="form-label">Resource subtitle</label>' +
-            '        <input type="text" id="resource-subtitle-' + index + '" name="resources[' + index + '][subtitle]" class="form-control" maxlength="150" placeholder="e.g. Overview of course topics">' +
+            '        <input type="text" id="resource-subtitle-' + index + '" name="resources[' + index + '][subtitle]" class="form-control" maxlength="150" placeholder="e.g. Overview of course topics" value="' + escapeHtml(existingData?.subtitle || '') + '">' +
             '      </div>' +
             '      <div class="col-md-3 d-flex align-items-end">' +
             '        <button type="button" class="btn btn-outline-danger w-100 remove-resource">Remove</button>' +
             '      </div>' +
             '      <div class="col-12">' +
-            '        <label for="resource-file-' + index + '" class="form-label">Upload file <span class="text-danger">*</span></label>' +
-            '        <input type="file" id="resource-file-' + index + '" name="resources[' + index + '][file]" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx" required>' +
+            '        <label for="resource-file-' + index + '" class="form-label">Upload file' + (hasExisting ? ' (optional replace)' : ' <span class="text-danger">*</span>') + '</label>' +
+            '        <input type="file" id="resource-file-' + index + '" name="resources[' + index + '][file]" class="form-control" accept=".pdf,.doc,.docx,.ppt,.pptx" ' + (hasExisting ? '' : 'required') + '>' +
+            (hasExisting ? ('        <div class="form-text">Existing file: ' + escapeHtml(existingName) + '</div>') : '') +
             '        <div class="form-text">PDF, Word (.doc/.docx), PPT (.ppt/.pptx) | Max 10MB</div>' +
             '      </div>' +
             '    </div>' +
@@ -622,30 +902,36 @@ document.addEventListener('DOMContentLoaded', function () {
             'application/msword',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'application/vnd.ms-powerpoint',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/octet-stream',
+            'application/zip'
         ];
 
         for (let i = 0; i < blocks.length; i++) {
             const block = blocks[i];
             const title = block.querySelector('input[name^="resources"][name$="[title]"]');
             const fileInput = block.querySelector('input[type="file"]');
+            const existingPath = String(block.dataset.filePath || '').trim();
 
             if (!title || !title.value.trim()) {
                 return { valid: false, message: 'Resource title is required.' };
             }
 
-            if (!fileInput || !fileInput.files || !fileInput.files.length) {
+            const hasNewFile = fileInput && fileInput.files && fileInput.files.length;
+            if (!hasNewFile && !existingPath) {
                 return { valid: false, message: 'Please upload a file for each resource.' };
             }
 
-            const file = fileInput.files[0];
-            if (file.size > 10 * 1024 * 1024) {
-                return { valid: false, message: 'File size must be less than 10MB.' };
-            }
+            if (hasNewFile) {
+                const file = fileInput.files[0];
+                if (file.size > 10 * 1024 * 1024) {
+                    return { valid: false, message: 'File size must be less than 10MB.' };
+                }
 
-            const extensionAllowed = /\.(pdf|doc|docx|ppt|pptx)$/i.test(file.name || '');
-            if (!allowedTypes.includes(file.type) && !extensionAllowed) {
-                return { valid: false, message: 'Invalid file type. Only PDF, Word, PPT allowed.' };
+                const extensionAllowed = /\.(pdf|doc|docx|ppt|pptx)$/i.test(file.name || '');
+                if (!allowedTypes.includes(file.type) && !extensionAllowed) {
+                    return { valid: false, message: 'Invalid file type. Only PDF, Word, PPT allowed.' };
+                }
             }
         }
 
@@ -666,7 +952,6 @@ document.addEventListener('DOMContentLoaded', function () {
         hideResourceError();
     });
 
-    // Step 6: Visibility text and summary copy helper
     const visibilitySwitch = document.getElementById('visibilitySwitch');
     const visibilityLabel = document.querySelector('label[for="visibilitySwitch"]');
     const courseSummary = document.getElementById('courseSummary');
@@ -690,14 +975,14 @@ document.addEventListener('DOMContentLoaded', function () {
         navigator.clipboard.writeText(summaryText).then(function () {
             const note = document.createElement('div');
             note.className = 'small text-muted mt-2 summary-copy-note';
-            note.textContent = 'Summary copied (frontend demo)';
+            note.textContent = 'Summary copied';
             courseSummary.appendChild(note);
 
             window.setTimeout(function () {
                 note.remove();
             }, 1500);
         }).catch(function () {
-            // No-op fallback for browser clipboard restrictions.
+            // Browser clipboard limitations.
         });
     });
 
@@ -742,9 +1027,464 @@ document.addEventListener('DOMContentLoaded', function () {
         courseSummary.innerHTML = summaryHtml;
     }
 
-    // Global submit (frontend demo)
-    form.addEventListener('submit', function (event) {
+    function collectSectionsPayload() {
+        const orders = new Set();
+        const lessonCards = Array.from(document.querySelectorAll('#lessonsList .lesson-card'));
+
+        lessonCards.forEach(function (card) {
+            const sectionValue = Number(card.querySelector('.section-select')?.value || 1);
+            orders.add(sectionValue);
+        });
+
+        if (orders.size === 0) {
+            orders.add(Number(sectionSelector?.value || 1));
+        }
+
+        return Array.from(orders)
+            .filter(function (order) { return Number.isFinite(order) && order > 0; })
+            .sort(function (a, b) { return a - b; })
+            .map(function (order) {
+                const key = String(order);
+                return {
+                    order: order,
+                    title: sectionTitleMap[key] || ('Section ' + order)
+                };
+            });
+    }
+
+    function collectQuizFromLessonCard(lessonCard) {
+        const questions = Array.from(lessonCard.querySelectorAll('.question'));
+        return questions.map(function (questionNode) {
+            const questionText = String(questionNode.querySelector('.question-text')?.value || '').trim();
+            const options = Array.from(questionNode.querySelectorAll('.option-row .option-text'))
+                .map(function (input) { return String(input.value || '').trim(); })
+                .filter(function (text) { return text !== ''; });
+
+            let correctIndex = -1;
+            const optionRows = Array.from(questionNode.querySelectorAll('.option-row'));
+            optionRows.forEach(function (row, idx) {
+                const radio = row.querySelector('.correct-radio');
+                if (radio && radio.checked) {
+                    correctIndex = idx;
+                }
+            });
+
+            return {
+                text: questionText,
+                options: options,
+                correct_index: correctIndex
+            };
+        }).filter(function (q) {
+            return q.text !== '' || q.options.length > 0;
+        });
+    }
+
+    function collectLessonsPayload(payloadFormData) {
+        const lessonCards = Array.from(document.querySelectorAll('#lessonsList .lesson-card'));
+        return lessonCards.map(function (lessonCard, index) {
+            const type = String(lessonCard.querySelector('input[name="lessons[][type]"]')?.value || 'video').toLowerCase();
+            const title = String(lessonCard.querySelector('.lesson-title-input, .quiz-title')?.value || '').trim();
+            const sectionOrder = Number(lessonCard.querySelector('.section-select')?.value || 1);
+
+            const row = {
+                type: ['video', 'pdf', 'quiz'].includes(type) ? type : 'video',
+                title: title,
+                section_order: sectionOrder > 0 ? sectionOrder : 1,
+                is_preview: false
+            };
+
+            if (row.type === 'video') {
+                const input = lessonCard.querySelector('.video-upload');
+                const file = input && input.files && input.files[0] ? input.files[0] : null;
+                if (file) {
+                    const key = 'lesson_video_' + index;
+                    payloadFormData.append(key, file);
+                    row.video_upload_key = key;
+                } else if (lessonCard.dataset.videoPath) {
+                    row.video_path = lessonCard.dataset.videoPath;
+                }
+            } else if (row.type === 'pdf') {
+                const input = lessonCard.querySelector('.pdf-upload');
+                const file = input && input.files && input.files[0] ? input.files[0] : null;
+                if (file) {
+                    const key = 'lesson_pdf_' + index;
+                    payloadFormData.append(key, file);
+                    row.pdf_upload_key = key;
+                } else if (lessonCard.dataset.pdfPath) {
+                    row.pdf_path = lessonCard.dataset.pdfPath;
+                }
+            } else {
+                row.quiz = collectQuizFromLessonCard(lessonCard);
+            }
+
+            return row;
+        });
+    }
+
+    function collectResourcesPayload(payloadFormData) {
+        if (!resourceFields) return [];
+
+        const blocks = Array.from(resourceFields.querySelectorAll('.resource-block'));
+        return blocks.map(function (block, index) {
+            const title = String(block.querySelector('input[name^="resources"][name$="[title]"]')?.value || '').trim();
+            const subtitle = String(block.querySelector('input[name^="resources"][name$="[subtitle]"]')?.value || '').trim();
+            const fileInput = block.querySelector('input[type="file"]');
+
+            const row = {
+                title: title,
+                subtitle: subtitle
+            };
+
+            const file = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+            if (file) {
+                const key = 'resource_file_' + index;
+                payloadFormData.append(key, file);
+                row.upload_key = key;
+            } else {
+                const existingPath = String(block.dataset.filePath || '').trim();
+                if (existingPath) {
+                    row.file_path = existingPath;
+                    row.mime_type = String(block.dataset.fileMime || 'application/octet-stream');
+                    row.file_size_bytes = Number(block.dataset.fileSize || 0);
+                }
+            }
+
+            return row;
+        });
+    }
+
+    function buildStepPayload(stepNumber) {
+        const payload = new FormData();
+        payload.append('step', String(stepNumber));
+
+        if (stepNumber === 1 || stepNumber === 2 || stepNumber === 4) {
+            appendInputsFromSection(payload, document.getElementById('step-' + stepNumber));
+        } else if (stepNumber === 3) {
+            payload.append('sections', JSON.stringify(collectSectionsPayload()));
+            payload.append('lessons', JSON.stringify(collectLessonsPayload(payload)));
+        } else if (stepNumber === 5) {
+            payload.append('resources', JSON.stringify(collectResourcesPayload(payload)));
+        } else if (stepNumber === 6) {
+            payload.append('visibility', visibilitySwitch && !visibilitySwitch.checked ? 'private' : 'public');
+        }
+
+        return payload;
+    }
+
+    async function saveCurrentStep() {
+        await ensureDraftExists();
+
+        const stepNumber = currentStep + 1;
+        const payload = buildStepPayload(stepNumber);
+        payload.append('course_id', String(currentCourseId));
+
+        const response = await apiRequest('save_step', {
+            method: 'POST',
+            formData: payload
+        });
+
+        if (response && Number(response.course_id || 0) > 0) {
+            updateCourseId(response.course_id);
+        }
+
+        return response;
+    }
+
+    function resetListWithValues(listElement, values, itemClass, inputName, placeholder, removeBtnClass) {
+        if (!listElement) return;
+
+        listElement.innerHTML = '';
+        const source = Array.isArray(values) && values.length ? values : [''];
+
+        source.forEach(function (value) {
+            const item = document.createElement('div');
+            item.className = 'input-group ' + itemClass;
+            item.innerHTML =
+                '<input type="text" name="' + inputName + '" class="form-control" placeholder="' + escapeHtml(placeholder) + '" value="' + escapeHtml(String(value || '')) + '">' +
+                '<button type="button" class="btn btn-outline-danger ' + removeBtnClass + '" aria-label="Remove">&times;</button>';
+            listElement.appendChild(item);
+        });
+    }
+
+    function hydrateLessons(course) {
+        if (!lessonsList) return;
+
+        lessonsList.innerHTML = '';
+        const sectionMap = {};
+        (course.sections || []).forEach(function (section) {
+            const order = Number(section.section_order || 0);
+            if (order > 0) {
+                sectionMap[String(section.id)] = order;
+                sectionTitleMap[String(order)] = String(section.title || ('Section ' + order));
+            }
+        });
+
+        (course.lessons || []).forEach(function (lesson) {
+            let lessonNode;
+            const type = String(lesson.lesson_type || '').toLowerCase();
+            if (type === 'pdf') {
+                lessonNode = createPdfLessonItem();
+            } else if (type === 'quiz') {
+                lessonNode = createQuizLessonItem();
+            } else {
+                lessonNode = createVideoLessonItem();
+            }
+
+            const titleInput = lessonNode.querySelector('.lesson-title-input, .quiz-title');
+            if (titleInput) titleInput.value = String(lesson.title || '');
+
+            const sectionSelect = lessonNode.querySelector('.section-select');
+            let sectionOrder = 1;
+            if (lesson.section_id && sectionMap[String(lesson.section_id)]) {
+                sectionOrder = sectionMap[String(lesson.section_id)];
+            }
+            if (sectionSelect) sectionSelect.value = String(sectionOrder);
+
+            if (type === 'video' && lesson.video_path) {
+                lessonNode.dataset.videoPath = String(lesson.video_path);
+                const preview = lessonNode.querySelector('.video-preview');
+                const filename = lessonNode.querySelector('.video-preview .filename');
+                if (preview && filename) {
+                    filename.textContent = String(lesson.video_path).split('/').pop();
+                    preview.classList.remove('d-none');
+                    const videoTag = preview.querySelector('video');
+                    if (videoTag) {
+                        videoTag.removeAttribute('src');
+                    }
+                }
+            }
+
+            if (type === 'pdf' && lesson.pdf_path) {
+                lessonNode.dataset.pdfPath = String(lesson.pdf_path);
+                const nameBox = lessonNode.querySelector('.pdf-filename');
+                if (nameBox) {
+                    nameBox.textContent = String(lesson.pdf_path).split('/').pop();
+                    nameBox.classList.remove('d-none');
+                }
+            }
+
+            if (type === 'quiz') {
+                const questionsWrap = lessonNode.querySelector('.questions');
+                const quiz = Array.isArray(lesson.quiz) ? lesson.quiz : [];
+                if (questionsWrap) {
+                    questionsWrap.innerHTML = '';
+                    quiz.forEach(function (questionObj) {
+                        questionsWrap.appendChild(createQuestionNode(questionObj));
+                    });
+                }
+            }
+
+            lessonsList.appendChild(lessonNode);
+            updateLessonSummary(lessonNode);
+        });
+
+        updateEmptyStateAndAddButtons();
+        syncSectionTitleInputFromMap();
+    }
+
+    function hydrateResources(course) {
+        if (!resourceFields) return;
+        resourceFields.innerHTML = '';
+        resourceCounter = 0;
+
+        (course.resources || []).forEach(function (resource) {
+            resourceCounter += 1;
+            resourceFields.insertAdjacentHTML('beforeend', createResourceField(resourceCounter, resource));
+        });
+    }
+
+    function hydrateCourseForm(course) {
+        if (!course || typeof course !== 'object') return;
+
+        const setValue = function (selector, value) {
+            const node = form.querySelector(selector);
+            if (node) node.value = value == null ? '' : String(value);
+        };
+
+        setValue('input[name="title"]', course.title || '');
+        setValue('textarea[name="short_description"]', course.short_description || '');
+        setValue('textarea[name="description"]', course.description || '');
+        setValue('input[name="duration"]', course.duration_label || '');
+        setValue('input[name="lessons"]', course.lesson_count_estimate || 0);
+        setValue('input[name="students"]', course.student_count_estimate || 0);
+        setValue('input[name="language"]', course.language || 'English');
+
+        const levelMap = {
+            all_levels: 'All levels',
+            beginner: 'Beginner',
+            intermediate: 'Intermediate',
+            advanced: 'Advanced'
+        };
+        setValue('select[name="level"]', levelMap[String(course.level || 'all_levels')] || 'All levels');
+
+        const certYes = form.querySelector('#certYes');
+        const certNo = form.querySelector('#certNo');
+        const certEnabled = !!course.certification_enabled;
+        if (certYes) certYes.checked = certEnabled;
+        if (certNo) certNo.checked = !certEnabled;
+
+        const includes = Array.isArray(course.includes) ? course.includes : [];
+        form.querySelectorAll('input[name="included[]"]').forEach(function (checkbox) {
+            checkbox.checked = includes.includes(checkbox.value);
+        });
+
+        resetListWithValues(
+            outcomesList,
+            Array.isArray(course.outcomes) ? course.outcomes : [],
+            'outcome-item',
+            'outcomes[]',
+            'Learning outcome',
+            'btn-remove-outcome'
+        );
+        resetListWithValues(
+            requirementsList,
+            Array.isArray(course.requirements) ? course.requirements : [],
+            'requirement-item',
+            'requirements[]',
+            'Requirement',
+            'btn-remove-requirement'
+        );
+
+        setValue('input[name="promo_video_url"]', course.promo_video_url || '');
+
+        if (thumbnailPreview && thumbnailPreviewImg && course.thumbnail_path) {
+            thumbnailPreviewImg.src = toPublicUrl(course.thumbnail_path);
+            thumbnailPreview.classList.remove('d-none');
+        }
+
+        hydrateLessons(course);
+
+        const accessType = String(course.access_type || 'free');
+        const accessRadio = form.querySelector('input[name="access"][value="' + accessType + '"]');
+        if (accessRadio) accessRadio.checked = true;
+
+        setValue('input[name="price"]', course.price_amount != null ? course.price_amount : '');
+        setValue('select[name="currency"]', course.currency_code || 'USD');
+        setValue('input[name="coupon"]', course.coupon_code || '');
+
+        hydrateResources(course);
+
+        if (visibilitySwitch) {
+            visibilitySwitch.checked = String(course.visibility || 'public') !== 'private';
+        }
+
+        updatePromoPreview();
+        updatePriceFieldsVisibility();
+        updateVisibilityLabel();
+        updateEmptyStateAndAddButtons();
+        generateSummary();
+    }
+
+    async function loadCourseForEdit(courseId) {
+        if (courseId <= 0) return;
+
+        try {
+            setBusy(true, 'Loading...');
+            clearApiAlert();
+
+            const data = await apiRequest('get_course', {
+                method: 'GET',
+                params: { course_id: courseId }
+            });
+
+            if (data && data.schema_ready === false) {
+                showApiAlert('warning', 'Course schema is not ready. Apply migration before editing.', 4500);
+                return;
+            }
+
+            if (!data || !data.course) {
+                showApiAlert('danger', 'Unable to load course data for editing.', 4500);
+                return;
+            }
+
+            hydrateCourseForm(data.course);
+            showApiAlert('info', 'Loaded existing draft/course for editing.', 2200);
+        } catch (error) {
+            const parsed = normalizeApiError(error);
+            if (parsed.errors) {
+                applyValidationErrors(parsed.errors);
+            } else {
+                showApiAlert('danger', parsed.message);
+            }
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function handleStepSaveAndMove(targetStep) {
+        if (busy) return;
+
+        try {
+            clearFieldErrors();
+            clearApiAlert();
+
+            if (currentStep === 4) {
+                const resourceValidation = validateResources();
+                if (!resourceValidation.valid) {
+                    showResourceError(resourceValidation.message);
+                    return;
+                }
+                hideResourceError();
+            }
+
+            setBusy(true, 'Saving...');
+            await saveCurrentStep();
+
+            showApiAlert('success', 'Step saved.', 1400);
+            goToStep(targetStep);
+        } catch (error) {
+            const parsed = normalizeApiError(error);
+            if (parsed.errors) {
+                applyValidationErrors(parsed.errors);
+            } else {
+                showApiAlert('danger', parsed.message);
+            }
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    stepLinks.forEach(function (link) {
+        link.addEventListener('click', async function (event) {
+            event.preventDefault();
+            if (busy) return;
+
+            const target = Number(link.dataset.step) - 1;
+            if (Number.isNaN(target) || target < 0 || target >= steps.length) return;
+
+            if (target === currentStep) {
+                goToStep(target);
+                return;
+            }
+
+            if (target > currentStep) {
+                await handleStepSaveAndMove(target);
+                return;
+            }
+
+            goToStep(target);
+        });
+    });
+
+    window.addEventListener('hashchange', function () {
+        const hashStep = getStepFromHash();
+        if (hashStep === null || busy) return;
+        goToStep(hashStep, { updateUrl: false });
+    });
+
+    prevBtn?.addEventListener('click', function () {
+        if (busy) return;
+        goToStep(currentStep - 1);
+    });
+
+    nextBtn?.addEventListener('click', async function () {
+        if (busy) return;
+        await handleStepSaveAndMove(currentStep + 1);
+    });
+
+    form.addEventListener('submit', async function (event) {
         event.preventDefault();
+        if (busy) return;
 
         const resourceValidation = validateResources();
         if (!resourceValidation.valid) {
@@ -754,11 +1494,44 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         hideResourceError();
-        generateSummary();
-        alert('Frontend only: form validated and ready to submit to server.');
+
+        try {
+            clearFieldErrors();
+            clearApiAlert();
+
+            setBusy(true, 'Publishing...');
+
+            await saveCurrentStep();
+
+            const publishPayload = new FormData();
+            publishPayload.append('course_id', String(currentCourseId));
+            publishPayload.append('visibility', visibilitySwitch && !visibilitySwitch.checked ? 'private' : 'public');
+
+            const publishResponse = await apiRequest('publish', {
+                method: 'POST',
+                formData: publishPayload
+            });
+
+            showApiAlert('success', 'Course published successfully. Redirecting...', 2500);
+
+            const redirectUrl = String(publishResponse.redirect_url || coursesUrl || '').trim();
+            if (redirectUrl) {
+                window.setTimeout(function () {
+                    window.location.href = redirectUrl;
+                }, 900);
+            }
+        } catch (error) {
+            const parsed = normalizeApiError(error);
+            if (parsed.errors) {
+                applyValidationErrors(parsed.errors);
+            } else {
+                showApiAlert('danger', parsed.message);
+            }
+        } finally {
+            setBusy(false);
+        }
     });
 
-    // Initial render
     const initialHashStep = getStepFromHash();
     currentStep = initialHashStep !== null ? initialHashStep : 0;
     showStep(currentStep, { updateUrl: initialHashStep === null });
@@ -767,5 +1540,10 @@ document.addEventListener('DOMContentLoaded', function () {
     updatePriceFieldsVisibility();
     updateVisibilityLabel();
     updateEmptyStateAndAddButtons();
+    syncSectionTitleInputFromMap();
+
+    if (currentCourseId > 0) {
+        loadCourseForEdit(currentCourseId);
+    }
 });
 

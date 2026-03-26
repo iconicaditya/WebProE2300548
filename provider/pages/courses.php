@@ -1,15 +1,25 @@
+<?php
+$providerUserId = (int)($portalUser['id'] ?? 0);
+$schemaReady = function_exists('ems_provider_tables_ready') ? ems_provider_tables_ready($conn) : false;
+$courses = $schemaReady ? ems_provider_fetch_courses($conn, $providerUserId, 100) : [];
+?>
+
 <main class="provider-main-content">
-    <!-- HEADER SECTION -->
     <div class="dashboard-header">
         <h1 class="dashboard-title">My Courses</h1>
         <p class="dashboard-subtitle">Manage and view all your courses.</p>
     </div>
 
-    <!-- COURSE MANAGEMENT SECTION -->
+    <?php if (!$schemaReady): ?>
+        <div class="alert alert-warning" role="alert">
+            Course tables are not available yet. Apply <code>config/eduskill.sql</code> to enable full backend data.
+        </div>
+    <?php endif; ?>
+
     <section class="dashboard-section">
         <div class="section-header">
             <h2 class="section-title">Course Management</h2>
-            <button class="btn btn-create-course" onclick="window.location.href='addcourses/index.php';">+ Create New Course</button>
+            <button class="btn btn-create-course" onclick="window.location.href='<?php echo BASE_URL; ?>provider/addcourses/index.php';">+ Create New Course</button>
         </div>
 
         <div class="dashboard-table-wrapper">
@@ -25,70 +35,49 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Web Development</td>
-                        <td>$120</td>
-                        <td>85</td>
-                        <td>
-                            <span class="rating-stars">⭐⭐⭐⭐⭐</span>
-                            <span class="rating-value">4.6</span>
-                        </td>
-                        <td><span class="status-badge status-active">Active</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="action-btn edit-btn" title="Edit">✏️</button>
-                                <button class="action-btn delete-btn" title="Delete">🗑️</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Data Analytics</td>
-                        <td>$150</td>
-                        <td>60</td>
-                        <td>
-                            <span class="rating-stars">⭐⭐⭐⭐</span>
-                            <span class="rating-value">4.4</span>
-                        </td>
-                        <td><span class="status-badge status-active">Active</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="action-btn edit-btn" title="Edit">✏️</button>
-                                <button class="action-btn delete-btn" title="Delete">🗑️</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>UI/UX Design</td>
-                        <td>$100</td>
-                        <td>45</td>
-                        <td>
-                            <span class="rating-stars">⭐⭐⭐⭐⭐</span>
-                            <span class="rating-value">4.7</span>
-                        </td>
-                        <td><span class="status-badge status-active">Active</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="action-btn edit-btn" title="Edit">✏️</button>
-                                <button class="action-btn delete-btn" title="Delete">🗑️</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Python Basics</td>
-                        <td>$80</td>
-                        <td>92</td>
-                        <td>
-                            <span class="rating-stars">⭐⭐⭐⭐</span>
-                            <span class="rating-value">4.5</span>
-                        </td>
-                        <td><span class="status-badge status-active">Active</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="action-btn edit-btn" title="Edit">✏️</button>
-                                <button class="action-btn delete-btn" title="Delete">🗑️</button>
-                            </div>
-                        </td>
-                    </tr>
+                    <?php if (empty($courses)): ?>
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No courses found yet.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($courses as $course): ?>
+                            <?php
+                            $statusBadge = ems_provider_course_status_badge($course['status'] ?? '');
+                            $priceText = ($course['access_type'] ?? 'free') === 'paid'
+                                ? ems_provider_currency_format((float)($course['price_amount'] ?? 0), (string)($course['currency_code'] ?? 'USD'))
+                                : 'Free';
+
+                            $rating = (float)($course['avg_rating'] ?? 0);
+                            $filledStars = max(0, min(5, (int)round($rating)));
+                            $stars = str_repeat('⭐', $filledStars) . str_repeat('☆', 5 - $filledStars);
+                            ?>
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold"><?php echo ems_e($course['title'] ?? 'Untitled course'); ?></div>
+                                    <small class="text-muted">Created: <?php echo ems_e(date('d M Y', strtotime((string)($course['created_at'] ?? 'now')))); ?></small>
+                                </td>
+                                <td><?php echo ems_e($priceText); ?></td>
+                                <td><?php echo (int)($course['students_count'] ?? 0); ?></td>
+                                <td>
+                                    <span class="rating-stars"><?php echo ems_e($stars); ?></span>
+                                    <span class="rating-value"><?php echo number_format($rating, 1); ?></span>
+                                </td>
+                                <td>
+                                    <span class="<?php echo ems_e($statusBadge['class']); ?>"><?php echo ems_e($statusBadge['label']); ?></span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button
+                                            class="action-btn edit-btn"
+                                            title="Edit"
+                                            onclick="window.location.href='<?php echo BASE_URL; ?>provider/addcourses/index.php?course_id=<?php echo (int)$course['id']; ?>'"
+                                        >✏️</button>
+                                        <button class="action-btn delete-btn" title="Delete (coming soon)" disabled>🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
