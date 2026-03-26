@@ -660,13 +660,14 @@ if (!function_exists('ems_provider_fetch_certifications')) {
 }
 
 if (!function_exists('ems_provider_fetch_approval_request')) {
-    function ems_provider_fetch_approval_request($conn, $providerUserId)
+    function ems_provider_fetch_approval_request($conn, $providerUserId, $userStatus = 'active')
     {
         $providerId = (int)$providerUserId;
+        $fallbackStatus = strtolower(trim((string)$userStatus)) === 'active' ? 'approved' : 'draft';
         $default = [
             'id' => 0,
             'provider_user_id' => $providerId,
-            'request_status' => 'draft',
+            'request_status' => $fallbackStatus,
             'submitted_at' => null,
             'reviewed_at' => null,
             'reviewed_by_user_id' => 0,
@@ -695,10 +696,38 @@ if (!function_exists('ems_provider_fetch_approval_request')) {
         $default = array_merge($default, $row);
         $default['request_status'] = strtolower(trim((string)($default['request_status'] ?? 'draft')));
         if (!in_array($default['request_status'], ['draft', 'pending', 'approved', 'rejected'], true)) {
-            $default['request_status'] = 'draft';
+            $default['request_status'] = $fallbackStatus;
         }
 
         return $default;
+    }
+}
+
+if (!function_exists('ems_provider_course_creation_access')) {
+    function ems_provider_course_creation_access($conn, $providerUserId, $userStatus = 'active')
+    {
+        $approval = ems_provider_fetch_approval_request($conn, $providerUserId, $userStatus);
+        $status = strtolower(trim((string)($approval['request_status'] ?? 'draft')));
+        if (!in_array($status, ['draft', 'pending', 'approved', 'rejected'], true)) {
+            $status = 'draft';
+        }
+
+        $allowed = $status === 'approved';
+        $message = 'Your account must be approved by admin before you can create courses.';
+        if ($status === 'approved') {
+            $message = 'Your account is approved. You can create and publish courses.';
+        } elseif ($status === 'pending') {
+            $message = 'Your account is pending admin approval. Course creation is disabled until approval.';
+        } elseif ($status === 'rejected') {
+            $message = 'Your account was rejected by admin. Update your profile and re-apply for approval to create courses.';
+        }
+
+        return [
+            'allowed' => $allowed,
+            'status' => $status,
+            'message' => $message,
+            'approval' => $approval,
+        ];
     }
 }
 
@@ -716,7 +745,7 @@ if (!function_exists('ems_provider_fetch_profile_summary')) {
             ];
 
         $counts = ems_provider_fetch_profile_counts($conn, $providerId);
-        $approval = ems_provider_fetch_approval_request($conn, $providerId);
+        $approval = ems_provider_fetch_approval_request($conn, $providerId, (string)($portalUser['status'] ?? 'active'));
         $completion = ems_provider_calculate_profile_completion($portalUser, $counts);
 
         return [
@@ -1141,7 +1170,7 @@ if (!function_exists('ems_admin_provider_fetch_management_rows')) {
             if ($safeFilter === 'rejected' && $status !== 'rejected') {
                 continue;
             }
-            if ($safeFilter === 'approved' && !in_array($status, ['approved', 'draft'], true)) {
+            if ($safeFilter === 'approved' && $status !== 'approved') {
                 continue;
             }
 
@@ -1228,7 +1257,7 @@ if (!function_exists('ems_admin_provider_review_application')) {
                 throw new RuntimeException('Unable to update approval request status.');
             }
 
-            if ($nextStatus === 'approved' && ems_provider_table_exists($conn, 'users')) {
+            if (ems_provider_table_exists($conn, 'users')) {
                 ems_provider_exec_prepared_row(
                     $conn,
                     'UPDATE users SET status = "active" WHERE id = ? AND role = "provider" LIMIT 1',

@@ -2,6 +2,45 @@
 $providerUserId = (int)($portalUser['id'] ?? 0);
 $schemaReady = function_exists('ems_provider_tables_ready') ? ems_provider_tables_ready($conn) : false;
 
+$approvalAccess = function_exists('ems_provider_course_creation_access')
+    ? ems_provider_course_creation_access($conn, $providerUserId, (string)($portalUser['status'] ?? 'active'))
+    : ['allowed' => false, 'status' => 'pending', 'message' => 'Your account must be approved by admin before you can create courses.'];
+$approvalStatus = strtolower(trim((string)($approvalAccess['status'] ?? 'pending')));
+
+$providerPhotoUrl = trim((string)($portalUser['profile_photo_url'] ?? ''));
+$providerPhotoSrc = $providerPhotoUrl !== ''
+    ? (preg_match('#^https?://#i', $providerPhotoUrl) ? $providerPhotoUrl : BASE_URL . ltrim($providerPhotoUrl, '/'))
+    : '';
+
+$accountStatusLabel = 'Pending';
+$accountStatusClass = 'provider-account-status pending';
+$accountStatusIcon = '⏳';
+if ($approvalStatus === 'approved') {
+    $accountStatusLabel = 'Approved';
+    $accountStatusClass = 'provider-account-status approved';
+    $accountStatusIcon = '✅';
+} elseif ($approvalStatus === 'rejected') {
+    $accountStatusLabel = 'Rejected';
+    $accountStatusClass = 'provider-account-status rejected';
+    $accountStatusIcon = '⛔';
+}
+
+$courseCreationBlocked = empty($approvalAccess['allowed']);
+$courseCreationMessage = (string)($approvalAccess['message'] ?? 'Your account must be approved by admin before you can create courses.');
+
+$courseCreationAlertMessage = $courseCreationMessage;
+if (in_array($approvalStatus, ['pending', 'draft'], true)) {
+    $courseCreationAlertMessage = 'Account is pending for admin review and approval. After approved, you can add courses.';
+}
+
+$createCourseButtonOnClick = $courseCreationBlocked
+    ? 'alert(' . json_encode($courseCreationAlertMessage, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '); return false;'
+    : 'window.location.href=\'' . BASE_URL . 'provider/addcourses/index.php\';';
+
+$courseEditDisabledAttrs = $courseCreationBlocked
+    ? 'disabled aria-disabled="true" title="' . ems_e($courseCreationMessage) . '"'
+    : '';
+
 $metrics = $schemaReady
     ? ems_provider_fetch_dashboard_metrics($conn, $providerUserId)
     : [
@@ -16,6 +55,28 @@ $metrics = $schemaReady
         'review_count' => 0,
         'completion_rate' => 0,
     ];
+
+$providerFullName = trim((string)($portalUser['full_name'] ?? 'Provider'));
+if ($providerFullName === '') {
+    $providerFullName = 'Provider';
+}
+$providerNameParts = preg_split('/\s+/', $providerFullName) ?: ['Provider'];
+$providerFirstName = trim((string)($providerNameParts[0] ?? 'Provider'));
+
+$hourOfDay = (int)date('G');
+$dashboardGreeting = 'Good evening';
+if ($hourOfDay < 12) {
+    $dashboardGreeting = 'Good morning';
+} elseif ($hourOfDay < 17) {
+    $dashboardGreeting = 'Good afternoon';
+}
+
+$todayLabel = date('l, d M Y');
+
+$dashboardSummaryText = 'Everything is set. Keep publishing and engaging learners.';
+if ($courseCreationBlocked) {
+    $dashboardSummaryText = $courseCreationMessage;
+}
 
 $courses = $schemaReady ? ems_provider_fetch_courses($conn, $providerUserId, 6) : [];
 $recentEnrollments = $schemaReady ? ems_provider_fetch_recent_enrollments($conn, $providerUserId, 6) : [];
@@ -52,10 +113,47 @@ $paymentFromCourse = static function ($accessType, $enrollmentStatus) {
 ?>
 
 <main class="provider-main-content">
-    <div class="dashboard-header">
-        <h1 class="dashboard-title">Dashboard Overview</h1>
-        <p class="dashboard-subtitle">Welcome back! Here's your performance summary.</p>
-    </div>
+    <section class="dashboard-greeting-card" aria-label="Greeting and quick summary">
+        <div class="dashboard-greeting-main">
+            <p class="dashboard-greeting-eyebrow">Provider Workspace</p>
+            <h1 class="dashboard-greeting-title"><?php echo ems_e($dashboardGreeting . ', ' . $providerFirstName); ?></h1>
+            <p class="dashboard-greeting-subtitle">Manage your courses, monitor learner activity, and grow your teaching impact from one place.</p>
+            <div class="dashboard-greeting-meta">
+                <span class="dashboard-greeting-chip">📅 <?php echo ems_e($todayLabel); ?></span>
+                <span class="dashboard-greeting-chip"><?php echo ems_e($accountStatusIcon); ?> <?php echo ems_e($accountStatusLabel); ?></span>
+                <span class="dashboard-greeting-chip">📝 <?php echo (int)$metrics['draft_courses']; ?> Draft Courses</span>
+            </div>
+            <p class="dashboard-greeting-note"><?php echo ems_e($dashboardSummaryText); ?></p>
+        </div>
+        <div class="dashboard-greeting-actions">
+            <button class="btn btn-create-course" type="button" onclick="<?php echo ems_e($createCourseButtonOnClick); ?>">+ Create New Course</button>
+            <a class="btn-dashboard-secondary" href="<?php echo BASE_URL; ?>provider/?page=profile">View Profile</a>
+        </div>
+    </section>
+
+    <section class="dashboard-section provider-account-status-section" aria-label="Account status">
+        <div class="provider-account-card">
+            <div class="provider-account-avatar-column">
+                <div class="provider-account-avatar-wrap">
+                    <?php if ($providerPhotoSrc !== ''): ?>
+                        <img src="<?php echo ems_e($providerPhotoSrc); ?>" alt="Provider profile image" class="provider-account-avatar-img">
+                    <?php else: ?>
+                        <div class="provider-account-avatar-placeholder" aria-hidden="true"><?php echo ems_e(ems_user_initials((string)($portalUser['full_name'] ?? 'Provider'))); ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="<?php echo ems_e($accountStatusClass); ?>">
+                    <span class="provider-account-status-icon" aria-hidden="true"><?php echo ems_e($accountStatusIcon); ?></span>
+                    <span class="provider-account-status-label"><?php echo ems_e($accountStatusLabel); ?></span>
+                </div>
+            </div>
+            <div class="provider-account-meta">
+                <div class="provider-account-name"><?php echo ems_e((string)($portalUser['full_name'] ?? 'Provider')); ?></div>
+                <?php if ($courseCreationBlocked): ?>
+                    <p class="provider-account-status-note"><?php echo ems_e($courseCreationMessage); ?></p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
 
     <?php if (!$schemaReady): ?>
         <div class="alert alert-warning" role="alert">
@@ -63,7 +161,17 @@ $paymentFromCourse = static function ($accessType, $enrollmentStatus) {
         </div>
     <?php endif; ?>
 
+    <?php if ($courseCreationBlocked): ?>
+        <div class="alert alert-warning" role="alert">
+            <?php echo ems_e($courseCreationMessage); ?>
+        </div>
+    <?php endif; ?>
+
     <section class="dashboard-section" id="dashboard">
+        <div class="dashboard-section-headline">
+            <h2 class="section-title">Performance Summary</h2>
+            <p class="section-subtle">A quick snapshot of your current teaching performance.</p>
+        </div>
         <div class="overview-grid">
             <div class="overview-card">
                 <div class="overview-card-header">
@@ -125,7 +233,7 @@ $paymentFromCourse = static function ($accessType, $enrollmentStatus) {
     <section class="dashboard-section" id="courses">
         <div class="section-header">
             <h2 class="section-title">Course Management</h2>
-            <button class="btn btn-create-course" onclick="window.location.href='<?php echo BASE_URL; ?>provider/addcourses/index.php';">+ Create New Course</button>
+            <button class="btn btn-create-course" type="button" onclick="<?php echo ems_e($createCourseButtonOnClick); ?>">+ Create New Course</button>
         </div>
 
         <div class="dashboard-table-wrapper">
@@ -168,7 +276,7 @@ $paymentFromCourse = static function ($accessType, $enrollmentStatus) {
                                 <td><span class="<?php echo ems_e($statusBadge['class']); ?>"><?php echo ems_e($statusBadge['label']); ?></span></td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="action-btn edit-btn" title="Edit" onclick="window.location.href='<?php echo BASE_URL; ?>provider/addcourses/index.php?course_id=<?php echo (int)$course['id']; ?>'">✏️</button>
+                                        <button class="action-btn edit-btn" title="<?php echo ems_e($courseCreationBlocked ? $courseCreationMessage : 'Edit'); ?>" <?php echo $courseEditDisabledAttrs; ?> onclick="<?php echo $courseCreationBlocked ? 'return false;' : 'window.location.href=\'' . BASE_URL . 'provider/addcourses/index.php?course_id=' . (int)$course['id'] . '\''; ?>">✏️</button>
                                         <button class="action-btn delete-btn" title="Delete (coming soon)" disabled>🗑️</button>
                                     </div>
                                 </td>

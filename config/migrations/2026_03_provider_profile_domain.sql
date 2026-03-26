@@ -91,5 +91,14 @@ CREATE TABLE IF NOT EXISTS provider_approval_requests (
     INDEX idx_provider_approval_requests_reviewed_at (reviewed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Backfill: keep rejected providers login-allowed while still blocked from course creation by approval status.
+-- Existing rejected providers may have been marked inactive; restore to active.
+UPDATE users u
+INNER JOIN provider_approval_requests par ON par.provider_user_id = u.id
+SET u.status = 'active', u.updated_at = NOW()
+WHERE u.role = 'provider'
+  AND par.request_status = 'rejected'
+  AND u.status <> 'active';
+
 SET FOREIGN_KEY_CHECKS = 1;
 
