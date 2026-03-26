@@ -31,6 +31,8 @@
 			return;
 		}
 		selectedRow = row;
+		var reviewBtn = row.querySelector('.pm-review[data-approval-request-id]');
+		var approvalRequestId = reviewBtn ? reviewBtn.getAttribute('data-approval-request-id') : '0';
 		setText('pmProviderName', row.getAttribute('data-provider'));
 		setText('pmProviderEmail', row.getAttribute('data-email'));
 		setText('pmProviderSpecialization', row.getAttribute('data-specialization'));
@@ -38,6 +40,16 @@
 		setText('pmProviderExperience', row.getAttribute('data-experience'));
 		setText('pmProviderDocs', row.getAttribute('data-docs'));
 		setText('pmProviderNote', row.getAttribute('data-note'));
+
+		var modalRejectRequestId = document.getElementById('pmModalRejectRequestId');
+		var modalApproveRequestId = document.getElementById('pmModalApproveRequestId');
+		if (modalRejectRequestId) {
+			modalRejectRequestId.value = approvalRequestId || '0';
+		}
+		if (modalApproveRequestId) {
+			modalApproveRequestId.value = approvalRequestId || '0';
+		}
+
 		reviewModal.classList.add('open');
 		reviewModal.setAttribute('aria-hidden', 'false');
 	}
@@ -61,27 +73,15 @@
 
 		if (action === 'review') {
 			row.classList.add('pm-row-reviewed');
-			showToast('Application opened for review (frontend only)');
+			showToast('Application opened for review');
 			return;
 		}
 
-		if (action === 'approve') {
-			row.classList.add('pm-row-approved');
+		if (action === 'approve' || action === 'reject') {
 			if (statusCell) {
-				statusCell.className = 'status-active';
-				statusCell.textContent = 'Approved';
+				statusCell.textContent = action === 'approve' ? 'Approving...' : 'Rejecting...';
 			}
-			showToast('Application approved (frontend only)');
-			return;
-		}
-
-		if (action === 'reject') {
-			row.classList.add('pm-row-rejected');
-			if (statusCell) {
-				statusCell.className = 'status-inactive';
-				statusCell.textContent = 'Rejected';
-			}
-			showToast('Application rejected (frontend only)');
+			showToast('Submitting decision...');
 		}
 	}
 
@@ -138,14 +138,12 @@
 	if (modalApproveBtn) {
 		modalApproveBtn.addEventListener('click', function () {
 			applyDecision(selectedRow, 'approve');
-			closeModal();
 		});
 	}
 
 	if (modalRejectBtn) {
 		modalRejectBtn.addEventListener('click', function () {
 			applyDecision(selectedRow, 'reject');
-			closeModal();
 		});
 	}
 

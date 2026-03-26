@@ -35,10 +35,28 @@
                     <span class="sidebar-menu-text">Learner Management</span>
                 </a>
             </li>
+            <li class="sidebar-menu-item <?php echo ($page === 'courses') ? 'active' : ''; ?>">
+                <a href="<?php echo BASE_URL; ?>admin-officer/?page=courses">
+                    <span class="sidebar-menu-icon">📚</span>
+                    <span class="sidebar-menu-text">Courses Management</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item <?php echo ($page === 'users') ? 'active' : ''; ?>">
+                <a href="<?php echo BASE_URL; ?>admin-officer/?page=users">
+                    <span class="sidebar-menu-icon">👥</span>
+                    <span class="sidebar-menu-text">Users Management</span>
+                </a>
+            </li>
             <li class="sidebar-menu-item <?php echo ($page === 'analytic-reports') ? 'active' : ''; ?>">
                 <a href="<?php echo BASE_URL; ?>admin-officer/?page=analytic-reports">
                     <span class="sidebar-menu-icon">📈</span>
                     <span class="sidebar-menu-text">Analytic Reports</span>
+                </a>
+            </li>
+            <li class="sidebar-menu-item <?php echo ($page === 'reports') ? 'active' : ''; ?>">
+                <a href="<?php echo BASE_URL; ?>admin-officer/?page=reports">
+                    <span class="sidebar-menu-icon">🧾</span>
+                    <span class="sidebar-menu-text">Reports & Analytics</span>
                 </a>
             </li>
             <li class="sidebar-menu-item <?php echo ($page === 'settings') ? 'active' : ''; ?>">

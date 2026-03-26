@@ -32,7 +32,7 @@ $bodyClass = 'provider-dashboard-body';
 $page = isset($_GET['page']) ? sanitize_input($_GET['page']) : 'dashboard';
 
 // List of valid pages
-$valid_pages = ['dashboard', 'courses', 'students', 'analytics', 'reviews', 'payments', 'profile', 'settings', 'certificates'];
+$valid_pages = ['dashboard', 'courses', 'students', 'analytics', 'reviews', 'payments', 'profile', 'completeprofile', 'settings', 'certificates'];
 
 // Redirect to dashboard if page is invalid
 if (!in_array($page, $valid_pages)) {

@@ -5,6 +5,39 @@ $allowedFilters = ['all', 'approved', 'rejected', 'applications'];
 if (!in_array($providerFilter, $allowedFilters, true)) {
     $providerFilter = 'all';
 }
+
+$providerQuery = trim((string)($_GET['q'] ?? ''));
+
+$providerFeedback = null;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $reviewAction = strtolower(trim((string)($_POST['review_action'] ?? '')));
+    $reviewDecision = strtolower(trim((string)($_POST['decision'] ?? '')));
+    $approvalRequestId = (int)($_POST['approval_request_id'] ?? 0);
+    $reviewNote = trim((string)($_POST['review_note'] ?? ''));
+
+    if ($reviewAction === 'review_application') {
+        if (!ems_verify_csrf_token((string)($_POST['csrf_token'] ?? ''))) {
+            $providerFeedback = ['type' => 'error', 'message' => 'Invalid security token.'];
+        } else {
+            $reviewResult = ems_admin_provider_review_application(
+                $conn,
+                $approvalRequestId,
+                (int)($portalUser['id'] ?? 0),
+                $reviewDecision,
+                $reviewNote
+            );
+            $providerFeedback = [
+                'type' => !empty($reviewResult['ok']) ? 'success' : 'error',
+                'message' => (string)($reviewResult['message'] ?? 'Unable to update application status.'),
+            ];
+        }
+    }
+}
+
+$providerRows = function_exists('ems_admin_provider_fetch_management_rows')
+    ? ems_admin_provider_fetch_management_rows($conn, $providerFilter, 250, $providerQuery)
+    : [];
+$csrfToken = ems_csrf_token();
 ?>
 
 <div class="admin-page-header">
@@ -17,7 +50,20 @@ if (!in_array($providerFilter, $allowedFilters, true)) {
     <a href="<?php echo BASE_URL; ?>admin-officer/?page=providermanagement&status=approved" class="filter-btn<?php echo ($providerFilter === 'approved') ? ' active' : ''; ?>">Approved Providers</a>
     <a href="<?php echo BASE_URL; ?>admin-officer/?page=providermanagement&status=rejected" class="filter-btn<?php echo ($providerFilter === 'rejected') ? ' active' : ''; ?>">Rejected Providers</a>
     <a href="<?php echo BASE_URL; ?>admin-officer/?page=providermanagement&status=applications" class="filter-btn<?php echo ($providerFilter === 'applications') ? ' active' : ''; ?>">Applications</a>
+
+    <form method="get" class="pm-search-inline" style="display:flex;gap:8px;align-items:center;">
+        <input type="hidden" name="page" value="providermanagement">
+        <input type="hidden" name="status" value="<?php echo ems_e($providerFilter); ?>">
+        <input type="text" class="filter-input" name="q" placeholder="Search provider, email, specialization" value="<?php echo ems_e($providerQuery); ?>">
+        <button type="submit" class="filter-btn">Search</button>
+    </form>
 </div>
+
+<?php if (is_array($providerFeedback)): ?>
+<div class="pm-inline-alert <?php echo $providerFeedback['type'] === 'success' ? 'success' : 'error'; ?>">
+    <?php echo ems_e((string)$providerFeedback['message']); ?>
+</div>
+<?php endif; ?>
 
 <div class="dashboard-table-wrapper provider-table-wrap">
     <table class="dashboard-table">
@@ -34,72 +80,64 @@ if (!in_array($providerFilter, $allowedFilters, true)) {
             </tr>
         </thead>
         <tbody>
-            <?php if ($providerFilter === 'all' || $providerFilter === 'approved'): ?>
+            <?php if (empty($providerRows)): ?>
             <tr>
-                <td>Skill Hub Academy</td>
-                <td>contact@skillhub.com</td>
-                <td>Programming</td>
-                <td><span class="status-active">Approved</span></td>
-                <td>Nov 10, 2024</td>
+                <td colspan="<?php echo $providerFilter === 'applications' ? 6 : 5; ?>">No providers found for this filter.</td>
             </tr>
-            <tr>
-                <td>Data Pro Institute</td>
-                <td>admin@datapro.com</td>
-                <td>Data Science</td>
-                <td><span class="status-active">Approved</span></td>
-                <td>Dec 01, 2024</td>
-            </tr>
-            <?php endif; ?>
+            <?php else: ?>
+                <?php foreach ($providerRows as $row): ?>
+                    <tr
+                        data-provider="<?php echo ems_e((string)($row['provider_name'] ?? 'Provider')); ?>"
+                        data-email="<?php echo ems_e((string)($row['email'] ?? '')); ?>"
+                        data-specialization="<?php echo ems_e((string)($row['specialization'] ?? 'General')); ?>"
+                        data-applied="<?php echo ems_e((string)($row['applied_on_text'] ?? '-')); ?>"
+                        data-experience="<?php echo ems_e((string)($row['experience'] ?? 'Not provided')); ?>"
+                        data-docs="<?php echo ems_e((string)($row['docs_text'] ?? '')); ?>"
+                        data-note="<?php echo ems_e((string)($row['review_note'] ?? '')); ?>"
+                    >
+                        <td><?php echo ems_e((string)($row['provider_name'] ?? 'Provider')); ?></td>
+                        <td><?php echo ems_e((string)($row['email'] ?? '')); ?></td>
+                        <td><?php echo ems_e((string)($row['specialization'] ?? 'General')); ?></td>
+                        <td><span class="<?php echo ems_e((string)($row['status_class'] ?? 'status-pending')); ?>"><?php echo ems_e((string)($row['status_label'] ?? 'Pending')); ?></span></td>
+                        <td><?php echo ems_e($providerFilter === 'applications' ? (string)($row['applied_on_text'] ?? '-') : (string)($row['joined_on_text'] ?? '-')); ?></td>
 
-            <?php if ($providerFilter === 'all' || $providerFilter === 'rejected'): ?>
-            <tr>
-                <td>Design Master Studio</td>
-                <td>team@designmaster.com</td>
-                <td>UI/UX</td>
-                <td><span class="status-inactive">Rejected</span></td>
-                <td>Nov 18, 2024</td>
-            </tr>
-            <tr>
-                <td>Quick Learn Center</td>
-                <td>support@quicklearn.com</td>
-                <td>Business</td>
-                <td><span class="status-inactive">Rejected</span></td>
-                <td>Dec 05, 2024</td>
-            </tr>
-            <?php endif; ?>
+                        <?php if ($providerFilter === 'applications'): ?>
+                        <td class="pm-actions-cell">
+                            <button
+                                type="button"
+                                class="pm-action-btn pm-review"
+                                data-action="review"
+                                data-approval-request-id="<?php echo (int)($row['approval_request_id'] ?? 0); ?>"
+                            >Review</button>
 
-            <?php if ($providerFilter === 'applications'): ?>
-            <tr data-app-row="1" data-provider="CodeCraft Academy" data-email="hello@codecraft.com" data-specialization="Full Stack Development" data-applied="Mar 09, 2026" data-experience="6 years" data-docs="Company Registration, PAN, Instructor Portfolio" data-note="Strong technical curriculum with project-based teaching approach.">
-                <td>CodeCraft Academy</td>
-                <td>hello@codecraft.com</td>
-                <td>Full Stack Development</td>
-                <td><span class="status-pending">Pending Review</span></td>
-                <td>Mar 09, 2026</td>
-                <td class="pm-actions-cell">
-                    <button type="button" class="pm-action-btn pm-review" data-action="review">Review</button>
-                    <button type="button" class="pm-action-btn pm-approve" data-action="approve">Approve</button>
-                    <button type="button" class="pm-action-btn pm-reject" data-action="reject">Reject</button>
-                </td>
-            </tr>
-            <tr data-app-row="2" data-provider="BrightMind Institute" data-email="team@brightmind.org" data-specialization="Business & Leadership" data-applied="Mar 11, 2026" data-experience="4 years" data-docs="Business License, Trainer CV, Sample Course Videos" data-note="Good engagement plan, but needs minor updates in course outcomes section.">
-                <td>BrightMind Institute</td>
-                <td>team@brightmind.org</td>
-                <td>Business & Leadership</td>
-                <td><span class="status-pending">Pending Review</span></td>
-                <td>Mar 11, 2026</td>
-                <td class="pm-actions-cell">
-                    <button type="button" class="pm-action-btn pm-review" data-action="review">Review</button>
-                    <button type="button" class="pm-action-btn pm-approve" data-action="approve">Approve</button>
-                    <button type="button" class="pm-action-btn pm-reject" data-action="reject">Reject</button>
-                </td>
-            </tr>
+                            <form method="post" class="pm-inline-form">
+                                <input type="hidden" name="csrf_token" value="<?php echo ems_e($csrfToken); ?>">
+                                <input type="hidden" name="review_action" value="review_application">
+                                <input type="hidden" name="decision" value="approve">
+                                <input type="hidden" name="approval_request_id" value="<?php echo (int)($row['approval_request_id'] ?? 0); ?>">
+                                <input type="hidden" name="review_note" value="Approved by admin officer">
+                                <button type="submit" class="pm-action-btn pm-approve">Approve</button>
+                            </form>
+
+                            <form method="post" class="pm-inline-form">
+                                <input type="hidden" name="csrf_token" value="<?php echo ems_e($csrfToken); ?>">
+                                <input type="hidden" name="review_action" value="review_application">
+                                <input type="hidden" name="decision" value="reject">
+                                <input type="hidden" name="approval_request_id" value="<?php echo (int)($row['approval_request_id'] ?? 0); ?>">
+                                <input type="hidden" name="review_note" value="Rejected by admin officer">
+                                <button type="submit" class="pm-action-btn pm-reject">Reject</button>
+                            </form>
+                        </td>
+                        <?php endif; ?>
+                    </tr>
+                <?php endforeach; ?>
             <?php endif; ?>
         </tbody>
     </table>
 </div>
 
 <div class="pm-footer-note">
-    <p>Frontend demo mode: Provider actions update UI only and do not change backend data.</p>
+    <p>Backend mode enabled: Provider approval decisions are persisted and reflected in profile status.</p>
 </div>
 
 <div class="pm-modal" id="pmReviewModal" aria-hidden="true" role="dialog" aria-labelledby="pmReviewTitle">
@@ -121,8 +159,22 @@ if (!in_array($providerFilter, $allowedFilters, true)) {
             </div>
         </div>
         <div class="pm-modal-actions">
-            <button type="button" class="pm-action-btn pm-reject" id="pmModalRejectBtn">Reject</button>
-            <button type="button" class="pm-action-btn pm-approve" id="pmModalApproveBtn">Approve</button>
+            <form method="post" class="pm-modal-form" id="pmModalRejectForm">
+                <input type="hidden" name="csrf_token" value="<?php echo ems_e($csrfToken); ?>">
+                <input type="hidden" name="review_action" value="review_application">
+                <input type="hidden" name="decision" value="reject">
+                <input type="hidden" name="approval_request_id" id="pmModalRejectRequestId" value="0">
+                <input type="hidden" name="review_note" value="Rejected by admin officer">
+                <button type="submit" class="pm-action-btn pm-reject" id="pmModalRejectBtn">Reject</button>
+            </form>
+            <form method="post" class="pm-modal-form" id="pmModalApproveForm">
+                <input type="hidden" name="csrf_token" value="<?php echo ems_e($csrfToken); ?>">
+                <input type="hidden" name="review_action" value="review_application">
+                <input type="hidden" name="decision" value="approve">
+                <input type="hidden" name="approval_request_id" id="pmModalApproveRequestId" value="0">
+                <input type="hidden" name="review_note" value="Approved by admin officer">
+                <button type="submit" class="pm-action-btn pm-approve" id="pmModalApproveBtn">Approve</button>
+            </form>
         </div>
     </div>
 </div>
