@@ -2152,3 +2152,233 @@ if (!function_exists('ems_learner_change_password')) {
     }
 }
 
+if (!function_exists('ems_learner_fetch_all_published_courses')) {
+    function ems_learner_fetch_all_published_courses($conn, $limit = 1000, $offset = 0)
+    {
+        if (!ems_learner_table_exists($conn, 'courses')) {
+            return [];
+        }
+
+        $safeLimit = max(1, min(1000, (int)$limit));
+        $safeOffset = max(0, (int)$offset);
+
+        $sql = "
+            SELECT
+                c.id,
+                c.title,
+                c.short_description,
+                c.level,
+                c.duration_label,
+                c.student_count_estimate,
+                c.price_amount,
+                c.currency_code,
+                c.access_type,
+                c.thumbnail_path,
+                u.full_name AS instructor_name,
+                COUNT(r.id) AS review_count,
+                COALESCE(AVG(r.rating), 0) AS avg_rating
+            FROM courses c
+            LEFT JOIN users u ON u.id = c.provider_user_id
+            LEFT JOIN reviews r ON r.course_id = c.id AND r.is_visible = 1
+            WHERE c.status = 'published' OR c.status = 'archived'
+            GROUP BY c.id
+            ORDER BY c.published_at DESC, c.id DESC
+            LIMIT " . $safeLimit . " OFFSET " . $safeOffset . "
+        ";
+
+        $rows = ems_learner_fetch_rows($conn, $sql);
+        
+        foreach ($rows as &$row) {
+            $row['id'] = (int)$row['id'];
+            $row['price_amount'] = (float)($row['price_amount'] ?? 0);
+            $row['student_count_estimate'] = (int)($row['student_count_estimate'] ?? 0);
+            $row['review_count'] = (int)($row['review_count'] ?? 0);
+            $row['avg_rating'] = round((float)($row['avg_rating'] ?? 0), 1);
+            $row['thumbnail_url'] = ems_learner_media_url($row['thumbnail_path'], BASE_URL . 'assets/images/cources/web-dev.jpg');
+            unset($row['thumbnail_path']);
+        }
+        unset($row);
+
+        return $rows;
+    }
+}
+
+if (!function_exists('ems_learner_fetch_course_by_id')) {
+    function ems_learner_fetch_course_by_id($conn, $courseId)
+    {
+        $id = (int)$courseId;
+        if ($id <= 0 || !ems_learner_table_exists($conn, 'courses')) {
+            return null;
+        }
+
+        $row = ems_learner_fetch_row(
+            $conn,
+            "
+            SELECT
+                c.id,
+                c.title,
+                c.short_description,
+                c.description,
+                c.level,
+                c.language,
+                c.duration_label,
+                c.lesson_count_estimate,
+                c.student_count_estimate,
+                c.certification_enabled,
+                c.includes_json,
+                c.outcomes_json,
+                c.requirements_json,
+                c.thumbnail_path,
+                c.promo_video_url,
+                c.gallery_json,
+                c.access_type,
+                c.price_amount,
+                c.currency_code,
+                c.status,
+                c.published_at,
+                u.id AS provider_user_id,
+                u.full_name AS instructor_name,
+                COUNT(r.id) AS review_count,
+                COALESCE(AVG(r.rating), 0) AS avg_rating,
+                COUNT(DISTINCT e.id) AS enrollment_count
+            FROM courses c
+            LEFT JOIN users u ON u.id = c.provider_user_id
+            LEFT JOIN reviews r ON r.course_id = c.id AND r.is_visible = 1
+            LEFT JOIN enrollments e ON e.course_id = c.id AND e.enrollment_status = 'active'
+            WHERE c.id = ?
+            GROUP BY c.id
+            LIMIT 1
+            ",
+            'i',
+            [$id]
+        );
+
+        if (!$row) {
+            return null;
+        }
+
+        // Format the response
+        $row['id'] = (int)$row['id'];
+        $row['price_amount'] = (float)($row['price_amount'] ?? 0);
+        $row['lesson_count_estimate'] = (int)($row['lesson_count_estimate'] ?? 0);
+        $row['student_count_estimate'] = (int)($row['student_count_estimate'] ?? 0);
+        $row['certification_enabled'] = (int)($row['certification_enabled'] ?? 1) === 1;
+        $row['review_count'] = (int)($row['review_count'] ?? 0);
+        $row['avg_rating'] = round((float)($row['avg_rating'] ?? 0), 1);
+        $row['enrollment_count'] = (int)($row['enrollment_count'] ?? 0);
+        $row['thumbnail_url'] = ems_learner_media_url($row['thumbnail_path'], BASE_URL . 'assets/images/cources/web-dev.jpg');
+        
+        // Parse JSON fields
+        $row['includes'] = [];
+        if ($row['includes_json']) {
+            $decoded = json_decode($row['includes_json'], true);
+            $row['includes'] = is_array($decoded) ? $decoded : [];
+        }
+        
+        $row['outcomes'] = [];
+        if ($row['outcomes_json']) {
+            $decoded = json_decode($row['outcomes_json'], true);
+            $row['outcomes'] = is_array($decoded) ? $decoded : [];
+        }
+        
+        $row['requirements'] = [];
+        if ($row['requirements_json']) {
+            $decoded = json_decode($row['requirements_json'], true);
+            $row['requirements'] = is_array($decoded) ? $decoded : [];
+        }
+        
+        $row['gallery'] = [];
+        if ($row['gallery_json']) {
+            $decoded = json_decode($row['gallery_json'], true);
+            $row['gallery'] = is_array($decoded) ? $decoded : [];
+        }
+
+        // Fetch sections and lessons
+        $sections = ems_learner_fetch_rows(
+            $conn,
+            "
+            SELECT
+                cs.id,
+                cs.section_order,
+                cs.title AS section_title
+            FROM course_sections cs
+            WHERE cs.course_id = ?
+            ORDER BY cs.section_order ASC
+            ",
+            'i',
+            [$id]
+        );
+
+        $row['sections'] = [];
+        foreach ($sections as $section) {
+            $lessons = ems_learner_fetch_rows(
+                $conn,
+                "
+                SELECT
+                    cl.id,
+                    cl.lesson_order,
+                    cl.lesson_type,
+                    cl.title AS lesson_title,
+                    cl.duration_seconds,
+                    cl.is_preview
+                FROM course_lessons cl
+                WHERE cl.course_id = ? AND (cl.section_id = ? OR cl.section_id IS NULL)
+                ORDER BY cl.lesson_order ASC
+                ",
+                'ii',
+                [$id, (int)$section['id']]
+            );
+
+            foreach ($lessons as &$lesson) {
+                $lesson['id'] = (int)$lesson['id'];
+                $lesson['lesson_order'] = (int)$lesson['lesson_order'];
+                $lesson['duration_seconds'] = (int)($lesson['duration_seconds'] ?? 0);
+                $lesson['is_preview'] = (int)$lesson['is_preview'] === 1;
+                $lesson['duration_label'] = ems_learner_seconds_to_duration($lesson['duration_seconds']);
+            }
+            unset($lesson);
+
+            $row['sections'][] = [
+                'id' => (int)$section['id'],
+                'section_order' => (int)$section['section_order'],
+                'section_title' => $section['section_title'],
+                'lessons' => $lessons,
+            ];
+        }
+
+        // Fetch reviews
+        $reviews = ems_learner_fetch_rows(
+            $conn,
+            "
+            SELECT
+                r.id,
+                r.rating,
+                r.review_text,
+                r.created_at,
+                u.full_name AS learner_name
+            FROM reviews r
+            LEFT JOIN users u ON u.id = r.learner_user_id
+            WHERE r.course_id = ? AND r.is_visible = 1
+            ORDER BY r.created_at DESC
+            LIMIT 10
+            ",
+            'i',
+            [$id]
+        );
+
+        foreach ($reviews as &$review) {
+            $review['id'] = (int)$review['id'];
+            $review['rating'] = (int)$review['rating'];
+            $review['time_ago'] = ems_learner_relative_time($review['created_at']);
+        }
+        unset($review);
+
+        $row['reviews'] = $reviews;
+        
+        // Remove JSON fields as they're now parsed
+        unset($row['includes_json'], $row['outcomes_json'], $row['requirements_json'], $row['gallery_json'], $row['thumbnail_path']);
+
+        return $row;
+    }
+}
+

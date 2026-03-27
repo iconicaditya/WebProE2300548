@@ -20,6 +20,7 @@ $totalAmount = 11.99;
 $checkoutMode = 'single';
 $checkoutDisabled = false;
 $checkoutMessage = '';
+$paymentSimulationEnabled = true;
 
 if ($activeLearnerId > 0) {
     if ($selectedCourseId > 0) {
@@ -135,6 +136,11 @@ $totalLabel = 'Total (' . (int)$courseCount . ' course' . ((int)$courseCount ===
     <?php include '../includes/navbar.php'; ?>
     <div class="container payment-container">
         <div id="paymentStatusAlert" class="alert d-none" role="alert"></div>
+        <?php if ($paymentSimulationEnabled): ?>
+        <div class="alert alert-info" role="alert">
+            Demo mode is active. This payment is simulated and no real charge will be made.
+        </div>
+        <?php endif; ?>
         <div class="row g-4">
             <div class="col-md-7">
                 <h5 class="mb-3">Country</h5>
@@ -228,6 +234,7 @@ $totalLabel = 'Total (' . (int)$courseCount . ' course' . ((int)$courseCount ===
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     window.eduSkillPaymentContext = {
+        baseUrl: <?php echo json_encode((string)BASE_URL, JSON_UNESCAPED_UNICODE); ?>,
         isLearnerLoggedIn: <?php echo $activeLearnerId > 0 ? 'true' : 'false'; ?>,
         learnerUserId: <?php echo (int)$activeLearnerId; ?>,
         csrfToken: <?php echo json_encode((string)($activeLearnerId > 0 ? ems_csrf_token() : ''), JSON_UNESCAPED_UNICODE); ?>,
@@ -236,6 +243,7 @@ $totalLabel = 'Total (' . (int)$courseCount . ' course' . ((int)$courseCount ===
         redirectUrl: <?php echo json_encode((string)(BASE_URL . 'learner/?page=courses'), JSON_UNESCAPED_UNICODE); ?>,
         checkoutMode: <?php echo json_encode((string)$checkoutMode, JSON_UNESCAPED_UNICODE); ?>,
         courseId: <?php echo (int)$selectedCourseId; ?>,
+        simulateMode: <?php echo $paymentSimulationEnabled ? 'true' : 'false'; ?>,
         checkoutDisabled: <?php echo $checkoutDisabled ? 'true' : 'false'; ?>,
         checkoutMessage: <?php echo json_encode((string)$checkoutMessage, JSON_UNESCAPED_UNICODE); ?>
     };
@@ -274,23 +282,7 @@ $totalLabel = 'Total (' . (int)$courseCount . ' course' . ((int)$courseCount ===
             }
         }
 
-        if (!payBtn) {
-            return;
-        }
-
-        payBtn.addEventListener('click', function (event) {
-            event.preventDefault();
-
-            if (!ctx.isLearnerLoggedIn) {
-                window.location.href = ctx.loginUrl || 'auth/login.php';
-                return;
-            }
-
-            if (ctx.checkoutDisabled) {
-                showStatus('warning', ctx.checkoutMessage || 'Checkout is unavailable for this selection.');
-                return;
-            }
-
+        function executeCheckoutRequest() {
             var fd = new FormData();
             fd.set('action', 'checkout');
             fd.set('csrf_token', String(ctx.csrfToken || ''));
@@ -301,10 +293,7 @@ $totalLabel = 'Total (' . (int)$courseCount . ' course' . ((int)$courseCount ===
                 fd.set('course_id', String(courseId));
             }
 
-            setBusy(true, 'Processing payment...');
-            showStatus('info', 'Processing your payment securely...');
-
-            fetch(String(ctx.learnerApiUrl || ''), {
+            return fetch(String(ctx.learnerApiUrl || ''), {
                 method: 'POST',
                 credentials: 'same-origin',
                 body: fd
@@ -317,7 +306,63 @@ $totalLabel = 'Total (' . (int)$courseCount . ' course' . ((int)$courseCount ===
                     }
                     return payload.data || {};
                 });
-            }).then(function (data) {
+            });
+        }
+
+        function simulateCheckout() {
+            if (!ctx.isLearnerLoggedIn) {
+                window.location.href = ctx.loginUrl || 'auth/login.php';
+                return;
+            }
+
+            var method = resolvePaymentMethod();
+            var methodLabel = method === 'paypal' ? 'PayPal' : 'Card';
+
+            setBusy(true, 'Simulating payment...');
+            showStatus('info', 'Simulating secure payment via ' + methodLabel + '...');
+
+            executeCheckoutRequest().then(function (data) {
+                var txnRef = String((data && data.transaction_ref) || ('SIM-' + Date.now()));
+                showStatus('success', 'Payment successful (simulation). Reference: ' + txnRef + '. Redirecting...');
+
+                var fallbackRedirect = String(ctx.baseUrl || '/') + 'learner/?page=courses';
+                var redirectTo = (data && data.redirect_url) ? data.redirect_url : (ctx.redirectUrl || fallbackRedirect);
+
+                window.setTimeout(function () {
+                    window.location.href = redirectTo;
+                }, 900);
+            }).catch(function (error) {
+                showStatus('danger', error.message || 'Unable to complete simulated checkout.');
+                setBusy(false, '');
+            });
+        }
+
+        if (!payBtn) {
+            return;
+        }
+
+        payBtn.addEventListener('click', function (event) {
+            event.preventDefault();
+
+            if (ctx.checkoutDisabled) {
+                showStatus('warning', ctx.checkoutMessage || 'Checkout is unavailable for this selection.');
+                return;
+            }
+
+            if (ctx.simulateMode) {
+                simulateCheckout();
+                return;
+            }
+
+            if (!ctx.isLearnerLoggedIn) {
+                window.location.href = ctx.loginUrl || 'auth/login.php';
+                return;
+            }
+
+            setBusy(true, 'Processing payment...');
+            showStatus('info', 'Processing your payment securely...');
+
+            executeCheckoutRequest().then(function (data) {
                 showStatus('success', 'Payment successful. Redirecting to your learning portal...');
                 var redirectTo = (data && data.redirect_url) ? data.redirect_url : (ctx.redirectUrl || '/');
                 window.setTimeout(function () {

@@ -6,6 +6,7 @@ require_once(__DIR__ . '/../config/db.php');
 require_once(__DIR__ . '/../includes/auth.php');
 require_once(__DIR__ . '/../learner/includes/learner_data.php');
 
+// Check if user is logged in
 $activeLearner = null;
 $activeLearnerId = 0;
 if (ems_is_logged_in() && ems_current_role() === 'learner') {
@@ -13,15 +14,74 @@ if (ems_is_logged_in() && ems_current_role() === 'learner') {
     $activeLearnerId = (int)($activeLearner['id'] ?? 0);
 }
 
-$courseContext = ems_learner_get_course_by_title($conn, 'React.js & Modern Frontend Development');
+// Get course ID from URL parameter
+$courseId = (int)($_GET['id'] ?? 0);
+if ($courseId <= 0) {
+    http_response_code(404);
+    die('<!DOCTYPE html><html><head><title>Course Not Found</title><style>body{font-family:Arial;text-align:center;padding:50px;background:#f5f5f5}h1{color:#333}p{color:#666}</style></head><body><h1>404 - Course Not Found</h1><p>The course you\'re looking for does not exist.</p><p><a href="' . BASE_URL . 'pages/allcources.php">Back to All Courses</a></p></body></html>');
+}
+
+// Fetch course data from database
+$courseContext = ems_learner_fetch_course_by_id($conn, $courseId);
+if (!$courseContext) {
+    http_response_code(404);
+    die('<!DOCTYPE html><html><head><title>Course Not Found</title><style>body{font-family:Arial;text-align:center;padding:50px;background:#f5f5f5}h1{color:#333}p{color:#666}</style></head><body><h1>404 - Course Not Found</h1><p>The course you\'re looking for does not exist or is not available.</p><p><a href="' . BASE_URL . 'pages/allcources.php">Back to All Courses</a></p></body></html>');
+}
+
 $courseContextId = (int)($courseContext['id'] ?? 0);
+$courseTitle = (string)($courseContext['title'] ?? 'Course Details');
+$courseShortDescription = (string)($courseContext['short_description'] ?? '');
+$courseDescription = (string)($courseContext['description'] ?? 'This is a comprehensive course designed for learners who want to master this subject.');
+$courseThumbnailUrl = (string)($courseContext['thumbnail_url'] ?? (BASE_URL . 'assets/images/cources/web-dev.jpg'));
+$coursePromoVideoUrl = trim((string)($courseContext['promo_video_url'] ?? ''));
+$courseLanguage = trim((string)($courseContext['language'] ?? ''));
+if ($courseLanguage === '') {
+    $courseLanguage = 'English';
+}
+
+$courseIncludes = isset($courseContext['includes']) && is_array($courseContext['includes'])
+    ? $courseContext['includes']
+    : [];
+
+$relatedCourses = [];
+$relatedPool = ems_learner_fetch_all_published_courses($conn, 24, 0);
+foreach ($relatedPool as $relatedCourse) {
+    $relatedId = (int)($relatedCourse['id'] ?? 0);
+    if ($relatedId <= 0 || $relatedId === $courseContextId) {
+        continue;
+    }
+
+    $levelRaw = strtolower(trim((string)($relatedCourse['level'] ?? 'all_levels')));
+    $levelLabel = ucwords(str_replace('_', ' ', $levelRaw));
+    if ($levelLabel === '') {
+        $levelLabel = 'All Levels';
+    }
+
+    $relatedCourses[] = [
+        'id' => $relatedId,
+        'title' => (string)($relatedCourse['title'] ?? 'Untitled Course'),
+        'thumbnail_url' => (string)($relatedCourse['thumbnail_url'] ?? (BASE_URL . 'assets/images/cources/web-dev.jpg')),
+        'instructor_name' => (string)($relatedCourse['instructor_name'] ?? 'Instructor'),
+        'level_label' => $levelLabel,
+        'rating' => round((float)($relatedCourse['avg_rating'] ?? 0), 1),
+        'student_count_estimate' => (int)($relatedCourse['student_count_estimate'] ?? 0),
+        'duration_label' => (string)($relatedCourse['duration_label'] ?? 'Self-paced'),
+        'price_label' => ((string)($relatedCourse['access_type'] ?? 'free') === 'free')
+            ? 'FREE'
+            : ems_learner_currency_format((float)($relatedCourse['price_amount'] ?? 0), (string)($relatedCourse['currency_code'] ?? 'USD')),
+    ];
+
+    if (count($relatedCourses) >= 4) {
+        break;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>React.js & Modern Frontend Development | EduSkill Marketplace</title>
+    <title><?php echo htmlspecialchars($courseTitle); ?> | EduSkill Marketplace</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -39,25 +99,32 @@ $courseContextId = (int)($courseContext['id'] ?? 0);
                 <div class="col-lg-8">
                     <!-- Course Title & Meta -->
                     <div class="course-header-content">
-                        <h1 class="course-main-title">React.js & Modern Frontend Development</h1>
-                        <p class="course-description">Master React hooks, state management, routing, and deployment to build real-world single-page applications with industry best practices.</p>
+                        <h1 class="course-main-title"><?php echo htmlspecialchars($courseTitle); ?></h1>
+                        <p class="course-description"><?php echo htmlspecialchars($courseShortDescription); ?></p>
                         
                         <div class="course-rating-section">
                             <div class="rating-display">
-                                <span class="rating-number">4.7</span>
+                                <span class="rating-number"><?php echo $courseContext['avg_rating']; ?></span>
                                 <div class="stars">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star-half-alt"></i>
+                                    <?php
+                                        $rating = round($courseContext['avg_rating']);
+                                        for ($i = 0; $i < 5; $i++) {
+                                            if ($i < $rating) {
+                                                echo '<i class="fas fa-star"></i>';
+                                            } elseif ($i < $rating + 0.5) {
+                                                echo '<i class="fas fa-star-half-alt"></i>';
+                                            } else {
+                                                echo '<i class="far fa-star"></i>';
+                                            }
+                                        }
+                                    ?>
                                 </div>
-                                <span class="rating-count">(2,140 ratings)</span>
+                                <span class="rating-count">(<?php echo (int)$courseContext['review_count']; ?> ratings)</span>
                             </div>
                             <div class="course-stats">
-                                <span class="stat-item"><strong>15,420</strong> students</span>
+                                <span class="stat-item"><strong><?php echo number_format($courseContext['enrollment_count']); ?></strong> students</span>
                                 <span class="stat-divider">•</span>
-                                <span class="stat-item">Created by <strong>Saurav Pandey</strong></span>
+                                <span class="stat-item">Created by <strong><?php echo htmlspecialchars($courseContext['instructor_name']); ?></strong></span>
                             </div>
                         </div>
                     </div>
@@ -65,14 +132,14 @@ $courseContextId = (int)($courseContext['id'] ?? 0);
                     <!-- Instructor Card -->
                     <div class="instructor-card">
                         <div class="instructor-header">
-                            <img src="../assets/images/cources/react-frontend.jpg" alt="Instructor" class="instructor-img">
+                            <img src="<?php echo htmlspecialchars($courseContext['thumbnail_url']); ?>" alt="Instructor" class="instructor-img">
                             <div class="instructor-info">
                                 <h5>Instructor</h5>
-                                <h4>Saurav Pandey</h4>
-                                <p>Senior React Developer | 10+ Years Experience</p>
+                                <h4><?php echo htmlspecialchars($courseContext['instructor_name']); ?></h4>
+                                <p><?php echo htmlspecialchars($courseContext['level']); ?> • <?php echo htmlspecialchars($courseLanguage); ?></p>
                             </div>
                         </div>
-                        <p class="instructor-bio">Saurav is a passionate educator with over 10 years of experience in web development. He has trained more than 50,000 students worldwide and is committed to making complex concepts simple and understandable.</p>
+                        <p class="instructor-bio"><?php echo htmlspecialchars($courseDescription !== '' ? $courseDescription : 'Passionate instructor dedicated to helping learners master this subject.'); ?></p>
                     </div>
 
                     <!-- Course Content Tabs -->
@@ -95,51 +162,35 @@ $courseContextId = (int)($courseContext['id'] ?? 0);
                                 <div class="overview-section">
                                     <h3>What you'll learn</h3>
                                     <div class="learning-points">
-                                        <div class="point">
-                                            <i class="fas fa-check-circle"></i>
-                                            <span>Build and deploy full single-page applications (SPAs)</span>
-                                        </div>
-                                        <div class="point">
-                                            <i class="fas fa-check-circle"></i>
-                                            <span>Master React hooks and functional components</span>
-                                        </div>
-                                        <div class="point">
-                                            <i class="fas fa-check-circle"></i>
-                                            <span>Manage complex application state with Redux</span>
-                                        </div>
-                                        <div class="point">
-                                            <i class="fas fa-check-circle"></i>
-                                            <span>Integrate REST APIs and handle authentication</span>
-                                        </div>
-                                        <div class="point">
-                                            <i class="fas fa-check-circle"></i>
-                                            <span>Implement client-side routing with React Router</span>
-                                        </div>
-                                        <div class="point">
-                                            <i class="fas fa-check-circle"></i>
-                                            <span>Deploy applications to production environments</span>
-                                        </div>
-                                        <div class="point">
-                                            <i class="fas fa-check-circle"></i>
-                                            <span>Write clean, maintainable, and scalable code</span>
-                                        </div>
-                                        <div class="point">
-                                            <i class="fas fa-check-circle"></i>
-                                            <span>Build responsive UIs with Tailwind CSS</span>
-                                        </div>
+                                        <?php
+                                            if (!empty($courseContext['outcomes'])) {
+                                                foreach ($courseContext['outcomes'] as $outcome) {
+                                                    echo '<div class="point">';
+                                                    echo '<i class="fas fa-check-circle"></i>';
+                                                    echo '<span>' . htmlspecialchars($outcome) . '</span>';
+                                                    echo '</div>';
+                                                }
+                                            } else {
+                                                echo '<div class="point"><i class="fas fa-check-circle"></i><span>Complete comprehensive learning experience</span></div>';
+                                            }
+                                        ?>
                                     </div>
 
                                     <h3 class="mt-5">Course Description</h3>
-                                    <p>This comprehensive React course is designed for developers who want to master modern frontend development. Starting from the basics, you'll progress through intermediate concepts to advanced patterns used in production applications.</p>
-                                    <p>Throughout the course, you'll work on real-world projects that demonstrate practical applications of React concepts. Each module includes hands-on exercises, quizzes, and projects to reinforce your learning.</p>
+                                    <p><?php echo htmlspecialchars($courseDescription); ?></p>
 
                                     <h3 class="mt-5">Requirements</h3>
                                     <ul class="requirements-list">
-                                        <li>Basic knowledge of JavaScript (ES6+)</li>
-                                        <li>Familiarity with HTML and CSS</li>
-                                        <li>Node.js and npm installed on your computer</li>
-                                        <li>A code editor (VS Code recommended)</li>
-                                        <li>Willingness to practice and build projects</li>
+                                        <?php
+                                            if (!empty($courseContext['requirements'])) {
+                                                foreach ($courseContext['requirements'] as $requirement) {
+                                                    echo '<li>' . htmlspecialchars($requirement) . '</li>';
+                                                }
+                                            } else {
+                                                echo '<li>Basic computer literacy</li>';
+                                                echo '<li>Willingness to learn</li>';
+                                            }
+                                        ?>
                                     </ul>
                                 </div>
                             </div>
@@ -149,193 +200,56 @@ $courseContextId = (int)($courseContext['id'] ?? 0);
                                 <div class="curriculum-section">
                                     <h3>Course Curriculum</h3>
                                     
-                                    <div class="curriculum-module">
-                                        <div class="module-header" data-bs-toggle="collapse" data-bs-target="#module1">
-                                            <div class="module-title">
-                                                <i class="fas fa-chevron-down"></i>
-                                                <span class="module-number">Section 1:</span>
-                                                <span class="module-name">React Fundamentals & JSX</span>
-                                            </div>
-                                            <span class="module-meta">8 lectures • 2h 30m</span>
-                                        </div>
-                                        <div class="collapse" id="module1">
-                                            <div class="module-content">
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>1. Introduction to React</span>
-                                                    <span class="lesson-duration">15:30</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>2. Components and Props</span>
-                                                    <span class="lesson-duration">22:45</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>3. JSX Deep Dive</span>
-                                                    <span class="lesson-duration">18:20</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>4. Rendering Lists and Conditional Rendering</span>
-                                                    <span class="lesson-duration">25:10</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-file-alt"></i>
-                                                    <span>5. Quiz: React Basics</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-code"></i>
-                                                    <span>6. Project: Build a Todo App</span>
-                                                    <span class="lesson-duration">1h 15m</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="curriculum-module">
-                                        <div class="module-header" data-bs-toggle="collapse" data-bs-target="#module2">
-                                            <div class="module-title">
-                                                <i class="fas fa-chevron-down"></i>
-                                                <span class="module-number">Section 2:</span>
-                                                <span class="module-name">React Hooks & State Management</span>
-                                            </div>
-                                            <span class="module-meta">10 lectures • 3h 45m</span>
-                                        </div>
-                                        <div class="collapse" id="module2">
-                                            <div class="module-content">
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>1. useState Hook</span>
-                                                    <span class="lesson-duration">20:15</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>2. useEffect Hook</span>
-                                                    <span class="lesson-duration">28:40</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>3. useContext for Global State</span>
-                                                    <span class="lesson-duration">25:30</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>4. Custom Hooks</span>
-                                                    <span class="lesson-duration">22:50</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-file-alt"></i>
-                                                    <span>5. Quiz: React Hooks</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-code"></i>
-                                                    <span>6. Project: Weather App with Hooks</span>
-                                                    <span class="lesson-duration">1h 30m</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="curriculum-module">
-                                        <div class="module-header" data-bs-toggle="collapse" data-bs-target="#module3">
-                                            <div class="module-title">
-                                                <i class="fas fa-chevron-down"></i>
-                                                <span class="module-number">Section 3:</span>
-                                                <span class="module-name">Redux & Advanced State Management</span>
-                                            </div>
-                                            <span class="module-meta">8 lectures • 3h 20m</span>
-                                        </div>
-                                        <div class="collapse" id="module3">
-                                            <div class="module-content">
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>1. Redux Fundamentals</span>
-                                                    <span class="lesson-duration">18:45</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>2. Redux Toolkit Setup</span>
-                                                    <span class="lesson-duration">20:30</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>3. Async Actions with Thunk</span>
-                                                    <span class="lesson-duration">25:15</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-code"></i>
-                                                    <span>4. Project: E-commerce Cart with Redux</span>
-                                                    <span class="lesson-duration">1h 45m</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="curriculum-module">
-                                        <div class="module-header" data-bs-toggle="collapse" data-bs-target="#module4">
-                                            <div class="module-title">
-                                                <i class="fas fa-chevron-down"></i>
-                                                <span class="module-number">Section 4:</span>
-                                                <span class="module-name">React Router & Navigation</span>
-                                            </div>
-                                            <span class="module-meta">6 lectures • 2h 15m</span>
-                                        </div>
-                                        <div class="collapse" id="module4">
-                                            <div class="module-content">
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>1. React Router Setup</span>
-                                                    <span class="lesson-duration">15:20</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>2. Dynamic Routing</span>
-                                                    <span class="lesson-duration">18:45</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-code"></i>
-                                                    <span>3. Project: Multi-page SPA</span>
-                                                    <span class="lesson-duration">1h 30m</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="curriculum-module">
-                                        <div class="module-header" data-bs-toggle="collapse" data-bs-target="#module5">
-                                            <div class="module-title">
-                                                <i class="fas fa-chevron-down"></i>
-                                                <span class="module-number">Section 5:</span>
-                                                <span class="module-name">API Integration & Deployment</span>
-                                            </div>
-                                            <span class="module-meta">7 lectures • 2h 50m</span>
-                                        </div>
-                                        <div class="collapse" id="module5">
-                                            <div class="module-content">
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>1. Fetching Data from APIs</span>
-                                                    <span class="lesson-duration">20:10</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>2. Error Handling & Loading States</span>
-                                                    <span class="lesson-duration">18:30</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-play-circle"></i>
-                                                    <span>3. Deploying to Production</span>
-                                                    <span class="lesson-duration">22:45</span>
-                                                </div>
-                                                <div class="lesson">
-                                                    <i class="fas fa-code"></i>
-                                                    <span>4. Capstone Project: Full Stack App</span>
-                                                    <span class="lesson-duration">2h 30m</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <?php
+                                        if (!empty($courseContext['sections'])) {
+                                            foreach ($courseContext['sections'] as $sectionIndex => $section) {
+                                                $lessonCount = !empty($section['lessons']) ? count($section['lessons']) : 0;
+                                                $totalDuration = 0;
+                                                foreach ($section['lessons'] as $lesson) {
+                                                    $totalDuration += (int)($lesson['duration_seconds'] ?? 0);
+                                                }
+                                                $durationLabel = ems_learner_seconds_to_duration($totalDuration);
+                                                
+                                                echo '<div class="curriculum-module">';
+                                                echo '<div class="module-header" data-bs-toggle="collapse" data-bs-target="#module' . ($sectionIndex + 1) . '">';
+                                                echo '<div class="module-title">';
+                                                echo '<i class="fas fa-chevron-down"></i>';
+                                                echo '<span class="module-number">Section ' . ($sectionIndex + 1) . ':</span>';
+                                                echo '<span class="module-name">' . htmlspecialchars($section['section_title']) . '</span>';
+                                                echo '</div>';
+                                                echo '<span class="module-meta">' . $lessonCount . ' lesson' . ($lessonCount !== 1 ? 's' : '') . ' • ' . $durationLabel . '</span>';
+                                                echo '</div>';
+                                                echo '<div class="collapse" id="module' . ($sectionIndex + 1) . '">';
+                                                echo '<div class="module-content">';
+                                                
+                                                if (!empty($section['lessons'])) {
+                                                    foreach ($section['lessons'] as $lessonIndex => $lesson) {
+                                                        echo '<div class="lesson">';
+                                                        
+                                                        if ($lesson['lesson_type'] === 'video') {
+                                                            echo '<i class="fas fa-play-circle"></i>';
+                                                        } elseif ($lesson['lesson_type'] === 'quiz') {
+                                                            echo '<i class="fas fa-file-alt"></i>';
+                                                        } else {
+                                                            echo '<i class="fas fa-code"></i>';
+                                                        }
+                                                        
+                                                        echo '<span>' . ($lessonIndex + 1) . '. ' . htmlspecialchars($lesson['lesson_title']) . '</span>';
+                                                        echo '<span class="lesson-duration">' . ems_learner_seconds_to_duration($lesson['duration_seconds']) . '</span>';
+                                                        echo '</div>';
+                                                    }
+                                                } else {
+                                                    echo '<p>No lessons in this section yet.</p>';
+                                                }
+                                                
+                                                echo '</div>';
+                                                echo '</div>';
+                                                echo '</div>';
+                                            }
+                                        } else {
+                                            echo '<p>Curriculum coming soon.</p>';
+                                        }
+                                    ?>
                                 </div>
                             </div>
 
@@ -344,56 +258,35 @@ $courseContextId = (int)($courseContext['id'] ?? 0);
                                 <div class="reviews-section">
                                     <h3>Student Reviews</h3>
                                     
-                                    <div class="review-item">
-                                        <div class="review-header">
-                                            <div class="reviewer-info">
-                                                <h5>Amit Sharma</h5>
-                                                <div class="review-rating">
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                </div>
-                                            </div>
-                                            <span class="review-date">2 weeks ago</span>
-                                        </div>
-                                        <p class="review-text">"The best React course I've ever taken. The syllabus is deep and practical! Saurav explains complex concepts in a very simple way. Highly recommended for anyone wanting to master React."</p>
-                                    </div>
-
-                                    <div class="review-item">
-                                        <div class="review-header">
-                                            <div class="reviewer-info">
-                                                <h5>Priya Singh</h5>
-                                                <div class="review-rating">
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                </div>
-                                            </div>
-                                            <span class="review-date">1 month ago</span>
-                                        </div>
-                                        <p class="review-text">"Loved the hands-on labs and real-world projects. The instructor is very responsive to questions. This course helped me land my first React job!"</p>
-                                    </div>
-
-                                    <div class="review-item">
-                                        <div class="review-header">
-                                            <div class="reviewer-info">
-                                                <h5>Rajesh Kumar</h5>
-                                                <div class="review-rating">
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star-half-alt"></i>
-                                                </div>
-                                            </div>
-                                            <span class="review-date">1 month ago</span>
-                                        </div>
-                                        <p class="review-text">"Great course with excellent projects. The only thing I'd improve is adding more advanced patterns like render props and compound components."</p>
-                                    </div>
+                                    <?php
+                                        if (!empty($courseContext['reviews'])) {
+                                            foreach ($courseContext['reviews'] as $review) {
+                                                echo '<div class="review-item">';
+                                                echo '<div class="review-header">';
+                                                echo '<div class="reviewer-info">';
+                                                echo '<h5>' . htmlspecialchars($review['learner_name'] ?? 'Anonymous') . '</h5>';
+                                                echo '<div class="review-rating">';
+                                                
+                                                $ratingVal = (int)($review['rating'] ?? 0);
+                                                for ($i = 0; $i < 5; $i++) {
+                                                    if ($i < $ratingVal) {
+                                                        echo '<i class="fas fa-star"></i>';
+                                                    } else {
+                                                        echo '<i class="far fa-star"></i>';
+                                                    }
+                                                }
+                                                
+                                                echo '</div>';
+                                                echo '</div>';
+                                                echo '<span class="review-date">' . $review['time_ago'] . '</span>';
+                                                echo '</div>';
+                                                echo '<p class="review-text">' . htmlspecialchars($review['review_text'] ?? 'Great course!') . '</p>';
+                                                echo '</div>';
+                                            }
+                                        } else {
+                                            echo '<p>No reviews yet. Be the first to review this course!</p>';
+                                        }
+                                    ?>
                                 </div>
                             </div>
                         </div>
@@ -405,12 +298,12 @@ $courseContextId = (int)($courseContext['id'] ?? 0);
                     <div class="course-sidebar">
                         <!-- Course Image -->
                         <div class="sidebar-course-image">
-                            <img src="../assets/images/cources/react-frontend.jpg" alt="React.js Course">
+                            <img src="<?php echo htmlspecialchars($courseThumbnailUrl); ?>" alt="<?php echo htmlspecialchars($courseTitle); ?>">
                             <div class="image-overlay">
-                                <button class="play-btn-overlay">
+                                <button class="play-btn-overlay" type="button" data-promo-url="<?php echo htmlspecialchars($coursePromoVideoUrl); ?>">
                                     <i class="fas fa-play"></i>
                                 </button>
-                                <p class="preview-text">Preview this course</p>
+                                <p class="preview-text"><?php echo $coursePromoVideoUrl !== '' ? 'Preview this course' : 'Preview not available'; ?></p>
                             </div>
                         </div>
 
@@ -418,18 +311,27 @@ $courseContextId = (int)($courseContext['id'] ?? 0);
                         <div class="price-card" data-course-id="<?php echo (int)$courseContextId; ?>" data-learner-auth="<?php echo $activeLearnerId > 0 ? '1' : '0'; ?>">
                             <!-- Price Section -->
                             <div class="price-section">
+                                <?php if ($courseContext['access_type'] === 'paid'): ?>
                                 <div class="price-badge">
-                                    <span class="discount-badge">40% OFF</span>
+                                    <span class="discount-badge"><?php echo htmlspecialchars($courseContext['discount_label'] ?? '40% OFF'); ?></span>
                                 </div>
                                 <div class="price-display">
-                                    <span class="price-amount">$119</span>
-                                    <span class="price-original">$199</span>
+                                    <span class="price-amount"><?php echo htmlspecialchars(ems_learner_currency_format($courseContext['price_amount'], $courseContext['currency_code'])); ?></span>
+                                    <?php if (!empty($courseContext['original_price'])): ?>
+                                    <span class="price-original"><?php echo htmlspecialchars(ems_learner_currency_format($courseContext['original_price'], $courseContext['currency_code'])); ?></span>
+                                    <?php endif; ?>
                                 </div>
-                                <p class="price-note">Limited time offer �� Ends in 3 days</p>
+                                <p class="price-note">Limited time offer 🎉 Ends in 3 days</p>
+                                <?php elseif ($courseContext['access_type'] === 'free'): ?>
+                                <div class="price-display">
+                                    <span class="price-amount" style="color: #27ae60; font-size: 24px;">FREE</span>
+                                </div>
+                                <p class="price-note">Free access to all course materials</p>
+                                <?php endif; ?>
                             </div>
 
                             <!-- Primary Action Button -->
-                            <a href="payment.php<?php echo $courseContextId > 0 ? '?course_id=' . (int)$courseContextId : ''; ?>" class="btn btn-enroll-primary w-100 mb-3" data-course-id="<?php echo (int)$courseContextId; ?>">
+                            <a href="<?php echo BASE_URL; ?>pages/payment.php<?php echo $courseContextId > 0 ? '?course_id=' . (int)$courseContextId : ''; ?>" class="btn btn-enroll-primary w-100 mb-3" data-course-id="<?php echo (int)$courseContextId; ?>">
                                 <i class="fas fa-graduation-cap me-2"></i>Enroll Now
                             </a>
 
@@ -456,32 +358,32 @@ $courseContextId = (int)($courseContext['id'] ?? 0);
                                 <div class="info-card">
                                     <i class="fas fa-clock"></i>
                                     <span class="info-label">Duration</span>
-                                    <span class="info-value">8 weeks</span>
+                                    <span class="info-value"><?php echo htmlspecialchars($courseContext['duration_label'] ?? 'Self-paced'); ?></span>
                                 </div>
                                 <div class="info-card">
                                     <i class="fas fa-book"></i>
                                     <span class="info-label">Lessons</span>
-                                    <span class="info-value">45</span>
+                                    <span class="info-value"><?php echo htmlspecialchars($courseContext['lesson_count_estimate'] ?? '—'); ?></span>
                                 </div>
                                 <div class="info-card">
                                     <i class="fas fa-signal"></i>
                                     <span class="info-label">Level</span>
-                                    <span class="info-value">Intermediate</span>
+                                    <span class="info-value"><?php echo htmlspecialchars(ucfirst($courseContext['level'] ?? 'All')); ?></span>
                                 </div>
                                 <div class="info-card">
                                     <i class="fas fa-globe"></i>
                                     <span class="info-label">Language</span>
-                                    <span class="info-value">English</span>
+                                    <span class="info-value"><?php echo htmlspecialchars($courseLanguage); ?></span>
                                 </div>
                                 <div class="info-card">
                                     <i class="fas fa-award"></i>
                                     <span class="info-label">Certificate</span>
-                                    <span class="info-value">Yes</span>
+                                    <span class="info-value"><?php echo !empty($courseContext['certification_enabled']) ? 'Yes' : 'No'; ?></span>
                                 </div>
                                 <div class="info-card">
                                     <i class="fas fa-users"></i>
                                     <span class="info-label">Students</span>
-                                    <span class="info-value">15.4K</span>
+                                    <span class="info-value"><?php echo htmlspecialchars(number_format($courseContext['student_count_estimate'] ?? 0)); ?></span>
                                 </div>
                             </div>
 
@@ -491,11 +393,36 @@ $courseContextId = (int)($courseContext['id'] ?? 0);
                             <div class="highlights-section">
                                 <h6 class="highlights-title">What's Included</h6>
                                 <ul class="highlights-list">
-                                    <li><i class="fas fa-check"></i> Lifetime access</li>
-                                    <li><i class="fas fa-check"></i> 45+ video lectures</li>
-                                    <li><i class="fas fa-check"></i> Downloadable resources</li>
-                                    <li><i class="fas fa-check"></i> Certificate of completion</li>
-                                    <li><i class="fas fa-check"></i> Mobile-friendly</li>
+                                    <?php
+                                    $highlights = [];
+                                    if (!empty($courseIncludes)) {
+                                        foreach ($courseIncludes as $includeItem) {
+                                            $label = trim((string)$includeItem);
+                                            if ($label === '') {
+                                                continue;
+                                            }
+                                            $highlights[] = $label;
+                                            if (count($highlights) >= 6) {
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (empty($highlights)) {
+                                        $estimatedLessons = (int)($courseContext['lesson_count_estimate'] ?? 0);
+                                        $highlights = [
+                                            'Lifetime access',
+                                            $estimatedLessons > 0 ? ($estimatedLessons . '+ structured lessons') : 'Practical guided lessons',
+                                            'Downloadable resources',
+                                            !empty($courseContext['certification_enabled']) ? 'Certificate of completion' : 'Skill completion support',
+                                            'Mobile-friendly',
+                                        ];
+                                    }
+
+                                    foreach ($highlights as $highlight) {
+                                        echo '<li><i class="fas fa-check"></i> ' . htmlspecialchars((string)$highlight) . '</li>';
+                                    }
+                                    ?>
                                 </ul>
                             </div>
 
@@ -531,89 +458,32 @@ $courseContextId = (int)($courseContext['id'] ?? 0);
         <div class="container">
             <h2>Students also bought</h2>
             <div class="courses-grid-related">
-                <article class="course-card">
-                    <div class="course-thumb" style="background-image:url('../assets/images/cources/web-dev.jpg')"></div>
-                    <div class="course-card-content">
-                        <div class="course-meta-top">
-                            <span class="course-category">Programming</span>
-                            <span class="course-level">Beginner</span>
-                        </div>
-                        <h3 class="course-title">Full-Stack Web Development Bootcamp</h3>
-                        <p class="course-instructor">By Aaditya Sharma</p>
-                        <div class="course-rating">
-                            <span class="stars">&#9733;</span>
-                            <span class="rating-num">4.8</span>
-                            <span class="rating-students">(3,200 students)</span>
-                        </div>
-                        <div class="course-meta-bottom">
-                            <span class="course-duration"><i class="bi bi-clock"></i> 10 Weeks</span>
-                            <span class="course-price">$129</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="course-card">
-                    <div class="course-thumb" style="background-image:url('../assets/images/cources/data-analytics.jpg')"></div>
-                    <div class="course-card-content">
-                        <div class="course-meta-top">
-                            <span class="course-category">Data Science</span>
-                            <span class="course-level">Intermediate</span>
-                        </div>
-                        <h3 class="course-title">Data Analytics With Python and Power BI</h3>
-                        <p class="course-instructor">By Nisha Koirala</p>
-                        <div class="course-rating">
-                            <span class="stars">&#9733;</span>
-                            <span class="rating-num">4.9</span>
-                            <span class="rating-students">(2,050 students)</span>
-                        </div>
-                        <div class="course-meta-bottom">
-                            <span class="course-duration"><i class="bi bi-clock"></i> 8 Weeks</span>
-                            <span class="course-price">$149</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="course-card">
-                    <div class="course-thumb" style="background-image:url('../assets/images/cources/ui-ux.jpg')"></div>
-                    <div class="course-card-content">
-                        <div class="course-meta-top">
-                            <span class="course-category">Design</span>
-                            <span class="course-level">Beginner</span>
-                        </div>
-                        <h3 class="course-title">UI/UX Design for Digital Products</h3>
-                        <p class="course-instructor">By Karan Basnet</p>
-                        <div class="course-rating">
-                            <span class="stars">&#9733;</span>
-                            <span class="rating-num">4.7</span>
-                            <span class="rating-students">(1,480 students)</span>
-                        </div>
-                        <div class="course-meta-bottom">
-                            <span class="course-duration"><i class="bi bi-clock"></i> 6 Weeks</span>
-                            <span class="course-price">$99</span>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="course-card">
-                    <div class="course-thumb" style="background-image:url('../assets/images/cources/nodejs-backend.jpg')"></div>
-                    <div class="course-card-content">
-                        <div class="course-meta-top">
-                            <span class="course-category">Programming</span>
-                            <span class="course-level">Intermediate</span>
-                        </div>
-                        <h3 class="course-title">Node.js & Express Backend Development</h3>
-                        <p class="course-instructor">By Kabir Lama</p>
-                        <div class="course-rating">
-                            <span class="stars">&#9733;</span>
-                            <span class="rating-num">4.7</span>
-                            <span class="rating-students">(1,380 students)</span>
-                        </div>
-                        <div class="course-meta-bottom">
-                            <span class="course-duration"><i class="bi bi-clock"></i> 7 Weeks</span>
-                            <span class="course-price">$119</span>
-                        </div>
-                    </div>
-                </article>
+                <?php if (!empty($relatedCourses)): ?>
+                    <?php foreach ($relatedCourses as $relatedCourse): ?>
+                        <article class="course-card" data-course-id="<?php echo (int)$relatedCourse['id']; ?>" role="button" tabindex="0" aria-label="Open <?php echo htmlspecialchars($relatedCourse['title']); ?>">
+                            <div class="course-thumb" style="background-image:url('<?php echo htmlspecialchars($relatedCourse['thumbnail_url']); ?>')"></div>
+                            <div class="course-card-content">
+                                <div class="course-meta-top">
+                                    <span class="course-category"><?php echo htmlspecialchars($relatedCourse['level_label']); ?></span>
+                                    <span class="course-level"><?php echo htmlspecialchars($relatedCourse['level_label']); ?></span>
+                                </div>
+                                <h3 class="course-title"><?php echo htmlspecialchars($relatedCourse['title']); ?></h3>
+                                <p class="course-instructor">By <?php echo htmlspecialchars($relatedCourse['instructor_name']); ?></p>
+                                <div class="course-rating">
+                                    <span class="stars">&#9733;</span>
+                                    <span class="rating-num"><?php echo htmlspecialchars(number_format((float)$relatedCourse['rating'], 1)); ?></span>
+                                    <span class="rating-students">(<?php echo htmlspecialchars(number_format((int)$relatedCourse['student_count_estimate'])); ?> students)</span>
+                                </div>
+                                <div class="course-meta-bottom">
+                                    <span class="course-duration"><i class="bi bi-clock"></i> <?php echo htmlspecialchars((string)$relatedCourse['duration_label']); ?></span>
+                                    <span class="course-price"><?php echo htmlspecialchars((string)$relatedCourse['price_label']); ?></span>
+                                </div>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="empty-state">More related courses will appear here soon.</div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -624,6 +494,9 @@ $courseContextId = (int)($courseContext['id'] ?? 0);
     <script>
     window.eduSkillCourseDetailsContext = {
         courseId: <?php echo (int)$courseContextId; ?>,
+        courseTitle: <?php echo json_encode($courseTitle, JSON_UNESCAPED_UNICODE); ?>,
+        baseUrl: <?php echo json_encode((string)BASE_URL, JSON_UNESCAPED_UNICODE); ?>,
+        promoVideoUrl: <?php echo json_encode($coursePromoVideoUrl, JSON_UNESCAPED_UNICODE); ?>,
         isLearnerLoggedIn: <?php echo $activeLearnerId > 0 ? 'true' : 'false'; ?>,
         csrfToken: <?php echo json_encode((string)ems_csrf_token(), JSON_UNESCAPED_UNICODE); ?>,
         learnerApiUrl: <?php echo json_encode((string)(BASE_URL . 'learner/api.php'), JSON_UNESCAPED_UNICODE); ?>,

@@ -7,6 +7,10 @@
  * Currently a placeholder landing page structure.
  */
 
+// Load configuration and database connection for dynamic course loading
+require_once(__DIR__ . '/config/config.php');
+require_once(__DIR__ . '/config/db.php');
+
 $extraStylesheets = ['about-aaditya.css', 'partnership-aaditya.css', 'testinomials-aaditya.css', 'support-aaditya.css'];
 $extraScripts = ['about-aaditya.js', 'partnership-aaditya.js', 'testinomials-aaditya.js', 'support-aaditya.js'];
 ?>

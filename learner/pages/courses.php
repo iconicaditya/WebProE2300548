@@ -31,6 +31,13 @@ $portalCourses = ems_learner_fetch_learning_portal_courses($conn, $learnerUserId
     font-family: 'Inter', system-ui, sans-serif;
 }
 
+/* Expand learner content width specifically for course portal page */
+body.learner-dashboard .provider-main-content {
+    max-width: none !important;
+    margin-right: 0 !important;
+    width: auto;
+}
+
 /* ── view toggle ── */
 .cp-view          { display: none; }
 .cp-view.active   { display: block; }
@@ -42,49 +49,175 @@ $portalCourses = ems_learner_fetch_learning_portal_courses($conn, $learnerUserId
 
 .enrolled-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 22px;
+    align-items: stretch;
 }
 .enroll-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    border: 1px solid #d8e5ef;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 16px rgba(15,23,42,0.06);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
     cursor: pointer;
-    transition: transform .22s, box-shadow .22s;
+    transition: transform .25s, box-shadow .25s, border-color .25s;
+    position: relative;
+    isolation: isolate;
 }
-.enroll-card:hover { transform: translateY(-5px); box-shadow: 0 14px 32px rgba(15,23,42,0.13); }
+.enroll-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #0f766e, #2ba5c7, #5bb4d6);
+    opacity: 0;
+    transition: opacity .25s ease;
+    z-index: 2;
+}
+.enroll-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.14);
+    border-color: #bcd4e2;
+}
+.enroll-card:hover::before { opacity: 1; }
 .enroll-thumb {
-    aspect-ratio: 16/9;
+    aspect-ratio: 16 / 9;
     background-size: cover;
     background-position: center;
     position: relative;
+    min-height: 168px;
 }
 .enroll-thumb-overlay {
     position: absolute; inset: 0;
-    background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.5) 100%);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.05) 8%, rgba(15, 23, 42, 0.62) 100%);
 }
 .enroll-badge {
     position: absolute; top: 10px; left: 10px;
-    background: var(--accent); color: #fff;
-    font-size: 0.7rem; font-weight: 700;
-    padding: 3px 10px; border-radius: 20px;
+    background: rgba(65, 134, 160, 0.92);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    backdrop-filter: blur(2px);
+    z-index: 1;
 }
-.enroll-body     { padding: 14px 16px 16px; }
-.enroll-title    { margin: 0 0 3px; font-size: 0.97rem; font-weight: 700; color: var(--text); line-height: 1.35; }
-.enroll-inst     { margin: 0 0 10px; font-size: 0.8rem; color: var(--muted); }
-.pb-wrap         { margin-bottom: 12px; }
-.pb-label        { display: flex; justify-content: space-between; font-size: 0.73rem; font-weight: 600; color: var(--muted); margin-bottom: 5px; }
-.pb-track        { height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
-.pb-fill         { height: 100%; background: linear-gradient(90deg, var(--success), #14b8a6); border-radius: 99px; }
+.enroll-progress-chip {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(15, 118, 110, 0.9);
+    padding: 4px 9px;
+    border-radius: 999px;
+    z-index: 1;
+}
+.enroll-body {
+    padding: 16px;
+    display: grid;
+    gap: 11px;
+}
+.enroll-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #142338;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.7em;
+}
+.enroll-inst {
+    margin: 0;
+    font-size: 0.83rem;
+    color: #607387;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.inst-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #3c9aba;
+    flex-shrink: 0;
+}
+.pb-wrap {
+    background: #f6fafc;
+    border: 1px solid #e2edf4;
+    border-radius: 11px;
+    padding: 10px 11px;
+}
+.pb-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.76rem;
+    color: #617487;
+    margin-bottom: 7px;
+}
+.pb-label strong {
+    font-size: 0.78rem;
+    color: #1f2d3d;
+}
+.pb-track {
+    height: 8px;
+    background: #dbe6ef;
+    border-radius: 99px;
+    overflow: hidden;
+}
+.pb-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0f766e 0%, #14b8a6 52%, #4cc9b0 100%);
+    border-radius: 99px;
+}
+.enroll-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.enroll-status {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+.enroll-status.active {
+    color: #0f766e;
+    background: #ecfdf5;
+    border-color: #b9f2d7;
+}
+.enroll-status.complete {
+    color: #1d4ed8;
+    background: #eff6ff;
+    border-color: #c7ddff;
+}
 .btn-continue {
-    width: 100%; background: var(--accent); color: #fff;
-    border: none; border-radius: 8px; padding: 9px 0;
-    font-size: 0.88rem; font-weight: 700; cursor: pointer;
-    transition: background .15s;
+    flex: 1;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dk) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.89rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .16s ease, box-shadow .18s ease, filter .16s ease;
+    box-shadow: 0 7px 16px rgba(65, 134, 160, 0.28);
 }
-.btn-continue:hover { background: var(--accent-dk); }
+.btn-continue:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(65, 134, 160, 0.33);
+    filter: brightness(1.03);
+}
 
 /* ══ COURSE PORTAL ══ */
 .portal-wrap { display: flex; flex-direction: column; }
@@ -171,19 +304,36 @@ $portalCourses = ems_learner_fetch_learning_portal_courses($conn, $learnerUserId
     min-width: 0; flex: 1; overflow: hidden;
 }
 .viewer-content {
-    flex: 1; background: #000;
-    min-height: 500px;
-    display: flex; position: relative;
-    width: 100%; overflow: hidden;
+    flex: 1;
+    background: #000;
+    min-height: clamp(560px, 72vh, 920px);
+    display: flex;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    align-items: stretch;
 }
 .viewer-video {
     width: 100%; min-height: 500px;
     display: block; background: #000; object-fit: contain;
 }
 .viewer-pdf {
-    width: 100%; height: 500px;
-    border: none; background: #fff;
+    width: 100%;
+    height: 100%;
+    min-height: clamp(560px, 72vh, 920px);
+    border: none;
+    background: #fff;
     display: none;
+}
+.viewer-content.pdf-active {
+    background: #ecf2f7;
+    padding: 12px;
+}
+.viewer-content.pdf-active .viewer-pdf {
+    border: 1px solid #d2dee8;
+    border-radius: 12px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+    min-height: calc(clamp(560px, 72vh, 920px) - 24px);
 }
 .viewer-quiz, .viewer-project {
     display: none; width: 100%; padding: 32px;
@@ -255,7 +405,7 @@ $portalCourses = ems_learner_fetch_learning_portal_courses($conn, $learnerUserId
 @media (max-width: 900px) {
     .courses-page { --sidebar-w: 260px; }
     .portal-body { width: calc(100% + 48px); margin-left: -24px; margin-right: -24px; }
-    .enrolled-grid { grid-template-columns: 1fr 1fr; }
+    .enrolled-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
 }
 @media (max-width: 680px) {
     .portal-body {
@@ -264,9 +414,15 @@ $portalCourses = ems_learner_fetch_learning_portal_courses($conn, $learnerUserId
         margin-left: -16px; margin-right: -16px;
     }
     .portal-sidebar { max-height: 240px; border-right: none; border-bottom: 1px solid var(--border); }
-    .enrolled-grid  { grid-template-columns: 1fr; }
+    .enrolled-grid  { grid-template-columns: 1fr; gap: 14px; }
+    .enroll-body { padding: 14px; gap: 10px; }
+    .enroll-footer { flex-direction: column; align-items: stretch; }
+    .btn-continue { width: 100%; }
     .portal-header h1 { font-size: 1.25rem; }
     .btn-nav { padding: 9px 14px; font-size: 0.8rem; }
+    .viewer-content { min-height: 440px; }
+    .viewer-pdf { min-height: 440px; }
+    .viewer-content.pdf-active { padding: 8px; }
 }
 </style>
 
@@ -359,6 +515,21 @@ var currentCourse    = null;
 var flatLessons      = [];
 var currentIdx       = 0;
 
+function esc(value){
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function normalizeProgress(value){
+    var n = Number(value);
+    if (!Number.isFinite(n)) return 0;
+    return Math.max(0, Math.min(100, Math.round(n)));
+}
+
 /* ══ RENDER ENROLLED GRID ══ */
 function renderGrid(){
     var g = document.getElementById('enrolledGrid');
@@ -370,21 +541,28 @@ function renderGrid(){
     }
 
     COURSES.forEach(function(c){
+        var progress = normalizeProgress(c.progress);
+        var statusClass = progress >= 100 ? 'complete' : 'active';
+        var statusLabel = progress >= 100 ? 'Completed' : 'In progress';
         var card = document.createElement('div');
         card.className = 'enroll-card';
         card.innerHTML =
-            '<div class="enroll-thumb" style="background-image:url(\''+c.image+'\')">' +
+            '<div class="enroll-thumb" style="background-image:url(\''+esc(c.image)+'\')">' +
                 '<div class="enroll-thumb-overlay"></div>' +
-                '<span class="enroll-badge">'+c.category+'</span>' +
+                '<span class="enroll-badge">'+esc(c.category || 'General')+'</span>' +
+                '<span class="enroll-progress-chip">'+progress+'% complete</span>' +
             '</div>' +
             '<div class="enroll-body">' +
-                '<h3 class="enroll-title">'+c.title+'</h3>' +
-                '<p class="enroll-inst">By '+c.instructor+'</p>' +
+                '<h3 class="enroll-title">'+esc(c.title || 'Untitled course')+'</h3>' +
+                '<p class="enroll-inst"><span class="inst-dot"></span>By '+esc(c.instructor || 'Instructor')+'</p>' +
                 '<div class="pb-wrap">' +
-                    '<div class="pb-label"><span>Progress</span><span>'+c.progress+'%</span></div>' +
-                    '<div class="pb-track"><div class="pb-fill" style="width:'+c.progress+'%"></div></div>' +
+                    '<div class="pb-label"><span>Learning Progress</span><strong>'+progress+'%</strong></div>' +
+                    '<div class="pb-track"><div class="pb-fill" style="width:'+progress+'%"></div></div>' +
                 '</div>' +
-                '<button class="btn-continue">&#9654; Continue Learning</button>' +
+                '<div class="enroll-footer">' +
+                    '<span class="enroll-status '+statusClass+'">'+statusLabel+'</span>' +
+                    '<button class="btn-continue">&#9654; Continue Learning</button>' +
+                '</div>' +
             '</div>';
         card.querySelector('.btn-continue').addEventListener('click', function(e){
             e.stopPropagation(); openPortal(c.id);
@@ -488,14 +666,20 @@ function loadLesson(idx){
     vid.style.display='none'; pdf.style.display='none';
     qz.style.display='none';  pj.style.display='none';
     vc.style.background='#000';
+    vc.classList.remove('pdf-active');
 
     if(les.type==='video'){
         vid.style.display='block';
         vid.src=les.src; vid.load();
     } else if(les.type==='pdf'){
         pdf.style.display='block';
-        pdf.src=les.src;
-        vc.style.background='#fff';
+        var pdfSrc = String(les.src || '');
+        if (pdfSrc !== '') {
+            pdfSrc += (pdfSrc.indexOf('#') >= 0 ? '&' : '#') + 'zoom=page-width&view=FitH';
+        }
+        pdf.src=pdfSrc;
+        vc.style.background='#ecf2f7';
+        vc.classList.add('pdf-active');
     } else if(les.type==='quiz'){
         qz.style.display='block';
         vc.style.background='#fff';

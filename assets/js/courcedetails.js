@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
 function getCourseDetailsContext() {
     const fallback = {
         courseId: 0,
+        courseTitle: 'Course',
+        baseUrl: '/',
+        promoVideoUrl: '',
         isLearnerLoggedIn: false,
         csrfToken: '',
         learnerApiUrl: '',
@@ -25,6 +28,23 @@ function getCourseDetailsContext() {
     }
 
     return Object.assign({}, fallback, window.eduSkillCourseDetailsContext || {});
+}
+
+function buildCourseDetailsUrl(courseId) {
+    const ctx = getCourseDetailsContext();
+    const safeId = Number(courseId || 0);
+    if (!Number.isFinite(safeId) || safeId <= 0) {
+        return '';
+    }
+    return (ctx.baseUrl || '/') + 'pages/courcedetails.php?id=' + encodeURIComponent(String(safeId));
+}
+
+function openCourseDetails(courseId) {
+    const targetUrl = buildCourseDetailsUrl(courseId);
+    if (!targetUrl) {
+        return;
+    }
+    window.location.href = targetUrl;
 }
 
 function postLearnerAction(action, payload) {
@@ -100,15 +120,11 @@ function initializeEnrollButton() {
         enrollBtn.addEventListener('click', function(e) {
             e.preventDefault();
 
-            if (!ctx.isLearnerLoggedIn) {
-                window.location.href = ctx.loginUrl || 'auth/login.php';
-                return;
-            }
-
+            const baseUrl = String(ctx.baseUrl || '/');
             const courseId = Number(this.getAttribute('data-course-id') || ctx.courseId || 0);
             const paymentUrl = courseId > 0
-                ? ('payment.php?course_id=' + encodeURIComponent(String(courseId)))
-                : 'payment.php';
+                ? (baseUrl + 'pages/payment.php?course_id=' + encodeURIComponent(String(courseId)))
+                : (baseUrl + 'pages/payment.php');
 
             window.location.href = paymentUrl;
         });
@@ -224,6 +240,62 @@ function initializeShareButtons() {
     });
 }
 
+function initializeRelatedCourseCards() {
+    const relatedCards = document.querySelectorAll('.courses-grid-related .course-card[data-course-id]');
+    if (!relatedCards.length) {
+        return;
+    }
+
+    relatedCards.forEach(function(card) {
+        const courseId = Number(card.getAttribute('data-course-id') || 0);
+        if (!Number.isFinite(courseId) || courseId <= 0) {
+            return;
+        }
+
+        card.style.cursor = 'pointer';
+
+        card.addEventListener('click', function() {
+            openCourseDetails(courseId);
+        });
+
+        card.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openCourseDetails(courseId);
+            }
+        });
+    });
+}
+
+function initializePromoPreview() {
+    const ctx = getCourseDetailsContext();
+    const playBtn = document.querySelector('.play-btn-overlay');
+    if (!playBtn) {
+        return;
+    }
+
+    const promoUrl = String(playBtn.getAttribute('data-promo-url') || ctx.promoVideoUrl || '').trim();
+
+    if (!promoUrl) {
+        playBtn.disabled = true;
+        playBtn.style.opacity = '0.6';
+        playBtn.style.cursor = 'not-allowed';
+        return;
+    }
+
+    playBtn.addEventListener('click', function(event) {
+        event.preventDefault();
+        try {
+            const win = window.open(promoUrl, '_blank', 'noopener,noreferrer');
+            if (!win) {
+                window.location.href = promoUrl;
+            }
+        } catch (error) {
+            window.location.href = promoUrl;
+        }
+    });
+}
+
 function shareOnFacebook() {
     const url = window.location.href;
     const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
@@ -268,33 +340,9 @@ function initializeSmoothScroll() {
     });
 }
 
-// Play Button for Video
 document.addEventListener('DOMContentLoaded', function() {
-    const playButton = document.querySelector('.play-button');
-    
-    if (playButton) {
-        playButton.addEventListener('click', function() {
-            console.log('Play video');
-            // Add your video player logic here
-            alert('Video player coming soon!');
-        });
-    }
-});
-
-// Course Card Hover Effects
-document.addEventListener('DOMContentLoaded', function() {
-    const courseCards = document.querySelectorAll('.course-card-item');
-    
-    courseCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transition = 'all 0.3s ease';
-        });
-        
-        card.addEventListener('click', function() {
-            // Navigate to course details
-            console.log('Navigate to course');
-        });
-    });
+    initializeRelatedCourseCards();
+    initializePromoPreview();
 });
 
 // Intersection Observer for Animations
@@ -337,18 +385,28 @@ document.head.appendChild(style);
 window.addEventListener('scroll', function() {
     const sidebar = document.querySelector('.course-sidebar');
     if (sidebar) {
+        if (window.innerWidth < 992) {
+            sidebar.style.position = 'static';
+            sidebar.style.top = 'auto';
+            sidebar.style.width = '100%';
+            sidebar.style.maxWidth = '100%';
+            return;
+        }
+
         const scrollTop = window.scrollY;
         const navHeight = 80;
         
         if (scrollTop > 300) {
-            sidebar.style.position = 'fixed';
+            sidebar.style.position = 'sticky';
             sidebar.style.top = navHeight + 'px';
-            sidebar.style.width = 'calc(33.333% - 16px)';
-            sidebar.style.zIndex = '100';
+            sidebar.style.width = '100%';
+            sidebar.style.maxWidth = '100%';
+            sidebar.style.zIndex = '10';
         } else {
             sidebar.style.position = 'sticky';
             sidebar.style.top = '80px';
-            sidebar.style.width = 'auto';
+            sidebar.style.width = '100%';
+            sidebar.style.maxWidth = '100%';
         }
     }
 });
@@ -356,11 +414,17 @@ window.addEventListener('scroll', function() {
 // Responsive Sidebar
 function handleResponsiveSidebar() {
     const sidebar = document.querySelector('.course-sidebar');
-    if (window.innerWidth < 992) {
-        if (sidebar) {
+    if (sidebar) {
+        if (window.innerWidth < 992) {
             sidebar.style.position = 'static';
             sidebar.style.top = 'auto';
-            sidebar.style.width = 'auto';
+            sidebar.style.width = '100%';
+            sidebar.style.maxWidth = '100%';
+        } else {
+            sidebar.style.position = 'sticky';
+            sidebar.style.top = '80px';
+            sidebar.style.width = '100%';
+            sidebar.style.maxWidth = '100%';
         }
     }
 }
