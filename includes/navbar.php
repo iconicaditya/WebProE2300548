@@ -82,6 +82,12 @@ $navShowLearnerActions = !$navIsLoggedIn || $navRole === 'learner';
         </span>
         All Courses
       </a>
+      <a href="<?php echo BASE_URL; ?>pages/faq.php" class="navbar-action-link">
+        <span class="nav-link-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7.03 3 3 6.58 3 11c0 2.39 1.18 4.53 3.04 6.01.05.04.08.1.08.16V21l3.12-1.57c.06-.03.12-.04.19-.03.52.08 1.05.12 1.57.12 4.97 0 9-3.58 9-8s-4.03-8-9-8z" stroke="#6a6f73" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.75 9.75a2.25 2.25 0 1 1 3.88 1.55c-.5.5-1.13.93-1.13 1.7" stroke="#6a6f73" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="15.75" r=".75" fill="#6a6f73"/></svg>
+        </span>
+        FAQ
+      </a>
       <?php if ($navShowLearnerActions): ?>
       <span class="cart-icon" title="Cart">
         <svg width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 19a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm10 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM2 3h2.27a1 1 0 0 1 .98.8l2.1 10.5a1 1 0 0 0 .98.8h7.72a1 1 0 0 0 .98-.8l1.38-6.5H5.25" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>

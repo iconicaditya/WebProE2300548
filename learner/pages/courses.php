@@ -9,6 +9,8 @@ $learnerUserId = (int)($learnerUserId ?? ($portalUser['id'] ?? 0));
 $portalCourses = ems_learner_fetch_learning_portal_courses($conn, $learnerUserId, 30);
 ?>
 
+<main class="provider-main-content courses-main-content">
+
 <style>
 /* ══════════════════════════════════════════════════════
    COURSE PORTAL — ALL STYLES SELF-CONTAINED
@@ -27,15 +29,23 @@ $portalCourses = ems_learner_fetch_learning_portal_courses($conn, $learnerUserId
     --surface:    #ffffff;
     --text:       #1e293b;
     --muted:      #64748b;
-    --sidebar-w:  340px;
+    --sidebar-w:  320px;
+    --card-radius: 18px;
     font-family: 'Inter', system-ui, sans-serif;
+    width: min(1380px, 100%);
+    margin: 0 auto;
+    min-width: 0;
 }
 
 /* Expand learner content width specifically for course portal page */
-body.learner-dashboard .provider-main-content {
+body.learner-dashboard .provider-main-content.courses-main-content {
     max-width: none !important;
     margin-right: 0 !important;
-    width: auto;
+    width: 100%;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 22px 26px 30px;
 }
 
 /* ── view toggle ── */
@@ -43,26 +53,72 @@ body.learner-dashboard .provider-main-content {
 .cp-view.active   { display: block; }
 
 /* ══ MY LEARNING LIST ══ */
-.ml-header        { margin-bottom: 24px; }
-.ml-header h1     { margin: 0 0 4px; font-size: 1.75rem; font-weight: 800; color: var(--text); }
-.ml-header p      { margin: 0; color: var(--muted); font-size: 0.93rem; }
+.ml-header {
+    margin-bottom: 22px;
+    display: grid;
+    gap: 6px;
+}
+.ml-header h1 {
+    margin: 0;
+    font-size: clamp(1.42rem, 2.2vw, 2rem);
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.02em;
+}
+.ml-header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.58;
+    max-width: 760px;
+}
 
 .enrolled-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-    gap: 22px;
+    grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
+    gap: 20px;
     align-items: stretch;
 }
+
+.sidebar-empty {
+    padding: 16px;
+    font-size: 0.84rem;
+    color: #607387;
+}
+
+.enrolled-empty {
+    grid-column: 1 / -1;
+    border: 1px dashed #c9d8e5;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbfd 100%);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.enrolled-empty h3 {
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+    color: #203043;
+}
+
+.enrolled-empty p {
+    margin: 0;
+    font-size: 0.92rem;
+    color: #607387;
+}
+
 .enroll-card {
     background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
     border: 1px solid #d8e5ef;
-    border-radius: 16px;
+    border-radius: var(--card-radius);
     overflow: hidden;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
     cursor: pointer;
     transition: transform .25s, box-shadow .25s, border-color .25s;
     position: relative;
     isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
 }
 .enroll-card::before {
     content: '';
@@ -87,7 +143,7 @@ body.learner-dashboard .provider-main-content {
     background-size: cover;
     background-position: center;
     position: relative;
-    min-height: 168px;
+    min-height: 172px;
 }
 .enroll-thumb-overlay {
     position: absolute; inset: 0;
@@ -117,13 +173,15 @@ body.learner-dashboard .provider-main-content {
     z-index: 1;
 }
 .enroll-body {
-    padding: 16px;
-    display: grid;
+    padding: 16px 16px 18px;
+    display: flex;
+    flex-direction: column;
     gap: 11px;
+    flex: 1;
 }
 .enroll-title {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 1.04rem;
     font-weight: 800;
     color: #142338;
     line-height: 1.35;
@@ -153,6 +211,7 @@ body.learner-dashboard .provider-main-content {
     border: 1px solid #e2edf4;
     border-radius: 11px;
     padding: 10px 11px;
+    margin-top: 2px;
 }
 .pb-label {
     display: flex;
@@ -181,6 +240,7 @@ body.learner-dashboard .provider-main-content {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+    margin-top: auto;
 }
 .enroll-status {
     font-size: 0.72rem;
@@ -212,11 +272,19 @@ body.learner-dashboard .provider-main-content {
     cursor: pointer;
     transition: transform .16s ease, box-shadow .18s ease, filter .16s ease;
     box-shadow: 0 7px 16px rgba(65, 134, 160, 0.28);
+    min-height: 42px;
 }
 .btn-continue:hover {
     transform: translateY(-1px);
     box-shadow: 0 10px 22px rgba(65, 134, 160, 0.33);
     filter: brightness(1.03);
+}
+.enroll-card:focus-visible,
+.btn-continue:focus-visible,
+.portal-back:focus-visible,
+.btn-nav:focus-visible {
+    outline: 3px solid rgba(65, 134, 160, 0.38);
+    outline-offset: 2px;
 }
 
 /* ══ COURSE PORTAL ══ */
@@ -246,10 +314,9 @@ body.learner-dashboard .provider-main-content {
     margin-top: 18px;
     background: var(--surface);
     box-shadow: 0 4px 24px rgba(15,23,42,0.07);
-    /* Stretch to full width regardless of parent padding */
-    width: calc(100% + 80px);    /* cancel 40px padding on each side */
-    margin-left: -40px;
-    margin-right: -40px;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
     box-sizing: border-box;
 }
 
@@ -313,6 +380,20 @@ body.learner-dashboard .provider-main-content {
     overflow: hidden;
     align-items: stretch;
 }
+.viewer-empty-state {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 18px;
+    color: #64748b;
+    font-size: 0.92rem;
+    background: linear-gradient(180deg, #f8fbfd 0%, #f0f6fa 100%);
+    z-index: 1;
+}
+.viewer-empty-state.hidden { display: none; }
 .viewer-video {
     width: 100%; min-height: 500px;
     display: block; background: #000; object-fit: contain;
@@ -402,16 +483,25 @@ body.learner-dashboard .provider-main-content {
 .btn-nav.prev:hover { background: var(--accent-lt); }
 
 /* ── Responsive ── */
+@media (max-width: 1200px) {
+    .courses-page { --sidebar-w: 300px; }
+    .enrolled-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+}
+
 @media (max-width: 900px) {
     .courses-page { --sidebar-w: 260px; }
-    .portal-body { width: calc(100% + 48px); margin-left: -24px; margin-right: -24px; }
-    .enrolled-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+    body.learner-dashboard .provider-main-content.courses-main-content {
+        padding: 18px 18px 24px;
+    }
+    .enrolled-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 }
 @media (max-width: 680px) {
+    body.learner-dashboard .provider-main-content.courses-main-content {
+        padding: 14px 14px 22px;
+    }
     .portal-body {
         grid-template-columns: 1fr;
-        width: calc(100% + 32px);
-        margin-left: -16px; margin-right: -16px;
+        min-height: auto;
     }
     .portal-sidebar { max-height: 240px; border-right: none; border-bottom: 1px solid var(--border); }
     .enrolled-grid  { grid-template-columns: 1fr; gap: 14px; }
@@ -455,6 +545,8 @@ body.learner-dashboard .provider-main-content {
             <!-- Viewer -->
             <div class="portal-viewer">
                 <div class="viewer-content" id="viewerContent">
+
+                    <div id="viewerEmptyState" class="viewer-empty-state">Select a lesson from the left panel to start learning.</div>
 
                     <video id="viewerVideo" class="viewer-video" controls>
                         <source src="" type="video/mp4">
@@ -530,13 +622,38 @@ function normalizeProgress(value){
     return Math.max(0, Math.min(100, Math.round(n)));
 }
 
+function normalizeCourseId(value){
+    return String(value == null ? '' : value);
+}
+
+function courseThumb(value){
+    var src = String(value == null ? '' : value).trim();
+    if (src) return src;
+    return BASE + 'assets/images/cources/web-dev.jpg';
+}
+
+function setViewerEmptyState(show, message){
+    var node = document.getElementById('viewerEmptyState');
+    if (!node) return;
+    if (message) node.textContent = message;
+    if (show) {
+        node.classList.remove('hidden');
+    } else {
+        node.classList.add('hidden');
+    }
+}
+
 /* ══ RENDER ENROLLED GRID ══ */
 function renderGrid(){
     var g = document.getElementById('enrolledGrid');
     g.innerHTML = '';
 
     if (!Array.isArray(COURSES) || COURSES.length === 0) {
-        g.innerHTML = '<p style="margin:0;color:var(--muted);font-size:.93rem;">No enrolled courses found yet.</p>';
+        g.innerHTML =
+            '<div class="enrolled-empty">' +
+                '<h3>No enrolled courses yet</h3>' +
+                '<p>Browse the catalog and enroll to start building your learning journey.</p>' +
+            '</div>';
         return;
     }
 
@@ -546,8 +663,11 @@ function renderGrid(){
         var statusLabel = progress >= 100 ? 'Completed' : 'In progress';
         var card = document.createElement('div');
         card.className = 'enroll-card';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', 'Open course ' + String(c.title || 'Untitled course'));
         card.innerHTML =
-            '<div class="enroll-thumb" style="background-image:url(\''+esc(c.image)+'\')">' +
+            '<div class="enroll-thumb" style="background-image:url(\''+esc(courseThumb(c.image))+'\')">' +
                 '<div class="enroll-thumb-overlay"></div>' +
                 '<span class="enroll-badge">'+esc(c.category || 'General')+'</span>' +
                 '<span class="enroll-progress-chip">'+progress+'% complete</span>' +
@@ -564,6 +684,12 @@ function renderGrid(){
                     '<button class="btn-continue">&#9654; Continue Learning</button>' +
                 '</div>' +
             '</div>';
+        card.addEventListener('keydown', function(e){
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openPortal(c.id);
+            }
+        });
         card.querySelector('.btn-continue').addEventListener('click', function(e){
             e.stopPropagation(); openPortal(c.id);
         });
@@ -575,30 +701,61 @@ function renderGrid(){
 /* ══ OPEN PORTAL ══ */
 function openPortal(id){
     currentCourse = null;
-    for(var i=0;i<COURSES.length;i++){ if(COURSES[i].id===id){ currentCourse=COURSES[i]; break; } }
+    var wantedId = normalizeCourseId(id);
+    for(var i=0;i<COURSES.length;i++){
+        if(normalizeCourseId(COURSES[i].id) === wantedId){
+            currentCourse = COURSES[i];
+            break;
+        }
+    }
     if(!currentCourse) return;
 
-    document.getElementById('portalTitle').textContent = currentCourse.title;
-    document.getElementById('portalDesc').textContent  = currentCourse.desc;
+    document.getElementById('portalTitle').textContent = currentCourse.title || 'Untitled course';
+    document.getElementById('portalDesc').textContent  = currentCourse.desc || 'Continue your enrolled learning path.';
 
     // Build flat lesson array
     flatLessons = [];
-    currentCourse.sections.forEach(function(s){ s.lessons.forEach(function(l){ flatLessons.push(l); }); });
+    var sections = Array.isArray(currentCourse.sections) ? currentCourse.sections : [];
+    sections.forEach(function(s){
+        var lessons = Array.isArray(s.lessons) ? s.lessons : [];
+        lessons.forEach(function(l){ flatLessons.push(l); });
+    });
 
-    buildSidebar();
+    buildSidebar(sections);
 
     document.getElementById('cpViewList').classList.remove('active');
     document.getElementById('cpViewPortal').classList.add('active');
 
-    loadLesson(0);
+    if (flatLessons.length > 0) {
+        loadLesson(0);
+        setViewerEmptyState(false);
+    } else {
+        setViewerEmptyState(true, 'No lessons are available for this course yet.');
+        document.getElementById('curLessonName').textContent = 'No lessons available';
+        document.getElementById('curLessonMeta').textContent = '';
+        document.getElementById('btnPrev').disabled = true;
+        document.getElementById('btnNext').disabled = true;
+        document.getElementById('viewerVideo').style.display='none';
+        document.getElementById('viewerPdf').style.display='none';
+        document.getElementById('viewerQuiz').style.display='none';
+        document.getElementById('viewerProject').style.display='none';
+        document.getElementById('viewerContent').classList.remove('pdf-active');
+        document.getElementById('viewerContent').style.background='#f8fbfd';
+    }
 }
 
 /* ══ BUILD SIDEBAR ══ */
-function buildSidebar(){
+function buildSidebar(sections){
     var sb = document.getElementById('portalSidebar');
     sb.innerHTML = '';
     var li = 0;
-    currentCourse.sections.forEach(function(sec, si){
+
+    if (!Array.isArray(sections) || sections.length === 0) {
+        sb.innerHTML = '<div class="sidebar-empty">Course modules are being prepared and will appear here soon.</div>';
+        return;
+    }
+
+    sections.forEach(function(sec, si){
         var secEl = document.createElement('div');
         secEl.className = 'sidebar-section';
 
@@ -642,6 +799,7 @@ function loadLesson(idx){
     if(idx<0||idx>=flatLessons.length) return;
     currentIdx = idx;
     var les = flatLessons[idx];
+    setViewerEmptyState(false);
 
     // Highlight sidebar
     document.querySelectorAll('.sidebar-lesson').forEach(function(el){ el.classList.remove('active'); });
@@ -714,5 +872,15 @@ window.openPortal = openPortal;
 /* ══ INIT ══ */
 renderGrid();
 
+if (typeof URLSearchParams === 'function') {
+    var params = new URLSearchParams(window.location.search || '');
+    var preselectedCourseId = params.get('course_id');
+    if (preselectedCourseId) {
+        openPortal(preselectedCourseId);
+    }
+}
+
 })();
 </script>
+
+</main>
