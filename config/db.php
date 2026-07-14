@@ -10,7 +10,7 @@
 // Database credentials for InfinityFree hosting
 define("DB_HOST", "sql207.infinityfree.com");
 define("DB_USER", "ifo_42408021");
-define("DB_PASS", "306662306662");
+define("DB_PASS", "j88s62384442");
 define("DB_NAME", "ifo_42408021_eduskill_database");
 
 // Create connection using MySQLi
