@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Database Connection Configuration
  * EduSkill Marketplace System (EMS)
@@ -7,11 +7,11 @@
  * No queries should be executed here - connection only.
  */
 
-// Database credentials for XAMPP localhost
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'eduskill_marketplace');
+// Database credentials for InfinityFree hosting
+define("DB_HOST", "sql207.infinityfree.com");
+define("DB_USER", "ifo_42408021");
+define("DB_PASS", "306662306662");
+define("DB_NAME", "ifo_42408021_eduskill_database");
 
 // Create connection using MySQLi
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
